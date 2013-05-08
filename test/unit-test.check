@@ -1,0 +1,33 @@
+#include <unistd.h>
+#include "socket.h"
+
+#suite irc bot
+#tcase sockets
+
+int sock;
+
+void setup_socket(void) {
+
+	sock = sock_connect(SERVER, PORT);
+}
+
+void close_socket(void) {
+
+	close(sock);
+}
+
+#test socket_connect
+	ck_assert_int_ge(sock, 0);
+
+#test socket_write
+	ssize_t n = sock_write(sock, "rofl", 4);
+	ck_assert_msg(n == 4 || n == -1, "Unexpected amount of bytes sent");
+
+	n = sock_write(sock, "troll", 0);
+	ck_assert_msg(n == 0 || n == -1, "Unexpected amount of bytes sent");
+
+#test-exit(1) exit_value
+	sock_write(sock, "fail", -1);
+
+#main-pre
+	tcase_add_unchecked_fixture(tc1_1, setup_socket, close_socket);
