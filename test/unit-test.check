@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include "socket.h"
+#include "irc.h"
 
 #suite irc bot
 #tcase sockets
@@ -16,18 +17,28 @@ void close_socket(void) {
 	close(sock);
 }
 
-#test socket_connect
-	ck_assert_int_ge(sock, 0);
+#test socket_descriptor
+	ck_assert_msg(sock >= 0, "Socket creation failed");
 
-#test socket_write
+#test write_equal_size
 	ssize_t n = sock_write(sock, "rofl", 4);
 	ck_assert_msg(n == 4 || n == -1, "Unexpected amount of bytes sent");
 
-	n = sock_write(sock, "troll", 0);
+#test write_smaller_size
+	ssize_t n = sock_write(sock, "troll", 0);
 	ck_assert_msg(n == 0 || n == -1, "Unexpected amount of bytes sent");
 
-#test-exit(1) exit_value
-	sock_write(sock, "fail", -1);
+#test-signal(6) write_bigger_than_buffer_size
+	sock_write(sock, "fail", 5);
+
+#test-signal(6) write_negative_size
+	sock_write(sock, "also fail", -1);
+
+#tcase irc
+#test irc_connection
+	sock = sock_connect(SERVER, PORT);
+	Irc freenode = irc_connect(sock, NICK, USER);
+	ck_assert_msg(freenode != NULL, "irc connection failed");
 
 #main-pre
 	tcase_add_unchecked_fixture(tc1_1, setup_socket, close_socket);

@@ -5,6 +5,7 @@
 #include <netdb.h>
 #include "socket.h"
 #include "wrapper.h"
+#include <assert.h>
 
 int sock_connect(const char *server, const char *port) {
 
@@ -22,7 +23,7 @@ int sock_connect(const char *server, const char *port) {
 	// Return addresses according to the filter criteria
 	ret_value = getaddrinfo(server, port, &addr_filter, &addr_holder);
 	if (ret_value != 0)
-		exit_msg_error("getaddrinfo", gai_strerror(ret_value));
+		exit_msg_details("getaddrinfo", gai_strerror(ret_value));
 
 	sock = -1;
 	for (addr_iterator = addr_holder; addr_iterator != NULL; addr_iterator = addr_holder->ai_next) {
@@ -48,16 +49,18 @@ ssize_t sock_write(int sock, const char *buf, size_t n) {
 	size_t n_left = n;
 	const char *buf_marker = buf;
 
+	assert(n <= strlen(buf) && "Write length is bigger than buffer size");
+
 	while (n_left > 0) {
 		n_sent = write(sock, buf_marker, n_left);
-		if (n_sent < 0 && errno == EINTR)
+		if (n_sent < 0 && errno == EINTR) // Interrupted by signal, retry
 			n_sent = 0;
 		else if (n_sent < 0) {
-			exit_msg("write");
+			exit_errno("write");
 			return -1;
 		}
 		n_left -= n_sent;
-		buf_marker += n_sent;
+		buf_marker += n_sent; // Advance buffer pointer to the next unsent bytes
 	}
 	return n;
 }
