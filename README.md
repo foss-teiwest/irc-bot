@@ -1,9 +1,5 @@
 Installation
 -
-Create bin folder inside project directory
-
-```mkdir bin```
-
 Run unit tests if check framework is installed
 
 ```make test```
@@ -11,3 +7,7 @@ Run unit tests if check framework is installed
 Build main program
 
 ```make```
+
+Build main program with optimizations
+
+```make release```

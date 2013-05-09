@@ -31,6 +31,12 @@ ifeq "$(MAKECMDGOALS)" "test"
 	CFLAGS += -g --coverage
 endif
 
+# Disable assertions and enable gcc optimizations for "release" rule
+ifeq "$(MAKECMDGOALS)" "release"
+	CFLAGS += -O2
+	CPPFLAGS += -DNDEBUG
+endif
+
 # Build main program
 $(OUTDIR)/$(FILENAME): $(OBJFILES)
 	gcc $^ -o $@
@@ -57,9 +63,15 @@ $(OUTDIR)/%.o: $(SRCDIR-TEST)/%.c
 $(SRCDIR-TEST)/%.c: $(SRCDIR-TEST)/%.check
 	~/checkmk $< >$@
 
+release: outdir clean $(OUTDIR)/$(FILENAME)
+
+# Create output directory
+outdir:
+	mkdir -p $(OUTDIR)
+
 clean:
 	rm -r $(OUTDIR)/*
 	echo bin folder cleaned
 
 # Make sure any files in the project folder with a same name as the ones listed below, do not interfere with our rules
-.PHONY: clean test
+.PHONY: clean test release
