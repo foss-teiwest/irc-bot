@@ -8,19 +8,15 @@
 int main(void) {
 
 	Irc freenode;
-	int socket;
+	int ret_value;
 
-	socket = sock_connect(SERVER, PORT);
-	if (socket < 0)
-		exit_msg("Socket creation failed\n");
-
-	freenode = irc_connect(socket, NICK, USER);
-	if (irc_connected(freenode) == false)
+	freenode = irc_select_server(Freenode);
+	ret_value = irc_connect_server(freenode);
+	if (ret_value < 0)
 		exit_msg("Irc connection failed\n");
 
-	irc_join(freenode, CHAN);
+	sleep(20);
 
-	sleep(15);
-
+	irc_quit_server(freenode);
 	return 0;
 }

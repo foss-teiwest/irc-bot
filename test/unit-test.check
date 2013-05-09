@@ -12,7 +12,7 @@ char test_buffer[BUFSIZE];
 
 void open_socket(void) {
 
-	sock = sock_connect(SERVER, PORT);
+	sock = sock_connect("chat.freenode.net", "6667");
 }
 
 void close_socket(void) {
@@ -48,8 +48,9 @@ void close_file(void) {
 	sock_write(sock, "also fail", -1);
 
 #test irc_connection
-	Irc freenode = irc_connect(sock, NICK, USER);
-	ck_assert_msg(freenode != NULL, "irc connection failed");
+	Irc freenode = irc_select_server(Freenode);
+	int ret_value = irc_connect_server(freenode);
+	ck_assert_msg(ret_value >= 0, "irc connection failed");
 
 #tcase read & write
 #test readbytes
@@ -70,7 +71,6 @@ void close_file(void) {
 		strcat(test_buffer2, test_buffer);
 
 	ck_assert_str_eq("lol\r\ntroll\r\n", test_buffer2);
-
 
 #main-pre
 	tcase_add_unchecked_fixture(tc1_1, open_socket, close_socket);
