@@ -8,6 +8,10 @@
 #include "wrapper.h"
 #include <assert.h>
 
+static int bytes_read;
+static char buffer[BUFSIZE];
+static char *buf_ptr;
+
 int sock_connect(const char *server, const char *port) {
 
 	int sock, ret_value;
@@ -44,18 +48,20 @@ int sock_connect(const char *server, const char *port) {
 	return sock;
 }
 
-ssize_t sock_write(int sock, const char *buf, size_t n) {
+ssize_t sock_write(int sock, const char *buf, size_t len) {
 
 	ssize_t n_sent;
-	size_t n_left = n;
+	size_t n_left = len;
 	const char *buf_marker = buf;
 
-	assert(n <= strlen(buf) && "Write length is bigger than buffer size");
+	assert(len <= strlen(buf) && "Write length is bigger than buffer size");
 
 	while (n_left > 0) {
 		n_sent = write(sock, buf_marker, n_left);
-		if (n_sent < 0 && errno == EINTR) // Interrupted by signal, retry
+		if (n_sent < 0 && errno == EINTR) { // Interrupted by signal, retry
 			n_sent = 0;
+			continue;
+		}
 		else if (n_sent < 0) {
 			perror("write");
 			return -1;
@@ -63,5 +69,48 @@ ssize_t sock_write(int sock, const char *buf, size_t n) {
 		n_left -= n_sent;
 		buf_marker += n_sent; // Advance buffer pointer to the next unsent bytes
 	}
-	return n;
+	return len;
+}
+
+ssize_t sock_readbyte(int sock, char *byte) {
+
+	while (bytes_read <= 0) {
+		bytes_read = read(sock, buffer, BUFSIZE);
+		if (bytes_read < 0 && errno == EINTR) { // Interrupted by signal, retry
+			bytes_read = 0;
+			continue;
+		}
+		else if (bytes_read < 0) {
+			perror("read");
+			return -1;
+		}
+		else if (bytes_read == 0)
+			return 0; // Connection closed
+		buf_ptr = buffer;
+	}
+	bytes_read--;
+	*byte = *buf_ptr++;
+	return 1;
+}
+
+ssize_t sock_readline(int sock, char *line_buf, size_t len) {
+
+	size_t n_read = 0;
+	ssize_t n;
+	char byte;
+
+	while (n_read++ <= len) {
+		n = sock_readbyte(sock, &byte);
+		if (n < 0)
+			return -1;
+		else if (n == 0) {
+			*line_buf = '\0';
+			return n_read - 1; // Connection closed, return bytes read so far
+		}
+		*line_buf++ = byte;
+		if (byte == '\n' && *(line_buf - 2) == '\r')
+			break; // Message complete, we found irc protocol terminators
+	}
+	*line_buf = '\0';
+	return n_read;
 }

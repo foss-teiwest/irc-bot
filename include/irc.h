@@ -4,16 +4,15 @@
 #include <stdbool.h>
 
 #define SERVER  "chat.freenode.net"
-#define PORT 	"6667"
-#define NICK	"botten_anna"
-#define USER	"bot"
-#define CHAN 	"randomblabla"
-
-#define NICKLEN	16
-#define USERLEN	12
-#define CHANLEN 40
-#define BUFSIZE 512
-#define	MAXCHANNELS	1
+#define PORT    "6667"
+#define NICK    "botten_anna"
+#define USER    "bot"
+#define CHAN    "randomblabla"
+#define BUFSIZE  512
+#define NICKLEN  16
+#define USERLEN  15
+#define CHANLEN  40
+#define	MAXCHANS  1
 
 typedef struct irc_type *Irc;
 

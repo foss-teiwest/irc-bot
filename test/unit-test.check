@@ -1,13 +1,16 @@
+#include <stdio.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include "socket.h"
 #include "irc.h"
 
 #suite irc bot
-#tcase sockets
+#tcase sockets & irc
 
-int sock;
+int sock, fd;
+char test_buffer[BUFSIZE];
 
-void setup_socket(void) {
+void open_socket(void) {
 
 	sock = sock_connect(SERVER, PORT);
 }
@@ -15,6 +18,16 @@ void setup_socket(void) {
 void close_socket(void) {
 
 	close(sock);
+}
+
+void open_file(void) {
+
+	fd = open("test/input.txt", O_RDONLY);
+}
+
+void close_file(void) {
+
+	close(fd);
 }
 
 #test socket_descriptor
@@ -34,11 +47,31 @@ void close_socket(void) {
 #test-signal(6) write_negative_size
 	sock_write(sock, "also fail", -1);
 
-#tcase irc
 #test irc_connection
-	sock = sock_connect(SERVER, PORT);
 	Irc freenode = irc_connect(sock, NICK, USER);
 	ck_assert_msg(freenode != NULL, "irc connection failed");
 
+#tcase read & write
+#test readbytes
+	char c;
+	int i;
+
+	for (i = 0; sock_readbyte(fd, &c) > 0; i++)
+		test_buffer[i] = c;
+	test_buffer[i] = '\0';
+
+	ck_assert_str_eq("lol\r\ntroll\r\n", test_buffer);
+
+#test readline
+	char test_buffer2[BUFSIZE] = {0};
+
+	lseek(fd, 0, SEEK_SET);
+	while (sock_readline(fd, test_buffer, BUFSIZE) > 0)
+		strcat(test_buffer2, test_buffer);
+
+	ck_assert_str_eq("lol\r\ntroll\r\n", test_buffer2);
+
+
 #main-pre
-	tcase_add_unchecked_fixture(tc1_1, setup_socket, close_socket);
+	tcase_add_unchecked_fixture(tc1_1, open_socket, close_socket);
+	tcase_add_unchecked_fixture(tc1_2, open_file, close_file);

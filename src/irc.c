@@ -12,11 +12,12 @@ struct irc_type {
 	bool conn_status;
 	char nick[NICKLEN];
 	char user[USERLEN];
-	char curr_chans[MAXCHANNELS][CHANLEN];
+	char curr_chans[MAXCHANS][CHANLEN];
 };
 
-Irc irc_connect(int sock, const char *nick, const char *user) {
+static char buffer[BUFSIZE];
 
+Irc irc_connect(int sock, const char *nick, const char *user) {
 	Irc server;
 	bool ret_value;
 
@@ -50,10 +51,9 @@ Irc irc_connect(int sock, const char *nick, const char *user) {
 bool irc_nick(Irc server, const char *nick) {
 
 	ssize_t n;
-	char buf[BUFSIZE];
 
-	snprintf(buf, BUFSIZE, "NICK %s\r\n", nick);
-	n = sock_write(server->sock, buf, strlen(buf));
+	snprintf(buffer, BUFSIZE, "NICK %s\r\n", nick);
+	n = sock_write(server->sock, buffer, strlen(buffer));
 	if (n < 0)
 		exit_msg("Irc set nick failed\n");
 
@@ -63,10 +63,9 @@ bool irc_nick(Irc server, const char *nick) {
 void irc_user(Irc server, const char *user) {
 
 	ssize_t n;
-	char buf[BUFSIZE];
 
-	snprintf(buf, BUFSIZE, "USER %s 0 * :%s\r\n", user, user);
-	n = sock_write(server->sock, buf, strlen(buf));
+	snprintf(buffer, BUFSIZE, "USER %s 0 * :%s\r\n", user, user);
+	n = sock_write(server->sock, buffer, strlen(buffer));
 	if (n < 0)
 		exit_msg("Irc set user failed\n");
 }
@@ -74,10 +73,9 @@ void irc_user(Irc server, const char *user) {
 void irc_join(Irc server, const char *channel) {
 
 	ssize_t n;
-	char buf[BUFSIZE];
 
-	snprintf(buf, BUFSIZE, "JOIN #%s\r\n", channel);
-	n = sock_write(server->sock, buf, strlen(buf));
+	snprintf(buffer, BUFSIZE, "JOIN #%s\r\n", channel);
+	n = sock_write(server->sock, buffer, strlen(buffer));
 	if (n < 0)
 		exit_msg("Irc join channel failed\n");
 }

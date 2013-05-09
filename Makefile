@@ -14,17 +14,17 @@ LIBS-TEST    = -lcheck
 ############################# Do not edit below this line #############################
 
 # Prepend output directory and add object extension on main program source files
-SRCFILES = $(shell ls $(SRCDIR))
+SRCFILES := $(shell ls $(SRCDIR))
 TMPFILES = $(SRCFILES:.c=.o)
 OBJFILES = $(addprefix $(OUTDIR)/, $(TMPFILES))
 
 # Do the same for the test program but don't link main.c or .check files
 # Check framework provides it's own main() function.
-SRCFILES-TEST = $(shell ls $(SRCDIR-TEST))
+SRCFILES-TEST := $(shell ls $(SRCDIR-TEST))
 TMPFILES-TEST = $(SRCFILES-TEST:.c=.o)
 OBJFILES-TEST = $(addprefix $(OUTDIR)/, $(TMPFILES-TEST))
 OBJFILES-TEST += $(OBJFILES)
-OBJFILES-TEST := $(filter-out %/main.o %.check, $(OBJFILES-TEST))
+OBJFILES-TEST := $(filter-out %/main.o %.check %.txt, $(OBJFILES-TEST))
 
 # If test rule is selected, build main source files with the extra flags as well
 ifeq "$(MAKECMDGOALS)" "test"
@@ -48,8 +48,8 @@ $(OUTDIR)/%.o: $(SRCDIR)/%.c
 # Run test program and produce coverage stats in html
 test: $(OUTDIR)/$(FILENAME)-test
 	./$<
-	lcov --capture --directory $(OUTDIR)/ --output-file $(OUTDIR)/coverage.info >/dev/null
-	genhtml $(OUTDIR)/coverage.info --output-directory $(OUTDIR)/lcov >/dev/null
+	# lcov --capture --directory $(OUTDIR)/ --output-file $(OUTDIR)/coverage.info >/dev/null
+	# genhtml $(OUTDIR)/coverage.info --output-directory $(OUTDIR)/lcov >/dev/null
 
 # Build test program
 $(OUTDIR)/$(FILENAME)-test: $(OBJFILES-TEST)
