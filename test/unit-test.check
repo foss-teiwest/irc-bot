@@ -4,11 +4,22 @@
 #include "socket.h"
 #include "irc.h"
 
-#suite irc bot
-#tcase sockets & irc
+struct irc_type {
+	int sock;
+	char server[SERVLEN];
+	char port[PORTLEN];
+	bool is_connected;
+	char nick[NICKLEN];
+	char user[USERLEN];
+	char channel[CHANLEN];
+};
 
-int sock, fd;
+#suite irc bot
+#tcase sockets
+
+int sock, fd, ret_value;
 char test_buffer[BUFSIZE];
+Irc server;
 
 void open_socket(void) {
 
@@ -30,30 +41,80 @@ void close_file(void) {
 	close(fd);
 }
 
+void connect_server(void) {
+
+	server = irc_select_server(Freenode);
+	ret_value = irc_connect_server(server);
+}
+
+void quit_server(void) {
+
+	irc_quit_server(server);
+}
+
 #test socket_descriptor
+
 	ck_assert_msg(sock >= 0, "Socket creation failed");
 
 #test write_equal_size
+
 	ssize_t n = sock_write(sock, "rofl", 4);
 	ck_assert_msg(n == 4 || n == -1, "Unexpected amount of bytes sent");
 
 #test write_smaller_size
+
 	ssize_t n = sock_write(sock, "troll", 0);
 	ck_assert_msg(n == 0 || n == -1, "Unexpected amount of bytes sent");
 
 #test-signal(6) write_bigger_than_buffer_size
+
 	sock_write(sock, "fail", 5);
 
 #test-signal(6) write_negative_size
+
 	sock_write(sock, "also fail", -1);
 
+#tcase irc commands
 #test irc_connection
-	Irc freenode = irc_select_server(Freenode);
-	int ret_value = irc_connect_server(freenode);
+
 	ck_assert_msg(ret_value >= 0, "irc connection failed");
+
+#test set_nick_null
+
+	strncpy(test_buffer, server->nick, NICKLEN);
+	ret_value = irc_set_nick(server, NULL);
+	ck_assert_str_eq(server->nick, test_buffer);
+
+#test new_nick_match
+
+	ret_value = irc_set_nick(server, "trololol");
+	ck_assert_str_eq(server->nick, "trololol");
+
+#test set_user_null
+
+	strncpy(test_buffer, server->user, USERLEN);
+	irc_set_user(server, NULL);
+	ck_assert_str_eq(server->user, test_buffer);
+
+#test new_user_match
+
+	irc_set_user(server, "botbot");
+	ck_assert_str_eq(server->user, "botbot");
+
+#test set_chan_null
+
+	strncpy(test_buffer, server->channel, CHANLEN);
+	irc_join_channel(server, NULL);
+	ck_assert_str_eq(server->channel, test_buffer);
+
+#test new_chan_match
+
+	irc_join_channel(server, "random5322");
+	ck_assert_str_eq(server->channel, "random5322");
 
 #tcase read & write
 #test readbytes
+
 	char c;
 	int i;
 
@@ -64,6 +125,7 @@ void close_file(void) {
 	ck_assert_str_eq("lol\r\ntroll\r\n", test_buffer);
 
 #test readline
+
 	char test_buffer2[BUFSIZE] = {0};
 
 	lseek(fd, 0, SEEK_SET);
@@ -74,4 +136,5 @@ void close_file(void) {
 
 #main-pre
 	tcase_add_unchecked_fixture(tc1_1, open_socket, close_socket);
-	tcase_add_unchecked_fixture(tc1_2, open_file, close_file);
+	tcase_add_unchecked_fixture(tc1_2, connect_server, quit_server);
+	tcase_add_unchecked_fixture(tc1_3, open_file, close_file);

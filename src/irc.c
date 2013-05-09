@@ -20,7 +20,7 @@ struct irc_type {
 
 static char buffer[BUFSIZE];
 
-Irc irc_select_server(enum Server_list server_list) {
+Irc irc_select_server(Server_list server_list) {
 
 	Irc server = malloc(sizeof(struct irc_type));
 	if (server == NULL)

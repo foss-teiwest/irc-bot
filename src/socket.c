@@ -12,7 +12,7 @@ static int bytes_read;
 static char buffer[BUFSIZE];
 static char *buf_ptr;
 
-int sock_connect(const char *server, const char *port) {
+int sock_connect(const char *address, const char *port) {
 
 	int sock, ret_value;
 	struct addrinfo addr_filter, *addr_holder, *addr_iterator;
@@ -26,7 +26,7 @@ int sock_connect(const char *server, const char *port) {
 	addr_filter.ai_flags   |= AI_NUMERICSERV;
 
 	// Return addresses according to the filter criteria
-	ret_value = getaddrinfo(server, port, &addr_filter, &addr_holder);
+	ret_value = getaddrinfo(address, port, &addr_filter, &addr_holder);
 	if (ret_value != 0)
 		exit_msg("getaddrinfo", gai_strerror(ret_value));
 
