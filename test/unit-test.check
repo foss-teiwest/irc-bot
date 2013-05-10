@@ -6,7 +6,7 @@
 
 struct irc_type {
 	int sock;
-	char server[SERVLEN];
+	char address[SERVLEN];
 	char port[PORTLEN];
 	bool is_connected;
 	char nick[NICKLEN];

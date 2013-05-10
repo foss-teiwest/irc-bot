@@ -2,6 +2,7 @@
 #define IRC_H
 
 #include <stdbool.h>
+#include <sys/types.h>
 
 #define BUFSIZE  512
 #define NICKLEN  16
@@ -31,5 +32,8 @@ bool irc_is_connected(Irc server);
 
 // Close socket and free structure
 void irc_quit_server(Irc server);
+
+// Incomplete
+ssize_t irc_parse_line(Irc server, char *buf);
 
 #endif

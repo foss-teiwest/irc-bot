@@ -33,7 +33,7 @@ endif
 
 # Disable assertions and enable gcc optimizations for "release" rule
 ifeq "$(MAKECMDGOALS)" "release"
-	CFLAGS += -O2
+	CFLAGS += -O2 -s
 	CPPFLAGS += -DNDEBUG
 endif
 

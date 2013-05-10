@@ -2,12 +2,12 @@ Installation
 -
 Run unit tests if check framework is installed
 
-```make test```
+`make test`
 
 Build main program
 
-```make```
+`make`
 
 Build main program with optimizations
 
-```make release```
+`make release`
