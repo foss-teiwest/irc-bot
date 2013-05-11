@@ -90,6 +90,7 @@ ssize_t sock_readbyte(int sock, char *byte) {
 	}
 	bytes_read--;
 	*byte = *buf_ptr++;
+
 	return 1;
 }
 
@@ -112,5 +113,6 @@ ssize_t sock_readline(int sock, char *line_buf, size_t len) {
 			break; // Message complete, we found irc protocol terminators
 	}
 	*line_buf = '\0';
+
 	return n_read;
 }

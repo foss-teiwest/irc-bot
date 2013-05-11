@@ -7,10 +7,14 @@
 
 void exit_msg(const char *format, ...) {
 
+	char buf[128];
 	va_list args;
+
 	va_start(args, format);
-	vfprintf(stderr, format, args);
+	sprintf(buf, "%s\n", format);
+	vfprintf(stderr, buf, args);
 	va_end(args);
+
 	exit(EXIT_FAILURE);
 }
 

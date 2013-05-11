@@ -17,7 +17,7 @@ ssize_t sock_write(int sock, const char *buf, size_t n);
 ssize_t sock_readbyte(int sock, char *byte);
 
 // Build a valid IRC line (with \r\n terminators) and store it null terminated in line_buff
-// Returns line length. Characters after the IRC message terminators are left untouched
+// Returns line length. Characters after the IRC message terminators are left untouched for the next call
 ssize_t sock_readline(int sock, char *line_buf, size_t len);
 
 #endif

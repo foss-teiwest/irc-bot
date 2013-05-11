@@ -5,17 +5,18 @@
 int main(void) {
 
 	Irc freenode;
-	int ret_value;
-	char *buffer;
+	int status;
+	char line[BUFSIZE + 1]; // Space for null char
 
-	freenode = irc_select_server(Freenode);
-	ret_value = irc_connect_server(freenode);
-	if (ret_value < 0)
-		exit_msg("Irc connection failed\n");
+	freenode = select_server(Freenode);
+	status = connect_server(freenode);
+	if (status < 0)
+		exit_msg("Irc connection failed");
 
-	// Incomplete
-	while (irc_parse_line(freenode, buffer) > 0) ;
+	while (get_line(freenode, line) > 0)
+		if (*line == 'P')
+			ping_reply(freenode, line);
 
-	irc_quit_server(freenode);
+	quit_server(freenode);
 	return 0;
 }

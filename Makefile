@@ -4,6 +4,8 @@ OUTDIR   = bin
 SRCDIR   = src
 INCLDIR  = include
 CFLAGS   = -Wall -Wextra -std=c99
+
+# Needed for some network calls
 CPPFLAGS = -D_POSIX_SOURCE
 
 # Test & coverage variables
@@ -31,15 +33,16 @@ ifeq "$(MAKECMDGOALS)" "test"
 	CFLAGS += -g --coverage
 endif
 
-# Disable assertions and enable gcc optimizations for "release" rule
+# Disable assertions, enable gcc optimizations and strip binary for "release" rule
 ifeq "$(MAKECMDGOALS)" "release"
-	CFLAGS += -O2 -s
 	CPPFLAGS += -DNDEBUG
+	CFLAGS += -O2
+	LDFLAGS = -s
 endif
 
 # Build main program
 $(OUTDIR)/$(FILENAME): $(OBJFILES)
-	gcc $^ -o $@
+	gcc $(LDFLAGS) $^ -o $@
 
 # Generic rule to build all source files needed for main
 $(OUTDIR)/%.o: $(SRCDIR)/%.c
