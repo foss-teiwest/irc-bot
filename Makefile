@@ -51,8 +51,8 @@ $(OUTDIR)/%.o: $(SRCDIR)/%.c
 # Run test program and produce coverage stats in html
 test: $(OUTDIR)/$(FILENAME)-test
 	./$<
-	# lcov --capture --directory $(OUTDIR)/ --output-file $(OUTDIR)/coverage.info >/dev/null
-	# genhtml $(OUTDIR)/coverage.info --output-directory $(OUTDIR)/lcov >/dev/null
+	lcov --capture --directory $(OUTDIR)/ --output-file $(OUTDIR)/coverage.info >/dev/null
+	genhtml $(OUTDIR)/coverage.info --output-directory $(OUTDIR)/lcov >/dev/null
 
 # Build test program
 $(OUTDIR)/$(FILENAME)-test: $(OBJFILES-TEST)
@@ -66,7 +66,7 @@ $(OUTDIR)/%.o: $(SRCDIR-TEST)/%.c
 $(SRCDIR-TEST)/%.c: $(SRCDIR-TEST)/%.check
 	~/checkmk $< >$@
 
-release: outdir clean $(OUTDIR)/$(FILENAME)
+release: outdir $(OUTDIR)/$(FILENAME)
 
 # Create output directory
 outdir:

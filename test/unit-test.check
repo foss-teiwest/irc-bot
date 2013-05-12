@@ -1,9 +1,10 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include "socket.h"
 #include "irc.h"
-#include "wrapper.h"
+#include "wrappers.h"
 
 struct irc_type {
 	int sock;
@@ -16,31 +17,36 @@ struct irc_type {
 
 Irc server;
 char test_buffer[BUFSIZE + 1];
-int sock, fdread, fdwrite, status;
+int sock, status;
+Parsed_data pdata;
 
 void open_read(void) {
 
 	server = select_server(0);
-	server->sock = fdread = open("test/input.txt", O_RDONLY);
-	if (fdread < 0)
+	server->sock = open("test/input.txt", O_RDONLY);
+	if (server->sock < 0)
 		exit_msg("Failed to open file");
+	lseek(server->sock, 0, SEEK_SET);
 }
 
 void close_read(void) {
 
-	close(fdread);
+	close(server->sock);
 }
 
 void open_write(void) {
 
 	server = select_server(0);
-	server->sock = fdwrite = open("test/output.txt", O_WRONLY);
-	if (fdwrite < 0)
+	server->sock = open("test/output.txt", O_RDWR);
+	if (server->sock < 0)
 		exit_msg("Failed to open file");
+	lseek(server->sock, 0, SEEK_SET);
+	pdata = calloc_wrap(sizeof(struct parse_type));
 }
 
 void close_write(void) {
 
+	free(pdata);
 	quit_server(server);
 }
 
@@ -69,7 +75,7 @@ void close_write(void) {
 	char c;
 	int i;
 
-	for (i = 0; sock_readbyte(fdread, &c) > 0; i++)
+	for (i = 0; sock_readbyte(server->sock, &c) > 0; i++)
 		test_buffer[i] = c;
 	test_buffer[i] = '\0';
 
@@ -79,8 +85,8 @@ void close_write(void) {
 
 	char test_buffer2[BUFSIZE + 1] = { 0 };
 
-	lseek(fdread, 0, SEEK_SET);
-	while (sock_readline(fdread, test_buffer, BUFSIZE) > 0)
+	lseek(server->sock, 0, SEEK_SET);
+	while (sock_readline(server->sock, test_buffer, BUFSIZE) > 0)
 		strcat(test_buffer2, test_buffer);
 
 	ck_assert_str_eq("lol\r\ntroll\r\n", test_buffer2);
@@ -89,7 +95,7 @@ void close_write(void) {
 
 	char test_buffer2[BUFSIZE + 1] = { 0 };
 
-	lseek(fdread, 0, SEEK_SET);
+	lseek(server->sock, 0, SEEK_SET);
 	while (get_line(server, test_buffer) > 0)
 		strcat(test_buffer2, test_buffer);
 
@@ -100,12 +106,14 @@ void close_write(void) {
 #tcase socket write operations
 #test write_equal_size
 
-	ssize_t n = sock_write(fdwrite, "rofl", 4);
+
+	lseek(server->sock, 0, SEEK_SET);
+	ssize_t n = sock_write(server->sock, "rofl", 4);
 	ck_assert_msg(n == 4 || n == -1, "Unexpected amount of bytes sent");
 
 #test write_smaller_size
 
-	ssize_t n = sock_write(fdwrite, "troll", 0);
+	ssize_t n = sock_write(server->sock, "troll", 0);
 	ck_assert_msg(n == 0 || n == -1, "Unexpected amount of bytes sent");
 
 #test set_nick_null
@@ -140,6 +148,31 @@ void close_write(void) {
 
 	join_channel(server, "random5322");
 	ck_assert_str_eq(server->channel, "random5322");
+
+#test parse_msg
+
+	char msg[] = ":freestyl3r!~free@ppp005055033225.access.hol.gr PRIVMSG #foss-teimes :freestylerbot";
+
+	pdata = parse_line(msg);
+	if (pdata == NULL)
+		ck_abort_msg("parsing failed");
+
+	status = lseek(server->sock, 0, SEEK_SET);
+	if (status < 0)
+		perror("lseek");
+
+	sprintf(test_buffer, "%s%s%s%s", pdata->nick, pdata->command, pdata->target, pdata->message);
+	ck_assert_str_eq(test_buffer, "freestyl3rPRIVMSG#foss-teimesfreestylerbot");
+
+#test sendmsg
+
+	char msg[] = ":freestyl3r!~free@ppp005055033225.access.hol.gr PRIVMSG #foss-teimes :freestylerbot";
+
+	pdata = parse_line(msg);
+	send_message(server, pdata->target, "sup %s?", pdata->nick);
+	lseek(server->sock, 0, SEEK_SET);
+	sock_readline(server->sock, test_buffer, BUFSIZE);
+	ck_assert_str_eq(test_buffer, "PRIVMSG #foss-teimes :sup freestyl3r?\r\n");
 
 /*****************************************************************************/
 

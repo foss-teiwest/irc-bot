@@ -2,11 +2,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <stdbool.h>
+#include <stdarg.h>
 #include <sys/types.h>
 #include "socket.h"
 #include "irc.h"
-#include "wrapper.h"
+#include "wrappers.h"
 
 struct irc_type {
 	int sock;
@@ -18,22 +18,20 @@ struct irc_type {
 };
 
 static char buffer[BUFSIZE];
+static char buffer2[BUFSIZE];
+
 static const struct irc_type irc_servers[] = {
 	[Freenode] = { .address = "chat.freenode.net", .port = "6667",
 		.nick = "freestylerbot", .user = "bot", .channel = "randomblabla" },
 	[Grnet] = {.address = "srv.irc.gr", .port = "6667",
-		.nick = "freestylerbot", .user = "bot", .channel = "randomblabla"}
+		.nick = "freestylerbot", .user = "bot", .channel = "randomblabla" }
 };
 
-Irc select_server(Server_list server_list) {
+Irc select_server(int server_list) {
 
 	Irc server;
 
-	server = malloc(sizeof(struct irc_type));
-	if (server == NULL)
-		exit_msg("Malloc: error in irc struct creation");
-	memset(server, 0, sizeof(*server));
-
+	server = calloc_wrap(sizeof(struct irc_type));
 	switch (server_list) {
 		case Freenode:
 			memcpy(server, &irc_servers[Freenode], sizeof(struct irc_type));
@@ -127,4 +125,51 @@ void quit_server(Irc server) {
 
 	close(server->sock);
 	free(server);
+}
+
+char *get_nick(Irc server) {
+
+	return server->nick;
+}
+
+Parsed_data parse_line(char *line) {
+
+	Parsed_data pdata;
+	char *token;
+
+	pdata = calloc_wrap(sizeof(struct parse_type));
+	pdata->nick = strtok(line + 1, "!"); // Skip ':' at the start
+	if (pdata->nick == NULL)
+		return NULL;
+	token = strtok(NULL, " "); // Ignore hostname
+	if (token == NULL)
+		return NULL;
+	pdata->command = strtok(NULL, " ");
+	if (pdata->command == NULL)
+		return NULL;
+	pdata->target = strtok(NULL, " ");
+	if (pdata->target == NULL)
+		return NULL;
+	pdata->message = strtok(NULL, "");
+	if (pdata->message == NULL)
+		return NULL;
+	pdata->message++; //Skip ':' at the start
+
+	return pdata;
+}
+
+void send_message(Irc server, const char *target, const char *format, ...) {
+
+	ssize_t n;
+	va_list args;
+
+	va_start(args, format);
+	vsnprintf(buffer, BUFSIZE - CHANLEN, format, args);
+	snprintf(buffer2, BUFSIZE, "PRIVMSG %s :%s\r\n", target, buffer);
+	printf("<< %s", buffer2);
+	n = sock_write(server->sock, buffer2, strlen(buffer2));
+	if (n < 0)
+		exit_msg("Irc send message failed");
+
+	va_end(args);
 }
