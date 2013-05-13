@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <sys/types.h>
 #include "socket.h"
 #include "irc.h"
@@ -132,30 +133,28 @@ char *get_nick(Irc server) {
 	return server->nick;
 }
 
-Parsed_data parse_line(char *line) {
+bool parse_line(char *line, Parsed_data pdata) {
 
-	Parsed_data pdata;
 	char *token;
 
-	pdata = calloc_wrap(sizeof(struct parse_type));
 	pdata->nick = strtok(line + 1, "!"); // Skip ':' at the start
 	if (pdata->nick == NULL)
-		return NULL;
+		return false;
 	token = strtok(NULL, " "); // Ignore hostname
 	if (token == NULL)
-		return NULL;
+		return false;
 	pdata->command = strtok(NULL, " ");
 	if (pdata->command == NULL)
-		return NULL;
+		return false;
 	pdata->target = strtok(NULL, " ");
 	if (pdata->target == NULL)
-		return NULL;
+		return false;
 	pdata->message = strtok(NULL, "");
 	if (pdata->message == NULL)
-		return NULL;
+		return false;
 	pdata->message++; //Skip ':' at the start
 
-	return pdata;
+	return true;
 }
 
 void send_message(Irc server, const char *target, const char *format, ...) {

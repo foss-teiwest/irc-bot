@@ -40,8 +40,8 @@ void ping_reply(Irc server, char *buf);
 // Gets next line from server. Returns length
 ssize_t get_line(Irc server, char *buf);
 
-// Split line into Parsed_data structure elements. Return NULL if it fails
-Parsed_data parse_line(char *line);
+// Split line into Parsed_data structure elements. Return false if it fails
+bool parse_line(char *line, Parsed_data pdata);
 
 // Send a message to a channel or a person specified by target. Standard printf format accepted
 void send_message(Irc server, const char *target, const char *format, ...);

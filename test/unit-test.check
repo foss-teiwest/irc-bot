@@ -62,7 +62,7 @@ void close_write(void) {
 
 #test irc_connection
 
-	server = select_server(0);
+	server = select_server(1);
 	status = connect_server(server);
 	ck_assert_msg(status >= 0, "irc connection failed");
 	quit_server(server);
@@ -125,7 +125,7 @@ void close_write(void) {
 #test new_nick_match
 
 	set_nick(server, "trololol");
-	ck_assert_str_eq(server->nick, "trololol");
+	ck_assert_str_eq(get_nick(server), "trololol");
 
 #test set_user_null
 
@@ -153,10 +153,7 @@ void close_write(void) {
 
 	char msg[] = ":freestyl3r!~free@ppp005055033225.access.hol.gr PRIVMSG #foss-teimes :freestylerbot";
 
-	pdata = parse_line(msg);
-	if (pdata == NULL)
-		ck_abort_msg("parsing failed");
-
+	parse_line(msg, pdata);
 	status = lseek(server->sock, 0, SEEK_SET);
 	if (status < 0)
 		perror("lseek");
@@ -168,11 +165,21 @@ void close_write(void) {
 
 	char msg[] = ":freestyl3r!~free@ppp005055033225.access.hol.gr PRIVMSG #foss-teimes :freestylerbot";
 
-	pdata = parse_line(msg);
+	parse_line(msg, pdata);
 	send_message(server, pdata->target, "sup %s?", pdata->nick);
 	lseek(server->sock, 0, SEEK_SET);
 	sock_readline(server->sock, test_buffer, BUFSIZE);
 	ck_assert_str_eq(test_buffer, "PRIVMSG #foss-teimes :sup freestyl3r?\r\n");
+
+#test pingreply
+
+	char msg[] = "PING :pratchett.freenode.net\r\n";
+
+	lseek(server->sock, 0, SEEK_SET);
+	ping_reply(server, msg);
+	lseek(server->sock, 0, SEEK_SET);
+	sock_readline(server->sock, test_buffer, BUFSIZE);
+	ck_assert_str_eq(test_buffer, "PONG :pratchett.freenode.net\r\n");
 
 /*****************************************************************************/
 
