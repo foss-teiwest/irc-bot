@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include "socket.h"
 #include "irc.h"
+#include "gperf.h"
 #include "wrappers.h"
 
 struct irc_type {
@@ -20,13 +21,14 @@ char test_buffer[BUFSIZE + 1];
 int sock, status;
 Parsed_data pdata;
 
+ssize_t sock_readbyte(int sock, char *byte);
+
 void open_read(void) {
 
-	server = select_server(0);
+	server = connect_server(0);
 	server->sock = open("test/input.txt", O_RDONLY);
 	if (server->sock < 0)
 		exit_msg("Failed to open file");
-	lseek(server->sock, 0, SEEK_SET);
 }
 
 void close_read(void) {
@@ -36,10 +38,11 @@ void close_read(void) {
 
 void open_write(void) {
 
-	server = select_server(0);
+	server = connect_server(0);
 	server->sock = open("test/output.txt", O_RDWR);
 	if (server->sock < 0)
 		exit_msg("Failed to open file");
+
 	lseek(server->sock, 0, SEEK_SET);
 	pdata = calloc_wrap(sizeof(struct parse_type));
 }
@@ -47,7 +50,7 @@ void open_write(void) {
 void close_write(void) {
 
 	free(pdata);
-	quit_server(server);
+	quit_server(server, NULL);
 }
 
 /*****************************************************************************/
@@ -62,10 +65,9 @@ void close_write(void) {
 
 #test irc_connection
 
-	server = select_server(1);
-	status = connect_server(server);
-	ck_assert_msg(status >= 0, "irc connection failed");
-	quit_server(server);
+	server = connect_server(0);
+	ck_assert_msg(server != NULL, "irc connection failed");
+	quit_server(server, NULL);
 
 /*****************************************************************************/
 
@@ -106,8 +108,6 @@ void close_write(void) {
 #tcase socket write operations
 #test write_equal_size
 
-
-	lseek(server->sock, 0, SEEK_SET);
 	ssize_t n = sock_write(server->sock, "rofl", 4);
 	ck_assert_msg(n == 4 || n == -1, "Unexpected amount of bytes sent");
 
@@ -118,68 +118,92 @@ void close_write(void) {
 
 #test set_nick_null
 
-	strncpy(test_buffer, server->nick, NICKLEN);
-	set_nick(server, NULL);
-	ck_assert_str_eq(server->nick, test_buffer);
+	sprintf(test_buffer, "NICK %s\r\n", server->nick);
+	char *nick = set_nick(server, NULL);
+	ck_assert_str_eq(test_buffer, nick);
 
 #test new_nick_match
 
-	set_nick(server, "trololol");
-	ck_assert_str_eq(get_nick(server), "trololol");
+	char *nick = set_nick(server, "trololol");
+	sprintf(test_buffer, "NICK %s\r\n", server->nick);
+	ck_assert_str_eq(test_buffer, nick);
 
 #test set_user_null
 
-	strncpy(test_buffer, server->user, USERLEN);
-	set_user(server, NULL);
-	ck_assert_str_eq(server->user, test_buffer);
+	sprintf(test_buffer, "USER %s 0 * :%s\r\n", server->user, server->user);
+	char *user = set_user(server, NULL);
+	ck_assert_str_eq(test_buffer, user);
 
 #test new_user_match
 
-	set_user(server, "botbot");
-	ck_assert_str_eq(server->user, "botbot");
+	char *user = set_user(server, "trololol");
+	sprintf(test_buffer, "USER %s 0 * :%s\r\n", server->user, server->user);
+	ck_assert_str_eq(test_buffer, user);
 
 #test set_chan_null
 
-	strncpy(test_buffer, server->channel, CHANLEN);
-	join_channel(server, NULL);
-	ck_assert_str_eq(server->channel, test_buffer);
+	sprintf(test_buffer, "JOIN #%s\r\n", server->channel);
+	char *channel = join_channel(server, NULL);
+	ck_assert_str_eq(test_buffer, channel);
 
 #test new_chan_match
 
-	join_channel(server, "random5322");
-	ck_assert_str_eq(server->channel, "random5322");
+	char *channel = join_channel(server, "trololol");
+	sprintf(test_buffer, "JOIN #%s\r\n", server->channel);
+	ck_assert_str_eq(test_buffer, channel);
 
 #test parse_msg
 
-	char msg[] = ":freestyl3r!~free@ppp005055033225.access.hol.gr PRIVMSG #foss-teimes :freestylerbot";
+	char line[] = ":freestyl3r!~free@ppp005055033225.access.hol.gr PRIVEMSG #foss-teimes :freestylerbot";
 
-	parse_line(msg, pdata);
-	status = lseek(server->sock, 0, SEEK_SET);
-	if (status < 0)
-		perror("lseek");
-
-	sprintf(test_buffer, "%s%s%s%s", pdata->nick, pdata->command, pdata->target, pdata->message);
-	ck_assert_str_eq(test_buffer, "freestyl3rPRIVMSG#foss-teimesfreestylerbot");
+	parse_line(server, line, pdata);
+	sprintf(test_buffer, "%s%s%s", pdata->nick, pdata->command, pdata->message);
+	ck_assert_str_eq(test_buffer, "freestyl3rPRIVEMSG#foss-teimes :freestylerbot");
 
 #test sendmsg
 
 	char msg[] = ":freestyl3r!~free@ppp005055033225.access.hol.gr PRIVMSG #foss-teimes :freestylerbot";
 
-	parse_line(msg, pdata);
-	send_message(server, pdata->target, "sup %s?", pdata->nick);
-	lseek(server->sock, 0, SEEK_SET);
-	sock_readline(server->sock, test_buffer, BUFSIZE);
-	ck_assert_str_eq(test_buffer, "PRIVMSG #foss-teimes :sup freestyl3r?\r\n");
+	parse_line(server, msg, pdata);
+	char *sent = send_message(server, pdata->target, "sup %s?", pdata->nick);
+	ck_assert_str_eq(sent, "PRIVMSG #foss-teimes :sup freestyl3r?\r\n");
+
+#test privemsg
+
+	char msg[] = "freestyl3r\0PRIVEMSG\0freestylerbot :!bot lol re\0";
+
+	pdata->nick = &msg[0];
+	pdata->command = &msg[11];
+	pdata->message = &msg[20];
+
+	irc_privmsg(server, pdata);
+	sprintf(test_buffer, "%s%s%s%s", pdata->nick, pdata->target, pdata->command, pdata->message);
+	ck_assert_str_eq(test_buffer, "freestyl3rfreestyl3rbotlol re");
 
 #test pingreply
 
 	char msg[] = "PING :pratchett.freenode.net\r\n";
+	char *pong = ping_reply(server, msg);
+	ck_assert_str_eq(pong, "PONG :pratchett.freenode.net\r\n");
 
-	lseek(server->sock, 0, SEEK_SET);
-	ping_reply(server, msg);
-	lseek(server->sock, 0, SEEK_SET);
-	sock_readline(server->sock, test_buffer, BUFSIZE);
-	ck_assert_str_eq(test_buffer, "PONG :pratchett.freenode.net\r\n");
+#test bot_command
+
+	pdata->target = "room";
+	pdata->nick = "troll";
+
+	char *msg = bot(server, pdata);
+	ck_assert_str_eq(msg, "PRIVMSG room :sup troll?\r\n");
+
+/*****************************************************************************/
+
+#tcase function match
+#test gperf
+
+	Function_list flist = function_lookup("bot", 3);
+	ck_assert_ptr_ne(flist, NULL);
+
+	flist = function_lookup("random", 6);
+	ck_assert_ptr_eq(flist, NULL);
 
 /*****************************************************************************/
 

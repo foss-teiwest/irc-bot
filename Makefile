@@ -31,6 +31,7 @@ OBJFILES-TEST := $(filter-out %/main.o %.check %.txt, $(OBJFILES-TEST))
 # If test rule is selected, build main source files with the extra flags as well
 ifeq "$(MAKECMDGOALS)" "test"
 	CFLAGS += -g --coverage
+	CPPFLAGS += -DTEST
 endif
 
 # Disable assertions, enable gcc optimizations and strip binary for "release" rule
@@ -44,9 +45,13 @@ endif
 $(OUTDIR)/$(FILENAME): $(OBJFILES)
 	gcc $(LDFLAGS) $^ -o $@
 
+# Build a lookup table to quickly match string commands -> function pointers
+$(SRCDIR)/gperf.c: $(INCLDIR)/gperf-input.txt
+	gperf $< >$@
+
 # Generic rule to build all source files needed for main
 $(OUTDIR)/%.o: $(SRCDIR)/%.c
-	gcc -c $(CPPFLAGS) $(CFLAGS) -I$(INCLDIR) $< -o $@
+	gcc $(CPPFLAGS) $(CFLAGS) -I$(INCLDIR) -c $< -o $@
 
 # Run test program and produce coverage stats in html
 test: $(OUTDIR)/$(FILENAME)-test
@@ -60,7 +65,7 @@ $(OUTDIR)/$(FILENAME)-test: $(OBJFILES-TEST)
 
 # Generic rule to build all source files needed for test
 $(OUTDIR)/%.o: $(SRCDIR-TEST)/%.c
-	gcc -c $(CFLAGS) -I$(INCLDIR) $< -o $@
+	gcc $(CFLAGS) -I$(INCLDIR) -c $< -o $@
 
 # Generate .c files from the easier to write .check tests
 $(SRCDIR-TEST)/%.c: $(SRCDIR-TEST)/%.check
@@ -74,7 +79,6 @@ outdir:
 
 clean:
 	rm -r $(OUTDIR)/*
-	echo bin folder cleaned
 
 # Make sure any files in the project folder with a same name as the ones listed below, do not interfere with our rules
 .PHONY: clean test release

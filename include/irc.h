@@ -1,7 +1,6 @@
 #ifndef IRC_H
 #define IRC_H
 
-#include <stdbool.h>
 #include <sys/types.h>
 
 #define BUFSIZE  512
@@ -20,33 +19,37 @@ typedef struct parse_type {
 	char *message;
 } *Parsed_data;
 
-// Fills server info to the Irc data type according to the server selected
-// Structure returned is malloc'ed so it needs to be free'd with irc_quit_server()
-Irc select_server(int server_list);
+// Fill server details with the one specified and connect to it.
+// Structure returned is allocated on the heap so it needs to be freed with quit_server()
+// Returns NULL on failure
+Irc connect_server(int server_list);
 
-// Connect to the server specified by the Irc struct, set nick, user and join channel
-// Returns -1 if it fails
-int connect_server(Irc server);
+// The (char *) in the functions that return it, is the final message composed for sending to server
 
-// If NULL is entered in nick, user or channel functions, then the value is read from the server struct
-void set_nick(Irc server, const char *nick);
-void set_user(Irc server, const char *user);
-void join_channel(Irc server, const char *channel);
-char *get_nick(Irc server);
-
-// Change second character of PING request, from 'I' to 'O' and send it back
-void ping_reply(Irc server, char *buf);
+// If NULL is entered then the default server value is used
+// User can only be set during server connection so it should only be called once
+char *set_nick(Irc server, const char *nick);
+char *set_user(Irc server, const char *user);
+char *join_channel(Irc server, const char *channel);
 
 // Gets next line from server. Returns length
 ssize_t get_line(Irc server, char *buf);
 
-// Split line into Parsed_data structure elements. Return false if it fails
-bool parse_line(char *line, Parsed_data pdata);
+// Change second character of PING request, from 'I' to 'O' and send it back
+char *ping_reply(Irc server, char *buf);
+
+// Split line into Parsed_data structure elements and launch the function associated with IRC commands
+// The function called gets the parameters after command, to parse them itself
+void parse_line(Irc server, char *line, Parsed_data pdata);
+
+// Parse channel / private messages and launch the function that matches the bot command
+// Must begin with '!'
+void irc_privmsg(Irc server, Parsed_data pdata);
 
 // Send a message to a channel or a person specified by target. Standard printf format accepted
-void send_message(Irc server, const char *target, const char *format, ...);
+char *send_message(Irc server, const char *target, const char *format, ...);
 
-// Close socket and free structure
-void quit_server(Irc server);
+// Close socket and free structure. Returns -1 on failure
+char *quit_server(Irc server, const char *msg);
 
 #endif

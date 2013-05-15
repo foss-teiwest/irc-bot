@@ -1,0 +1,16 @@
+%{
+#include "gperf.h"
+#include "irc.h"
+%}
+%includes
+%language=ANSI-C
+%switch=1
+%compare-lengths
+%readonly-tables
+%struct-type
+%define slot-name command
+%define lookup-function-name function_lookup
+struct function_list;
+%%
+"PRIVMSG", (void *) &irc_privmsg
+"bot", (void *) &bot

@@ -4,9 +4,9 @@
 #include <errno.h>
 #include <sys/socket.h>
 #include <netdb.h>
+#include <assert.h>
 #include "socket.h"
 #include "wrappers.h"
-#include <assert.h>
 
 static int bytes_read;
 static char buffer[BUFSIZE];
@@ -51,10 +51,12 @@ int sock_connect(const char *address, const char *port) {
 ssize_t sock_write(int sock, const char *buf, size_t len) {
 
 	ssize_t n_sent;
-	size_t n_left = len;
-	const char *buf_marker = buf;
+	size_t n_left;
+	const char *buf_marker;
 
 	assert(len <= strlen(buf) && "Write length is bigger than buffer size");
+	n_left = len;
+	buf_marker = buf;
 
 	while (n_left > 0) {
 		n_sent = write(sock, buf_marker, n_left);
@@ -72,8 +74,13 @@ ssize_t sock_write(int sock, const char *buf, size_t len) {
 	return len;
 }
 
-ssize_t sock_readbyte(int sock, char *byte) {
-
+#ifdef TEST
+	ssize_t sock_readbyte(int sock, char *byte)
+#else
+	static ssize_t sock_readbyte(int sock, char *byte)
+#endif
+{
+	// Stores the character in byte. Returns -1 for fail, 0 if connection is closed or 1 for success
 	while (bytes_read <= 0) {
 		bytes_read = read(sock, buffer, BUFSIZE);
 		if (bytes_read < 0 && errno == EINTR) { // Interrupted by signal, retry
