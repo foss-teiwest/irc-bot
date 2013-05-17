@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include "wrappers.h"
 
 void exit_msg(const char *format, ...) {
 
@@ -19,11 +20,11 @@ void exit_msg(const char *format, ...) {
 	exit(EXIT_FAILURE);
 }
 
-void *_calloc_wrap(size_t size, const char *caller) {
+void *_malloc_w(size_t size, const char *caller) {
 
 	void *buffer;
 
-	buffer = calloc(1, size);
+	buffer = malloc(size);
 	if (buffer == NULL)
 		exit_msg("Error: calloc failed in %s", caller);
 

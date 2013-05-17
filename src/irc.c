@@ -5,12 +5,12 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <sys/types.h>
+#include <ctype.h>
 #include "socket.h"
 #include "irc.h"
 #include "gperf.h"
 #include "wrappers.h"
 
-#include <ctype.h>
 struct irc_type {
 	int sock;
 	char address[SERVLEN];
@@ -22,7 +22,7 @@ struct irc_type {
 
 static const struct irc_type irc_servers[] = {
 	[Freenode] = { .address = "chat.freenode.net", .port = "6667",
-		.nick = "freestylerbot", .user = "bot", .channel = "randomblabla" },
+		.nick = "freestylerbot", .user = "bot", .channel = "foss-teimes" },
 	[Grnet] = {.address = "srv.irc.gr", .port = "6667",
 		.nick = "freestylerbot", .user = "bot", .channel = "randomblabla" }
 };
@@ -31,7 +31,7 @@ static char buffer2[BUFSIZE];
 
 Irc connect_server(int server_list) {
 
-	Irc server = calloc_wrap(sizeof(struct irc_type));
+	Irc server = malloc_w(sizeof(struct irc_type));
 
 	switch (server_list) {
 		case Freenode:
@@ -186,7 +186,7 @@ char *send_message(Irc server, const char *target, const char *format, ...) {
 	fputs(buffer2, stdout);
 	n = sock_write(server->sock, buffer2, strlen(buffer2));
 	if (n < 0)
-		exit_msg("Irc send message failed");
+		exit_msg("Failed to send message");
 
 	va_end(args);
 	return buffer2;

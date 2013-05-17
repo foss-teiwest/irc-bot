@@ -1,49 +1,48 @@
 # Main program variables
-FILENAME = irc-bot
+PROGRAM  = irc-bot
 OUTDIR   = bin
 SRCDIR   = src
 INCLDIR  = include
-CFLAGS   = -Wall -Wextra -std=c99
-
-# Needed for some network calls
+TESTDIR  = test
+CFLAGS   = -g -Wall -Wextra -std=c99
 CPPFLAGS = -D_POSIX_SOURCE
+LDLIBS   = -lcurl
+CFLAGS-test := $(CFLAGS)
 
-# Test & coverage variables
-SRCDIR-TEST  = test
-LDFLAGS-TEST = --coverage
-LIBS-TEST    = -lcheck
+# Disable assertions, enable gcc optimizations and strip binary for "release" rule
+ifeq "$(MAKECMDGOALS)" "release"
+	CPPFLAGS += -DNDEBUG
+	CFLAGS   += -O2
+	CFLAGS   := $(filter-out -g, $(CFLAGS))
+	LDFLAGS   = -s
+endif
+
+# If test rule is selected, add debugging symbols and test unit coverage
+ifeq "$(MAKECMDGOALS)" "test"
+	CFLAGS   += --coverage
+	CPPFLAGS += -DTEST
+	LDFLAGS   = --coverage
+	LDLIBS   += -lcheck
+endif
 
 ############################# Do not edit below this line #############################
 
 # Prepend output directory and add object extension on main program source files
 SRCFILES := $(shell ls $(SRCDIR))
-TMPFILES = $(SRCFILES:.c=.o)
-OBJFILES = $(addprefix $(OUTDIR)/, $(TMPFILES))
+TMPFILES  = $(SRCFILES:.c=.o)
+OBJFILES  = $(addprefix $(OUTDIR)/, $(TMPFILES))
 
 # Do the same for the test program but don't link main.c or .check files
 # Check framework provides it's own main() function.
-SRCFILES-TEST := $(shell ls $(SRCDIR-TEST))
-TMPFILES-TEST = $(SRCFILES-TEST:.c=.o)
-OBJFILES-TEST = $(addprefix $(OUTDIR)/, $(TMPFILES-TEST))
+SRCFILES-TEST := $(shell ls $(TESTDIR))
+TMPFILES-TEST  = $(SRCFILES-TEST:.c=.o)
+OBJFILES-TEST  = $(addprefix $(OUTDIR)/, $(TMPFILES-TEST))
 OBJFILES-TEST += $(OBJFILES)
 OBJFILES-TEST := $(filter-out %/main.o %.check %.txt, $(OBJFILES-TEST))
 
-# If test rule is selected, build main source files with the extra flags as well
-ifeq "$(MAKECMDGOALS)" "test"
-	CFLAGS += -g --coverage
-	CPPFLAGS += -DTEST
-endif
-
-# Disable assertions, enable gcc optimizations and strip binary for "release" rule
-ifeq "$(MAKECMDGOALS)" "release"
-	CPPFLAGS += -DNDEBUG
-	CFLAGS += -O2
-	LDFLAGS = -s
-endif
-
 # Build main program
-$(OUTDIR)/$(FILENAME): $(OBJFILES)
-	gcc $(LDFLAGS) $^ -o $@
+$(OUTDIR)/$(PROGRAM): $(OBJFILES)
+	gcc $(LDFLAGS) $^ -o $@ $(LDLIBS)
 
 # Build a lookup table to quickly match string commands -> function pointers
 $(SRCDIR)/gperf.c: $(INCLDIR)/gperf-input.txt
@@ -54,24 +53,24 @@ $(OUTDIR)/%.o: $(SRCDIR)/%.c
 	gcc $(CPPFLAGS) $(CFLAGS) -I$(INCLDIR) -c $< -o $@
 
 # Run test program and produce coverage stats in html
-test: $(OUTDIR)/$(FILENAME)-test
+test: $(OUTDIR)/$(PROGRAM)-test
 	./$<
-	lcov --capture --directory $(OUTDIR)/ --output-file $(OUTDIR)/coverage.info >/dev/null
-	genhtml $(OUTDIR)/coverage.info --output-directory $(OUTDIR)/lcov >/dev/null
+	# lcov --capture --directory $(OUTDIR)/ --output-file $(OUTDIR)/coverage.info >/dev/null
+	# genhtml $(OUTDIR)/coverage.info --output-directory $(OUTDIR)/lcov >/dev/null
 
 # Build test program
-$(OUTDIR)/$(FILENAME)-test: $(OBJFILES-TEST)
-	gcc $(LDFLAGS-TEST) $^ -o $@ $(LIBS-TEST)
+$(OUTDIR)/$(PROGRAM)-test: $(OBJFILES-TEST)
+	gcc $(LDFLAGS) $^ -o $@ $(LDLIBS)
 
 # Generic rule to build all source files needed for test
-$(OUTDIR)/%.o: $(SRCDIR-TEST)/%.c
-	gcc $(CFLAGS) -I$(INCLDIR) -c $< -o $@
+$(OUTDIR)/%.o: $(TESTDIR)/%.c
+	gcc $(CFLAGS-test) -I$(INCLDIR) -c $< -o $@
 
 # Generate .c files from the easier to write .check tests
-$(SRCDIR-TEST)/%.c: $(SRCDIR-TEST)/%.check
+$(TESTDIR)/%.c: $(TESTDIR)/%.check
 	~/checkmk $< >$@
 
-release: outdir $(OUTDIR)/$(FILENAME)
+release: outdir $(OUTDIR)/$(PROGRAM)
 
 # Create output directory
 outdir:

@@ -1,9 +1,9 @@
 #ifndef WRAPPERS_H
 #define WRAPPERS_H
 
-// Allocate memory with calloc (zeroing out) and print the caller function on exit
-#define calloc_wrap(x) _calloc_wrap((x), __func__)
-void *_calloc_wrap(size_t size, const char *caller);
+// Allocate memory and print the caller function on failure (before exiting)
+#define malloc_w(x) _malloc_w((x), __func__)
+void *_malloc_w(size_t size, const char *caller);
 
 // Takes a format specifier with a variable number of arguments
 // Prints message and exits with failure

@@ -1,6 +1,7 @@
 %{
 #include "gperf.h"
 #include "irc.h"
+#include "bot.h"
 %}
 %includes
 %language=ANSI-C
@@ -14,3 +15,4 @@ struct function_list;
 %%
 "PRIVMSG", (void *) &irc_privmsg
 "bot", (void *) &bot
+"url", (void *) &url
