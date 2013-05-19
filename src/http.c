@@ -83,11 +83,12 @@ char *shorten_url(char *long_url) {
 	curl_easy_cleanup(curl);
 	return short_url;
 }
-char *fetch_mumble_users(struct mem_buffer *mem) {
-
+char *fetch_mumble_users() {
+	
 	CURL *curl;
 	CURLcode code;
 	struct mem_buffer mem = {0};
+	char *list;
 
 	curl = curl_easy_init();
 
@@ -107,6 +108,11 @@ char *fetch_mumble_users(struct mem_buffer *mem) {
 		printf("Error: %s\n", curl_easy_strerror(code));
 
 	curl_easy_cleanup(curl);
-	return mem->buffer;
+
+        list = strndup(mem.buffer, 150);
+
+        free(mem.buffer);
+
+	return list;
 }
 

@@ -13,6 +13,6 @@ struct mem_buffer {
 char *shorten_url(char *long_url);
 
 //Returns mumble user list
-char *fetch_mumble_users(struct mem_buffer *mem);
+char *fetch_mumble_users(void);
 
 #endif

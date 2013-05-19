@@ -39,7 +39,7 @@ char *url(Irc server, Parsed_data pdata) {
 char *mumble(Irc server, Parsed_data pdata) {
 	char *user_list, *temp;
 	user_list=fetch_mumble_users();
-	send_message(server, pdata->target, "%s", user_list);
+	temp=send_message(server, pdata->target, "%s", user_list);
 	free(user_list);
 	return temp;
 }
