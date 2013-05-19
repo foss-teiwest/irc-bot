@@ -4,14 +4,13 @@ OUTDIR   = bin
 SRCDIR   = src
 INCLDIR  = include
 TESTDIR  = test
-CFLAGS   = -g -Wall -Wextra -std=c99
-CPPFLAGS = -D_POSIX_SOURCE
+CFLAGS   = -g -Wall -Wextra -std=gnu99
 LDLIBS   = -lcurl
 CFLAGS-test := $(CFLAGS)
 
 # Disable assertions, enable gcc optimizations and strip binary for "release" rule
 ifeq "$(MAKECMDGOALS)" "release"
-	CPPFLAGS += -DNDEBUG
+	CPPFLAGS  = -DNDEBUG
 	CFLAGS   += -O2
 	CFLAGS   := $(filter-out -g, $(CFLAGS))
 	LDFLAGS   = -s
@@ -20,7 +19,7 @@ endif
 # If test rule is selected, add debugging symbols and test unit coverage
 ifeq "$(MAKECMDGOALS)" "test"
 	CFLAGS   += --coverage
-	CPPFLAGS += -DTEST
+	CPPFLAGS  = -DTEST
 	LDFLAGS   = --coverage
 	LDLIBS   += -lcheck
 endif

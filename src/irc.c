@@ -9,7 +9,7 @@
 #include "socket.h"
 #include "irc.h"
 #include "gperf.h"
-#include "wrappers.h"
+#include "helper.h"
 
 struct irc_type {
 	int sock;
@@ -22,12 +22,14 @@ struct irc_type {
 
 static const struct irc_type irc_servers[] = {
 	[Freenode] = { .address = "chat.freenode.net", .port = "6667",
-		.nick = "freestylerbot", .user = "bot", .channel = "foss-teimes" },
+		.nick = "freestylerbot", .user = "bot", .channel = "randomblabla" },
 	[Grnet] = {.address = "srv.irc.gr", .port = "6667",
 		.nick = "freestylerbot", .user = "bot", .channel = "randomblabla" }
 };
+
 static char buffer[BUFSIZE];
 static char buffer2[BUFSIZE];
+
 
 Irc connect_server(int server_list) {
 
@@ -166,7 +168,7 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 	pdata->message = strtok(NULL, "");
 	if (pdata->message == NULL) {
 		command_char = pdata->command;
-		for (int i = 0; islower(*command_char) && i < USERLEN; command_char++, i++) ;
+		for (int i = 0; islower(*command_char) && i < USERLEN; command_char++, i++) ; // No body
 		*command_char = '\0';
 	}
 	// Launch any actions registered to BOT commands

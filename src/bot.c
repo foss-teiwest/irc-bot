@@ -3,7 +3,9 @@
 #include <string.h>
 #include "bot.h"
 #include "irc.h"
-#include "url.h"
+#include "http.h"
+#include "helper.h"
+
 
 char *bot(Irc server, Parsed_data pdata) {
 
@@ -12,27 +14,26 @@ char *bot(Irc server, Parsed_data pdata) {
 
 char *url(Irc server, Parsed_data pdata) {
 
-	struct mem_buffer mem = {0};
-	char *short_url, *long_url, *temp;
+	char *short_url, **argv, *temp = NULL;
+	int argc;
 
-	long_url = strtok(pdata->message, " "); // Get to the first non-space char
-	if (long_url == NULL)
+	// Make sure we have at least 1 parameter before proceeding
+	if (pdata->message == NULL)
 		return NULL;
 
-	// Make sure the first parameter is null terminated
-	temp = strtok(NULL, " ");
-	if (temp == NULL) {
-		temp = strchr(long_url, '\r');
-		*temp = '\0';
-	}
-	// Must contain at least one dot. NOTE: need more checks to identify a valid url
-	if (strchr(long_url, '.') == NULL)
+	argv = extract_params(pdata->message, &argc);
+	if (argc == 0)
 		return NULL;
 
-	short_url = shorten_url(long_url, &mem);
+	// Check first parameter for a URL that contains at least one dot.
+	if (strchr(argv[0], '.') == NULL)
+		return NULL;
+
+	short_url = shorten_url(argv[0]);
 	if (short_url != NULL)
 		temp = send_message(server, pdata->target, "%s", short_url);
 
-	free(mem.buffer);
+	free(argv);
+	free(short_url);
 	return temp;
 }

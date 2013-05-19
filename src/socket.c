@@ -6,11 +6,12 @@
 #include <netdb.h>
 #include <assert.h>
 #include "socket.h"
-#include "wrappers.h"
+#include "helper.h"
 
 static int bytes_read;
 static char buffer[BUFSIZE];
 static char *buf_ptr;
+
 
 int sock_connect(const char *address, const char *port) {
 

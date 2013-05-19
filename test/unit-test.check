@@ -6,9 +6,9 @@
 #include "socket.h"
 #include "irc.h"
 #include "gperf.h"
-#include "wrappers.h"
+#include "helper.h"
 #include "bot.h"
-#include "url.h"
+#include "http.h"
 
 struct irc_type {
 	int sock;
@@ -218,9 +218,22 @@ void close_write(void) {
 
 #test url_shortener_valid
 
-	struct mem_buffer mem = {0};
-	char *short_url = shorten_url("rofl.com", &mem);
+	char *short_url = shorten_url("rofl.com");
 	ck_assert_ptr_ne(short_url, NULL);
+
+#test parameter_extraction
+
+	char msg[] = " 	trolol  re noob  	\r\n";
+	char **argv;
+	int argc;
+
+	argv = extract_params(msg, &argc);
+	ck_assert_int_eq(argc, 3);
+	ck_assert_str_eq(argv[0], "trolol");
+	ck_assert_str_eq(argv[1], "re");
+	ck_assert_str_eq(argv[2], "noob");
+
+	free(argv);
 
 /*****************************************************************************/
 

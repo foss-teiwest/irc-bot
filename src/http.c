@@ -2,8 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <curl/curl.h>
-#include "url.h"
-#include "wrappers.h"
+#include "http.h"
+#include "helper.h"
+
 
 #ifdef TEST
 	size_t curl_write_memory(char *data, size_t size, size_t elements, void *membuf)
@@ -32,11 +33,12 @@
 	return total_size;
 }
 
-char *shorten_url(char *long_url, struct mem_buffer *mem) {
+char *shorten_url(char *long_url) {
 
 	CURL *curl;
 	CURLcode code;
 	char *short_url, *temp, *url_formatted = malloc_w(URLLEN);
+	struct mem_buffer mem = {0};
 	struct curl_slist *headers = NULL;
 
 	// Set the Content-type and url format as required by Google API for the POST request
@@ -56,19 +58,26 @@ char *shorten_url(char *long_url, struct mem_buffer *mem) {
 	// By default curl_easy_perform output the result in stdout, so we provide own function and data struct,
 	// so we can save the output in a string
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_memory);
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, mem);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &mem);
 
 	code = curl_easy_perform(curl); // Do the job!
 	if (code != CURLE_OK)
 		printf("Error: %s\n", curl_easy_strerror(code));
 
 	// Find the short url in the reply and null terminate it
-	short_url = strstr(mem->buffer, "ht");
+	short_url = strstr(mem.buffer, "ht");
 	if (short_url == NULL)
 		return NULL;
+
 	temp = strchr(short_url, '"');
+	if (temp == NULL)
+		return NULL;
 	*temp = '\0';
 
+	// short_url must be freed to avoid memory leak
+	short_url = strndup(short_url, 25);
+
+	free(mem.buffer);
 	free(url_formatted);
 	curl_slist_free_all(headers);
 	curl_easy_cleanup(curl);
