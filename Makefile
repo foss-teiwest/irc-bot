@@ -1,27 +1,27 @@
 # Main program variables
-PROGRAM  = irc-bot
-OUTDIR   = bin
-SRCDIR   = src
-INCLDIR  = include
-TESTDIR  = test
-CFLAGS   = -g -Wall -Wextra -std=gnu99
-LDLIBS   = -lcurl
+PROGRAM = irc-bot
+OUTDIR  = bin
+SRCDIR  = src
+INCLDIR = include
+TESTDIR = test
+CFLAGS  = -g -Wall -Wextra -std=gnu99
+LDLIBS  = -lcurl
 CFLAGS-test := $(CFLAGS)
 
 # Disable assertions, enable gcc optimizations and strip binary for "release" rule
 ifeq "$(MAKECMDGOALS)" "release"
-	CPPFLAGS  = -DNDEBUG
-	CFLAGS   += -O2
-	CFLAGS   := $(filter-out -g, $(CFLAGS))
-	LDFLAGS   = -s
+	CPPFLAGS = -DNDEBUG
+	CFLAGS  += -O2
+	CFLAGS  := $(filter-out -g, $(CFLAGS))
+	LDFLAGS  = -s
 endif
 
 # If test rule is selected, add debugging symbols and test unit coverage
 ifeq "$(MAKECMDGOALS)" "test"
-	CFLAGS   += --coverage
-	CPPFLAGS  = -DTEST
-	LDFLAGS   = --coverage
-	LDLIBS   += -lcheck
+	CFLAGS  += --coverage
+	CPPFLAGS = -DTEST
+	LDFLAGS  = --coverage
+	LDLIBS  += -lcheck
 endif
 
 ############################# Do not edit below this line #############################
@@ -54,8 +54,8 @@ $(OUTDIR)/%.o: $(SRCDIR)/%.c
 # Run test program and produce coverage stats in html
 test: $(OUTDIR)/$(PROGRAM)-test
 	./$<
-	# lcov --capture --directory $(OUTDIR)/ --output-file $(OUTDIR)/coverage.info >/dev/null
-	# genhtml $(OUTDIR)/coverage.info --output-directory $(OUTDIR)/lcov >/dev/null
+	lcov --capture --directory $(OUTDIR)/ --output-file $(OUTDIR)/coverage.info >/dev/null
+	genhtml $(OUTDIR)/coverage.info --output-directory $(OUTDIR)/lcov >/dev/null
 
 # Build test program
 $(OUTDIR)/$(PROGRAM)-test: $(OBJFILES-TEST)

@@ -235,6 +235,11 @@ void close_write(void) {
 
 	free(argv);
 
+#test mumble_list
+
+	char *data = fetch_mumble_users();
+	printf("%s\n", data);
+
 /*****************************************************************************/
 
 #main-pre
