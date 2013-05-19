@@ -11,7 +11,6 @@ char *bot(Irc server, Parsed_data pdata) {
 
 	return send_message(server, pdata->target, "sup %s?", pdata->nick);
 }
-
 char *url(Irc server, Parsed_data pdata) {
 
 	char *short_url, **argv, *temp = NULL;
@@ -36,4 +35,9 @@ char *url(Irc server, Parsed_data pdata) {
 	free(argv);
 	free(short_url);
 	return temp;
+}
+char *mumble(Irc server, Parsed_data pdata) {
+
+        struct mem_buffer mem = {0};
+        return send_message(server, pdata->target, "%s", fetch_mumble_users(&mem));
 }

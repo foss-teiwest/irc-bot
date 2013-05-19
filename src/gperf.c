@@ -1,4 +1,4 @@
-/* ANSI-C code produced by gperf version 3.0.4 */
+/* ANSI-C code produced by gperf version 3.0.3 */
 /* Command-line: gperf include/gperf-input.txt  */
 /* Computed positions: -k'1' */
 
@@ -38,12 +38,12 @@
 struct function_list;
 #include <string.h>
 
-#define TOTAL_KEYWORDS 3
+#define TOTAL_KEYWORDS 4
 #define MIN_WORD_LENGTH 3
 #define MAX_WORD_LENGTH 7
 #define MIN_HASH_VALUE 3
-#define MAX_HASH_VALUE 7
-/* maximum key range = 5, duplicates = 0 */
+#define MAX_HASH_VALUE 8
+/* maximum key range = 6, duplicates = 0 */
 
 #ifdef __GNUC__
 __inline
@@ -57,39 +57,39 @@ hash (register const char *str, register unsigned int len)
 {
   static const unsigned char asso_values[] =
     {
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-      0, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-      8, 8, 8, 8, 8, 8, 8, 8, 1, 8,
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-      8, 8, 8, 8, 8, 8, 8, 0, 8, 8,
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-      8, 8, 8, 8, 8, 8
+      9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
+      9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
+      9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
+      9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
+      9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
+      9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
+      9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
+      9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
+      0, 9, 9, 9, 9, 9, 9, 9, 9, 9,
+      9, 9, 9, 9, 9, 9, 9, 9, 5, 9,
+      9, 9, 9, 9, 9, 9, 9, 9, 9, 0,
+      9, 9, 9, 9, 9, 9, 9, 0, 9, 9,
+      9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
+      9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
+      9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
+      9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
+      9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
+      9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
+      9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
+      9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
+      9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
+      9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
+      9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
+      9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
+      9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
+      9, 9, 9, 9, 9, 9
     };
   return len + asso_values[(unsigned char)str[0]];
 }
 
 #ifdef __GNUC__
 __inline
-#if defined __GNUC_STDC_INLINE__ || defined __GNUC_GNU_INLINE__
+#ifdef __GNUC_STDC_INLINE__
 __attribute__ ((__gnu_inline__))
 #endif
 #endif
@@ -100,10 +100,12 @@ function_lookup (register const char *str, register unsigned int len)
     {
 #line 18 "include/gperf-input.txt"
       {"url", (void *) &url},
-#line 17 "include/gperf-input.txt"
-      {"bot", (void *) &bot},
+#line 19 "include/gperf-input.txt"
+      {"mumble", (void *) &mumble},
 #line 16 "include/gperf-input.txt"
-      {"PRIVMSG", (void *) &irc_privmsg}
+      {"PRIVMSG", (void *) &irc_privmsg},
+#line 17 "include/gperf-input.txt"
+      {"bot", (void *) &bot}
     };
 
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
@@ -123,8 +125,8 @@ function_lookup (register const char *str, register unsigned int len)
                     goto compare;
                   }
                 break;
-              case 1:
-                if (len == 3)
+              case 3:
+                if (len == 6)
                   {
                     resword = &wordlist[1];
                     goto compare;
@@ -134,6 +136,13 @@ function_lookup (register const char *str, register unsigned int len)
                 if (len == 7)
                   {
                     resword = &wordlist[2];
+                    goto compare;
+                  }
+                break;
+              case 5:
+                if (len == 3)
+                  {
+                    resword = &wordlist[3];
                     goto compare;
                   }
                 break;

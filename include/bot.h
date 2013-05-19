@@ -17,4 +17,7 @@ char *bot(Irc server, Parsed_data pdata);
 // Current url extraction is very weak. The url must come as the first parameter and it must have at least one '.'
 char *url(Irc server, Parsed_data pdata);
 
+//Mumble user list
+char *mumble(Irc server, Parsed_data pdata);
+
 #endif

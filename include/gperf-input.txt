@@ -16,3 +16,4 @@ struct function_list;
 "PRIVMSG", (void *) &irc_privmsg
 "bot", (void *) &bot
 "url", (void *) &url
+"mumble", (void *) &mumble
