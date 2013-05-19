@@ -219,7 +219,7 @@ void close_write(void) {
 #test url_shortener_valid
 
 	char *short_url = shorten_url("rofl.com");
-	ck_assert_ptr_ne(short_url, NULL);
+	ck_assert_str_eq(short_url, "http://goo.gl/LJbW");
 
 #test parameter_extraction
 
@@ -238,7 +238,7 @@ void close_write(void) {
 #test mumble_list
 
 	char *data = fetch_mumble_users();
-	printf("%s\n", data);
+	ck_assert_str_eq(data, "7 Online clients: Chubby ZED gkino Erevos freestyler charkost tomkap");
 
 /*****************************************************************************/
 

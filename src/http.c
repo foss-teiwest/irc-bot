@@ -42,7 +42,6 @@ char *shorten_url(char *long_url) {
 	struct curl_slist *headers = NULL;
 
 	// Set the Content-type and url format as required by Google API for the POST request
-	char *google_api = "https://www.googleapis.com/urlshortener/v1/url";
 	headers = curl_slist_append(headers, "Content-Type: application/json");
 	snprintf(url_formatted, URLLEN, "{\"longUrl\": \"%s\"}", long_url);
 
@@ -50,7 +49,11 @@ char *shorten_url(char *long_url) {
 	if (curl == NULL)
 		return 0;
 
-	curl_easy_setopt(curl, CURLOPT_URL, google_api); // Set API url
+#ifdef TEST
+	curl_easy_setopt(curl, CURLOPT_URL, "file:///home/free/programming/c/git/irc-bot/test/url-shorten.txt");
+#else
+	curl_easy_setopt(curl, CURLOPT_URL, "https://www.googleapis.com/urlshortener/v1/url"); // Set API url
+#endif
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, url_formatted); // Send the formatted POST
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L); // Allow redirects
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers); // Use our modified header
@@ -94,7 +97,11 @@ char *fetch_mumble_users(void) {
 	if (curl == NULL)
 		return 0;
 
+#ifdef TEST
+	curl_easy_setopt(curl, CURLOPT_URL, "file:///home/free/programming/c/git/irc-bot/test/mumble.txt");
+#else
 	curl_easy_setopt(curl, CURLOPT_URL, "https://foss.tesyd.teimes.gr/weblist-bot.php"); // Set mumble users list url
+#endif
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_memory);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &mem);

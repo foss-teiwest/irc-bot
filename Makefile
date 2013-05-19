@@ -54,8 +54,8 @@ $(OUTDIR)/%.o: $(SRCDIR)/%.c
 # Run test program and produce coverage stats in html
 test: $(OUTDIR)/$(PROGRAM)-test
 	./$<
-	lcov --capture --directory $(OUTDIR)/ --output-file $(OUTDIR)/coverage.info >/dev/null
-	genhtml $(OUTDIR)/coverage.info --output-directory $(OUTDIR)/lcov >/dev/null
+	# lcov --capture --directory $(OUTDIR)/ --output-file $(OUTDIR)/coverage.info >/dev/null
+	# genhtml $(OUTDIR)/coverage.info --output-directory $(OUTDIR)/lcov >/dev/null
 
 # Build test program
 $(OUTDIR)/$(PROGRAM)-test: $(OBJFILES-TEST)
