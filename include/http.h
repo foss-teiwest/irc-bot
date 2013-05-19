@@ -12,4 +12,7 @@ struct mem_buffer {
 // Returned string must be freed when no longer needed
 char *shorten_url(char *long_url);
 
+//Returns mumble user list
+char *fetch_mumble_users(struct mem_buffer *mem);
+
 #endif

@@ -37,7 +37,9 @@ char *url(Irc server, Parsed_data pdata) {
 	return temp;
 }
 char *mumble(Irc server, Parsed_data pdata) {
-
-        struct mem_buffer mem = {0};
-        return send_message(server, pdata->target, "%s", fetch_mumble_users(&mem));
+	char *user_list, *temp;
+	user_list=fetch_mumble_users();
+	send_message(server, pdata->target, "%s", user_list);
+	free(user_list);
+	return temp;
 }

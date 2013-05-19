@@ -85,28 +85,28 @@ char *shorten_url(char *long_url) {
 }
 char *fetch_mumble_users(struct mem_buffer *mem) {
 
-        CURL *curl;
-        CURLcode code;
+	CURL *curl;
+	CURLcode code;
+	struct mem_buffer mem = {0};
 
-        curl = curl_easy_init();
+	curl = curl_easy_init();
 
-        if (curl == NULL)
-                return 0;
+	if (curl == NULL)
+		return 0;
 
-        curl_easy_setopt(curl, CURLOPT_URL, "https://foss.tesyd.teimes.gr/weblist-bot.php"); //Set mumble users list url
+	curl_easy_setopt(curl, CURLOPT_URL, "https://foss.tesyd.teimes.gr/weblist-bot.php"); //Set mumble users list url
 
-        // By default curl_easy_perform output the result in stdout, so we provide own function and data struct,
-        // so we can save the output in a string
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_memory); 
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, mem);
+	// By default curl_easy_perform output the result in stdout, so we provide own function and data struct,
+	// so we can save the output in a string
+	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_memory); 
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &mem);
+	code = curl_easy_perform(curl);
 
-        code = curl_easy_perform(curl);
+	if (code != CURLE_OK)
+		printf("Error: %s\n", curl_easy_strerror(code));
 
-        if (code != CURLE_OK)
-                printf("Error: %s\n", curl_easy_strerror(code));
-
-
-        curl_easy_cleanup(curl);
-        return mem->buffer;
+	curl_easy_cleanup(curl);
+	return mem->buffer;
 }
 
