@@ -89,7 +89,6 @@ char *fetch_mumble_users(void) {
 	CURL *curl;
 	CURLcode code;
 	struct mem_buffer mem = {0};
-	char *list;
 
 	curl = curl_easy_init();
 	if (curl == NULL)
@@ -104,9 +103,6 @@ char *fetch_mumble_users(void) {
 	if (code != CURLE_OK)
 		printf("Error: %s\n", curl_easy_strerror(code));
 
-	list = strndup(mem.buffer, 150);
-
-	free(mem.buffer);
 	curl_easy_cleanup(curl);
-	return list;
+	return mem.buffer;
 }
