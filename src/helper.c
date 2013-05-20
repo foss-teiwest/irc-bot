@@ -44,11 +44,15 @@ char **extract_params(char *msg, int *argc) {
 
 	int size;
 	char *temp, **argv;
+	*argc = 0;
+
+	// Make sure we have at least 1 parameter before proceeding
+	if (msg == NULL)
+		return NULL;
 
 	// Allocate enough starting space for most bot commands
 	argv = malloc_w(STARTSIZE * sizeof(char *));
 	size = STARTSIZE;
-	*argc = 0;
 
 	// Null terminate the the whole parameters line
 	temp = strrchr(msg, '\r');

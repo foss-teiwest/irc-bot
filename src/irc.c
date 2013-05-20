@@ -22,27 +22,22 @@ struct irc_type {
 
 static const struct irc_type irc_servers[] = {
 	[Freenode] = { .address = "chat.freenode.net", .port = "6667",
-		.nick = "freestylerbot", .user = "bot", .channel = "foss-teimes" },
-	[Grnet] = {.address = "srv.irc.gr", .port = "6667",
-		.nick = "freestylerbot", .user = "bot", .channel = "randomblabla" }
+		.nick  = "freestylerbot", .user = "bot", .channel = "foss-teimes" },
+	[Grnet]    = { .address = "srv.irc.gr", .port = "6667",
+		.nick  = "freestylerbot", .user = "bot", .channel = "randomblabla" },
+	[Testing]  = { .address = "chat.freenode.net", .port = "6667",
+		.nick  = "randombot", .user = "bot", .channel = "randombot" }
 };
 
 static char buffer[BUFSIZE];
 static char buffer2[BUFSIZE];
 
 
-Irc connect_server(int server_list) {
+Irc connect_server(int server_info) {
 
 	Irc server = malloc_w(sizeof(struct irc_type));
 
-	switch (server_list) {
-		case Freenode:
-			memcpy(server, &irc_servers[Freenode], sizeof(struct irc_type));
-			break;
-		case Grnet:
-			memcpy(server, &irc_servers[Grnet], sizeof(struct irc_type));
-			break;
-	}
+	memcpy(server, &irc_servers[server_info], sizeof(struct irc_type));
 	server->sock = sock_connect(server->address, server->port);
 	if (server->sock < 0)
 		return NULL;

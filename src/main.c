@@ -15,7 +15,7 @@ int main(void) {
 	line = malloc_w(BUFSIZE * sizeof(char) + 1); // Space for null char
 	pdata = malloc_w(sizeof(*pdata));
 
-	freenode = connect_server(Freenode);
+	freenode = connect_server(Testing);
 	if (freenode == NULL)
 		exit_msg("Irc connection failed");
 

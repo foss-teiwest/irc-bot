@@ -17,10 +17,6 @@ char *url(Irc server, Parsed_data pdata) {
 	char *short_url, **argv, *temp = NULL;
 	int argc;
 
-	// Make sure we have at least 1 parameter before proceeding
-	if (pdata->message == NULL)
-		return NULL;
-
 	argv = extract_params(pdata->message, &argc);
 	if (argc == 0)
 		return NULL;

@@ -10,7 +10,7 @@
 #define SERVLEN  40
 #define PORTLEN  5
 
-enum { Freenode, Grnet };
+enum { Freenode, Grnet, Testing };
 typedef struct irc_type *Irc;
 typedef struct parse_type {
 	char *nick;
