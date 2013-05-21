@@ -1,7 +1,5 @@
 %{
 #include "gperf.h"
-#include "irc.h"
-#include "bot.h"
 %}
 %includes
 %language=ANSI-C
@@ -13,7 +11,7 @@
 %define lookup-function-name function_lookup
 struct function_list;
 %%
-"PRIVMSG", (void *) &irc_privmsg
-"bot", (void *) &bot
-"url", (void *) &url
-"mumble", (void *) &mumble
+"PRIVMSG", irc_privmsg
+"bot", bot
+"url", url
+"mumble", mumble

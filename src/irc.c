@@ -116,47 +116,49 @@ char *ping_reply(Irc server, char *buf) {
 	return buf;
 }
 
-void parse_line(Irc server, char *line, Parsed_data pdata) {
+char *parse_line(Irc server, char *line, Parsed_data pdata) {
 
 	Function_list flist;
 
 	if (line[0] == 'P') { // Check first line character
 		ping_reply(server, line);
-		return;
+		return "PING";
 	}
 	pdata->nick = strtok(line + 1, "!"); // Skip starting ':'
 	if (pdata->nick == NULL)
-		return;
+		return NULL;
 	if (strtok(NULL, " ") == NULL) // Ignore hostname
-		return;
+		return NULL;
 	pdata->command = strtok(NULL, " ");
 	if (pdata->command == NULL)
-		return;
+		return NULL;
 	pdata->message = strtok(NULL, "");
 	if (pdata->message == NULL)
-		return;
+		return NULL;
 
 	// Launch any actions registered to IRC commands
 	flist = function_lookup(pdata->command, strlen(pdata->command));
 	if (flist != NULL)
 		flist->function(server, pdata);
+
+	return pdata->command;
 }
 
-void irc_privmsg(Irc server, Parsed_data pdata) {
+char *irc_privmsg(Irc server, Parsed_data pdata) {
 
 	Function_list flist;
 	char *command_char;
 
 	pdata->target = strtok(pdata->message, " ");
 	if (pdata->target == NULL)
-		return;
+		return NULL;
 	if (strchr(pdata->target, '#') == NULL) // Not a channel message, reply on private
 		pdata->target = pdata->nick;
 
 	// Bot commands must begin with '!'
 	pdata->command = strtok(NULL, " ");
 	if (pdata->command == NULL || *(pdata->command + 1) != '!')
-		return;
+		return NULL;
 	pdata->command += 2; // Skip starting ":!"
 
 	// Make sure bot command gets null terminated if there are no parameters
@@ -170,6 +172,8 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 	flist = function_lookup(pdata->command, strlen(pdata->command));
 	if (flist != NULL)
 		flist->function(server, pdata);
+
+	return pdata->command;
 }
 
 char *send_message(Irc server, const char *target, const char *format, ...) {

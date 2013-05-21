@@ -1,4 +1,4 @@
-/* ANSI-C code produced by gperf version 3.0.3 */
+/* ANSI-C code produced by gperf version 3.0.4 */
 /* Command-line: gperf include/gperf-input.txt  */
 /* Computed positions: -k'1' */
 
@@ -32,9 +32,7 @@
 #line 1 "include/gperf-input.txt"
 
 #include "gperf.h"
-#include "irc.h"
-#include "bot.h"
-#line 14 "include/gperf-input.txt"
+#line 12 "include/gperf-input.txt"
 struct function_list;
 #include <string.h>
 
@@ -89,7 +87,7 @@ hash (register const char *str, register unsigned int len)
 
 #ifdef __GNUC__
 __inline
-#ifdef __GNUC_STDC_INLINE__
+#if defined __GNUC_STDC_INLINE__ || defined __GNUC_GNU_INLINE__
 __attribute__ ((__gnu_inline__))
 #endif
 #endif
@@ -98,14 +96,14 @@ function_lookup (register const char *str, register unsigned int len)
 {
   static const struct function_list wordlist[] =
     {
-#line 18 "include/gperf-input.txt"
-      {"url", (void *) &url},
-#line 19 "include/gperf-input.txt"
-      {"mumble", (void *) &mumble},
 #line 16 "include/gperf-input.txt"
-      {"PRIVMSG", (void *) &irc_privmsg},
+      {"url", url},
 #line 17 "include/gperf-input.txt"
-      {"bot", (void *) &bot}
+      {"mumble", mumble},
+#line 14 "include/gperf-input.txt"
+      {"PRIVMSG", irc_privmsg},
+#line 15 "include/gperf-input.txt"
+      {"bot", bot}
     };
 
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)

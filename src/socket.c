@@ -29,7 +29,7 @@ int sock_connect(const char *address, const char *port) {
 	// Return addresses according to the filter criteria
 	ret_value = getaddrinfo(address, port, &addr_filter, &addr_holder);
 	if (ret_value != 0)
-		exit_msg("getaddrinfo", gai_strerror(ret_value));
+		exit_msg("getaddrinfo: %s", gai_strerror(ret_value));
 
 	sock = -1;
 	for (addr_iterator = addr_holder; addr_iterator != NULL; addr_iterator = addr_holder->ai_next) {

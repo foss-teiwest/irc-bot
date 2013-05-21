@@ -40,11 +40,11 @@ char *ping_reply(Irc server, char *buf);
 
 // Split line into Parsed_data structure elements and launch the function associated with IRC commands
 // The function called gets the parameters after command, to parse them itself
-void parse_line(Irc server, char *line, Parsed_data pdata);
+char *parse_line(Irc server, char *line, Parsed_data pdata);
 
 // Parse channel / private messages and launch the function that matches the bot command. Must begin with '!'
 // Info available in pdata: nick, command, message (the rest message after command, including target)
-void irc_privmsg(Irc server, Parsed_data pdata);
+char *irc_privmsg(Irc server, Parsed_data pdata);
 
 // Send a message to a channel or a person specified by target. Standard printf format accepted
 char *send_message(Irc server, const char *target, const char *format, ...);

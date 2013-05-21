@@ -1,9 +1,10 @@
 #ifndef GPERF_H
 #define GPERF_H
 
+#include "irc.h"
 #include "bot.h"
 
-typedef int (*func_ptr)(Irc, Parsed_data);
+typedef char *(*func_ptr)(Irc, Parsed_data);
 typedef const struct function_list {
 	char *command;
 	func_ptr function;
