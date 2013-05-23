@@ -15,6 +15,6 @@ struct function_list;
 "bot", bot
 "url", url
 "mumble", mumble
-"fail", fail
+"fail", bot_fail
 "list", list
 "help", list

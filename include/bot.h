@@ -21,7 +21,7 @@ char *url(Irc server, Parsed_data pdata);
 char *mumble(Irc server, Parsed_data pdata);
 
 // Send funny messages
-char *fail(Irc server, Parsed_data pdata);
+char *bot_fail(Irc server, Parsed_data pdata);
 
 // Print available commands
 char *list(Irc server, Parsed_data pdata);

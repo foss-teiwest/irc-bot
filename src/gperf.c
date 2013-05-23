@@ -109,7 +109,7 @@ function_lookup (register const char *str, register unsigned int len)
 #line 20 "include/gperf-input.txt"
       {"help", list},
 #line 18 "include/gperf-input.txt"
-      {"fail", fail}
+      {"fail", bot_fail}
     };
 
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
