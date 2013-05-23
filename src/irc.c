@@ -5,6 +5,7 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <ctype.h>
 #include "socket.h"
 #include "irc.h"
@@ -22,7 +23,7 @@ struct irc_type {
 
 static const struct irc_type irc_servers[] = {
 	[Freenode] = { .address = "chat.freenode.net", .port = "6667",
-		.nick  = "freestylerbot", .user = "bot", .channel = "foss-teimes" },
+		.nick  = "foss_teimes", .user = "bot", .channel = "foss-teimes" },
 	[Grnet]    = { .address = "srv.irc.gr", .port = "6667",
 		.nick  = "freestylerbot", .user = "bot", .channel = "randomblabla" },
 	[Testing]  = { .address = "chat.freenode.net", .port = "6667",
@@ -148,6 +149,7 @@ char *irc_privmsg(Irc server, Parsed_data pdata) {
 
 	Function_list flist;
 	char *command_char;
+	pid_t pid;
 
 	pdata->target = strtok(pdata->message, " ");
 	if (pdata->target == NULL)
@@ -155,11 +157,11 @@ char *irc_privmsg(Irc server, Parsed_data pdata) {
 	if (strchr(pdata->target, '#') == NULL) // Not a channel message, reply on private
 		pdata->target = pdata->nick;
 
-	// Bot commands must begin with '!'
+	// Bot commands must begin with '@'
 	pdata->command = strtok(NULL, " ");
-	if (pdata->command == NULL || *(pdata->command + 1) != '!')
+	if (pdata->command == NULL || *(pdata->command + 1) != '@')
 		return NULL;
-	pdata->command += 2; // Skip starting ":!"
+	pdata->command += 2; // Skip starting ":@"
 
 	// Make sure bot command gets null terminated if there are no parameters
 	pdata->message = strtok(NULL, "");
@@ -168,11 +170,27 @@ char *irc_privmsg(Irc server, Parsed_data pdata) {
 		for (int i = 0; islower(*command_char) && i < USERLEN; command_char++, i++) ; // No body
 		*command_char = '\0';
 	}
-	// Launch any actions registered to BOT commands
+	// Find any actions registered to BOT commands
 	flist = function_lookup(pdata->command, strlen(pdata->command));
-	if (flist != NULL)
-		flist->function(server, pdata);
+	if (flist == NULL)
+		return NULL;
 
+	pid = fork();
+	if (pid < 0)
+		flist->function(server, pdata); // Fork failed, run command in single process
+	else if (pid == 0) {
+		pid = fork();
+		if (pid == 0) { // Run command in a new child and kill it's parent. That way we avoid zombies
+			flist->function(server, pdata);
+			_exit(EXIT_SUCCESS);
+		}
+		else if (pid > 0) // Kill 2nd's child parent
+			_exit(EXIT_SUCCESS);
+	} else { // Wait for the first child
+		pid = waitpid((pid_t) -1, NULL, 0);
+		if (pid < 0)
+			perror("waitpid");
+	}
 	return pdata->command;
 }
 

@@ -42,7 +42,7 @@ char *ping_reply(Irc server, char *buf);
 // The function called gets the parameters after command, to parse them itself
 char *parse_line(Irc server, char *line, Parsed_data pdata);
 
-// Parse channel / private messages and launch the function that matches the bot command. Must begin with '!'
+// Parse channel / private messages and launch the function that matches the bot command. Must begin with '@'
 // Info available in pdata: nick, command, message (the rest message after command, including target)
 char *irc_privmsg(Irc server, Parsed_data pdata);
 

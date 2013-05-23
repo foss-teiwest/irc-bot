@@ -10,7 +10,7 @@
 
 char *list(Irc server, Parsed_data pdata) {
 
-        return send_message(server, pdata->target, "list, help, bot, url, mumble, fail");
+	return send_message(server, pdata->target, "list, help, bot, url, mumble, fail");
 }
 
 char *bot(Irc server, Parsed_data pdata) {
@@ -54,10 +54,10 @@ char *mumble(Irc server, Parsed_data pdata) {
 char *fail(Irc server, Parsed_data pdata){
 
 	send_message(server, pdata->target, "I mpala einai strogili");
-	sleep(5);
+	sleep(4);
 	send_message(server, pdata->target, "to gipedo einai paralilogramo");
-        sleep(5);
-        send_message(server, pdata->target, "11 autoi, 11 emeis sinolo 23");
-	sleep(5);
-        return send_message(server, pdata->target, "kai tha boun kai 3 allages apo kathe omada sinolo 29!");
+	sleep(4);
+	send_message(server, pdata->target, "11 autoi, 11 emeis sinolo 23");
+	sleep(4);
+	return send_message(server, pdata->target, "kai tha boun kai 3 allages apo kathe omada sinolo 29!");
 }
