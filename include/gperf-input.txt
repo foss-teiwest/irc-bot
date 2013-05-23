@@ -16,3 +16,5 @@ struct function_list;
 "url", url
 "mumble", mumble
 "fail", fail
+"list", list
+"help", list
