@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include "bot.h"
 #include "irc.h"
 #include "http.h"
@@ -42,5 +43,19 @@ char *mumble(Irc server, Parsed_data pdata) {
 	temp = send_message(server, pdata->target, "%s", user_list);
 
 	free(user_list);
+	return temp;
+}
+char *fail(Irc server, Parsed_data pdata){
+
+	char *temp;
+
+	temp=send_message(server, pdata->target, "I mpala einai strogili");
+	sleep(5);
+	temp=send_message(server, pdata->target, "to gipedo einai paralilogramo");
+        sleep(5);
+        temp=send_message(server, pdata->target, "11 autoi, 11 emeis sinolo 23");
+	sleep(5);
+        temp=send_message(server, pdata->target, "kai tha boun kai 3 allages apo kathe omada sinolo 29!");
+
 	return temp;
 }

@@ -20,4 +20,7 @@ char *url(Irc server, Parsed_data pdata);
 // Get foss-tesyd mumble user list
 char *mumble(Irc server, Parsed_data pdata);
 
+//Print funny message
+char *fail(Irc server, Parsed_data pdata);
+
 #endif
