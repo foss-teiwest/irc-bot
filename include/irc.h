@@ -10,7 +10,7 @@
 #define SERVLEN  40
 #define PORTLEN  5
 
-enum { Freenode, Grnet, Testing };
+enum server_list { Freenode, Grnet, Testing };
 typedef struct irc_type *Irc;
 typedef struct {
 	char *nick;
@@ -22,7 +22,7 @@ typedef struct {
 // Fill server details with the one specified and connect to it.
 // Structure returned is allocated on the heap so it needs to be freed with quit_server()
 // Returns NULL on failure
-Irc connect_server(int server_list);
+Irc connect_server(enum server_list sl);
 
 // The (char *) in the functions that return it, is the final message composed for sending to server
 
@@ -44,7 +44,7 @@ char *parse_line(Irc server, char *line, Parsed_data pdata);
 
 // Parse channel / private messages and launch the function that matches the bot command. Must begin with '@'
 // Info available in pdata: nick, command, message (the rest message after command, including target)
-char *irc_privmsg(Irc server, Parsed_data pdata);
+void irc_privmsg(Irc server, Parsed_data pdata);
 
 // Send a message to a channel or a person specified by target. Standard printf format accepted
 char *send_message(Irc server, const char *target, const char *format, ...);

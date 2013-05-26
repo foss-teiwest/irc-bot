@@ -19,3 +19,6 @@ struct function_list;
 "list", list
 "help", list
 "github", github
+"traceroute", traceroute
+"ping", ping
+"dns", dns

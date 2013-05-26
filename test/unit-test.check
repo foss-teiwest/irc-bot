@@ -237,7 +237,7 @@ void close_write(void) {
 #test github_commits
 
 	Github *commit;
-	struct mem_buffer mem = {0};
+	struct mem_buffer mem;
 	int n = 10;
 
 	commit = fetch_github_commits("foss-teimes/irc-bot", &n, &mem);
@@ -251,6 +251,19 @@ void close_write(void) {
 	ck_assert_str_eq(commit[1].msg, "Run bot commands in a new process");
 	ck_assert_str_eq(commit[1].url, "https://github.com/foss-teimes/irc-bot/commit/c2513cf1046400414a267ccd09918afcc174f786");
 
+	free(mem.buffer);
+
+#test network_web_tools
+
+	char **line;
+	int lines;
+	struct mem_buffer mem;
+
+	line = network_tools("ping", "archlinux.org", &lines, &mem);
+	ck_assert_str_eq(line[0], "PING archlinux.org (66.211.214.131) 56(84) bytes of data.");
+	ck_assert_str_eq(line[lines - 1], "rtt min/avg/max/mdev = 159.856/160.388/160.917/0.618 ms");
+
+	free(line);
 	free(mem.buffer);
 
 /*****************************************************************************/

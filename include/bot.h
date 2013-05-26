@@ -29,4 +29,9 @@ void list(Irc server, Parsed_data pdata);
 // Print latest commits from a repo
 void github(Irc server, Parsed_data pdata);
 
+// Send resulting network command to the one who requested it in private
+void traceroute(Irc server, Parsed_data pdata);
+void ping(Irc server, Parsed_data pdata);
+void dns(Irc server, Parsed_data pdata);
+
 #endif

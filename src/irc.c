@@ -34,11 +34,11 @@ static char buffer[BUFSIZE];
 static char buffer2[BUFSIZE];
 
 
-Irc connect_server(int server_info) {
+Irc connect_server(enum server_list sl) {
 
 	Irc server = malloc_w(sizeof(struct irc_type));
 
-	memcpy(server, &irc_servers[server_info], sizeof(struct irc_type));
+	memcpy(server, &irc_servers[sl], sizeof(struct irc_type));
 	server->sock = sock_connect(server->address, server->port);
 	if (server->sock < 0)
 		return NULL;
@@ -145,7 +145,7 @@ char *parse_line(Irc server, char *line, Parsed_data pdata) {
 	return pdata->command;
 }
 
-char *irc_privmsg(Irc server, Parsed_data pdata) {
+void irc_privmsg(Irc server, Parsed_data pdata) {
 
 	Function_list flist;
 	char *command_char;
@@ -153,14 +153,14 @@ char *irc_privmsg(Irc server, Parsed_data pdata) {
 
 	pdata->target = strtok(pdata->message, " ");
 	if (pdata->target == NULL)
-		return NULL;
+		return;
 	if (strchr(pdata->target, '#') == NULL) // Not a channel message, reply on private
 		pdata->target = pdata->nick;
 
 	// Bot commands must begin with '@'
 	pdata->command = strtok(NULL, " ");
 	if (pdata->command == NULL || *(pdata->command + 1) != '@')
-		return NULL;
+		return;
 	pdata->command += 2; // Skip starting ":@"
 
 	// Make sure bot command gets null terminated if there are no parameters
@@ -173,7 +173,7 @@ char *irc_privmsg(Irc server, Parsed_data pdata) {
 	// Find any actions registered to BOT commands
 	flist = function_lookup(pdata->command, strlen(pdata->command));
 	if (flist == NULL)
-		return NULL;
+		return;
 
 	pid = fork();
 	if (pid < 0)
@@ -191,7 +191,7 @@ char *irc_privmsg(Irc server, Parsed_data pdata) {
 		if (pid < 0)
 			perror("waitpid");
 	}
-	return pdata->command;
+	return;
 }
 
 char *send_message(Irc server, const char *target, const char *format, ...) {

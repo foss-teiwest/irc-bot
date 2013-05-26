@@ -114,7 +114,7 @@ char *fetch_mumble_users(void) {
 	return mem.buffer;
 }
 
-Github *fetch_github_commits(char *repo, int *n, struct mem_buffer *mem) {
+Github *fetch_github_commits(char *repo, int *commits, struct mem_buffer *mem) {
 
 	CURL *curl;
 	CURLcode code;
@@ -122,7 +122,8 @@ Github *fetch_github_commits(char *repo, int *n, struct mem_buffer *mem) {
 	int max_commits, i;
 	char *API_URL, *temp;
 
-	max_commits = *n;
+	memset(mem, 0, sizeof(*mem));
+	max_commits = *commits;
 	API_URL = malloc_w(URLLEN);
 	snprintf(API_URL, URLLEN, "https://api.github.com/repos/%s/commits?per_page=%d", repo, max_commits);
 
@@ -144,7 +145,7 @@ Github *fetch_github_commits(char *repo, int *n, struct mem_buffer *mem) {
 	if (code != CURLE_OK)
 		printf("Error: %s\n", curl_easy_strerror(code));
 
-	*n = 0;
+	*commits = 0;
 	commit = malloc_w(max_commits * sizeof(Github));
 	temp = mem->buffer;
 
@@ -179,9 +180,55 @@ Github *fetch_github_commits(char *repo, int *n, struct mem_buffer *mem) {
 		temp = strchr(commit[i].url, '"');
 		*temp = '\0';
 
-		(*n)++;
+		(*commits)++;
 	}
 	free(API_URL);
 	curl_easy_cleanup(curl);
 	return commit;
+}
+
+char **network_tools(char *tool, char *address, int *lines, struct mem_buffer *mem) {
+
+	CURL *curl;
+	CURLcode code;
+	char **line, *URL;
+	int size;
+
+	memset(mem, 0, sizeof(*mem));
+	line = malloc_w(STARTLINES * sizeof(char *));
+	size = STARTLINES;
+	URL = malloc_w(URLLEN);
+	snprintf(URL, URLLEN, "https://foss.tesyd.teimes.gr/network-tools/bot.php?service=%s&address=%s", tool, address);
+
+	curl = curl_easy_init();
+	if (curl == NULL)
+		return 0;
+
+#ifdef TEST
+	curl_easy_setopt(curl, CURLOPT_URL, "file:///home/free/programming/c/git/irc-bot/test/ping.txt");
+#else
+	curl_easy_setopt(curl, CURLOPT_URL, URL);
+#endif
+	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_memory);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, mem);
+
+	code = curl_easy_perform(curl);
+	if (code != CURLE_OK)
+		printf("Error: %s\n", curl_easy_strerror(code));
+
+	*lines = 0;
+	line[0] = strtok(mem->buffer + 5, "\n");
+	while (line[*lines] != NULL) {
+		if (*lines == size - 1) { // Double the array if it gets full
+			line = realloc_w(line, size * 2 * sizeof(char *));
+			size *= 2;
+		}
+		line[++(*lines)] = strtok(NULL, "\n");
+	}
+	--(*lines); // Do not print the last line containing the html tag: </pre>
+
+	free(URL);
+	curl_easy_cleanup(curl);
+	return line;
 }

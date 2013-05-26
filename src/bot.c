@@ -63,12 +63,11 @@ void bot_fail(Irc server, Parsed_data pdata) {
 void github(Irc server, Parsed_data pdata) {
 
 	Github *commit;
-	struct mem_buffer mem = {0};
+	struct mem_buffer mem;
 	char **argv, *short_url;
 	int argc, i, commits = 1;
 
 	argv = extract_params(pdata->message, &argc);
-
 	if (argc != 1 && argc != 2)
 		return;
 
@@ -91,5 +90,79 @@ void github(Irc server, Parsed_data pdata) {
 		free(short_url);
 	}
 	free(commit);
+	free(mem.buffer);
+}
+
+void traceroute(Irc server, Parsed_data pdata) {
+
+	struct mem_buffer mem;
+	char **argv, **line, *command;
+	int i, argc, lines;
+
+	argv = extract_params(pdata->message, &argc);
+	if (argc != 1)
+		return;
+
+	if (strchr(argv[0], '.') != NULL)
+		command = "traceroute";
+	else if (strchr(argv[0], ':') != NULL)
+		command = "traceroute6";
+	else
+		return;
+
+	line = network_tools(command, argv[0], &lines, &mem);
+	for (i = 0; i < lines; i++) {
+		send_message(server, pdata->nick, "%s", line[i]);
+		sleep(1);
+	}
+	free(line);
+	free(mem.buffer);
+}
+
+void ping(Irc server, Parsed_data pdata) {
+
+	struct mem_buffer mem;
+	char **argv, **line, *command;
+	int i, argc, lines;
+
+	argv = extract_params(pdata->message, &argc);
+	if (argc != 1)
+		return;
+
+	if (strchr(argv[0], '.') != NULL)
+		command = "ping";
+	else if (strchr(argv[0], ':') != NULL)
+		command = "ping6";
+	else
+		return;
+
+	line = network_tools(command, argv[0], &lines, &mem);
+	for (i = 0; i < lines; i++) {
+		send_message(server, pdata->nick, "%s", line[i]);
+		sleep(1);
+	}
+	free(line);
+	free(mem.buffer);
+}
+
+void dns(Irc server, Parsed_data pdata) {
+
+	struct mem_buffer mem;
+	char **argv, **line;
+	int i, argc, lines;
+
+	argv = extract_params(pdata->message, &argc);
+	if (argc != 1)
+		return;
+
+	if (strchr(argv[0], '.') == NULL)
+		return;
+
+	line = network_tools("nslookup", argv[0], &lines, &mem);
+	for (i = 0; i < lines; i++) {
+		send_message(server, pdata->nick, "%s", line[i]);
+		sleep(1);
+	}
+	free(line);
 	free(mem.buffer);
 }

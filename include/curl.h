@@ -4,6 +4,7 @@
 #define URLLEN 300
 #define MAXCOMMITS 10
 #define COMMITLEN 200
+#define STARTLINES 15
 
 struct mem_buffer {
 	char *buffer;
@@ -24,7 +25,10 @@ char *shorten_url(char *long_url);
 // Returns mumble user list
 char *fetch_mumble_users(void);
 
-// Returns an array containing n commits. The number of commits actually read, are stored in n
-Github *fetch_github_commits(char *repo, int *n, struct mem_buffer *mem);
+// Returns an array containing commits. The number of commits actually read, are stored in "commits"
+Github *fetch_github_commits(char *repo, int *commits, struct mem_buffer *mem);
+
+// Return an array of strings containing a line read from the web tool. The number of lines actually read, are stored in "lines"
+char **network_tools(char *tool, char *address, int *lines, struct mem_buffer *mem);
 
 #endif
