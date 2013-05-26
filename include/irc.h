@@ -12,7 +12,7 @@
 
 enum { Freenode, Grnet, Testing };
 typedef struct irc_type *Irc;
-typedef struct parse_type {
+typedef struct {
 	char *nick;
 	char *command;
 	char *target;

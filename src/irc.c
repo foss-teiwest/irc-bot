@@ -23,7 +23,7 @@ struct irc_type {
 
 static const struct irc_type irc_servers[] = {
 	[Freenode] = { .address = "chat.freenode.net", .port = "6667",
-		.nick  = "foss_teimes", .user = "bot", .channel = "foss-teimes" },
+		.nick  = "foss_tesyd", .user = "bot", .channel = "foss-teimes" },
 	[Grnet]    = { .address = "srv.irc.gr", .port = "6667",
 		.nick  = "freestylerbot", .user = "bot", .channel = "randomblabla" },
 	[Testing]  = { .address = "chat.freenode.net", .port = "6667",

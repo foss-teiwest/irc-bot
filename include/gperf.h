@@ -4,7 +4,7 @@
 #include "irc.h"
 #include "bot.h"
 
-typedef char *(*func_ptr)(Irc, Parsed_data);
+typedef void (*func_ptr)(Irc, Parsed_data);
 typedef const struct function_list {
 	char *command;
 	func_ptr function;

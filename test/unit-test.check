@@ -8,7 +8,7 @@
 #include "gperf.h"
 #include "helper.h"
 #include "bot.h"
-#include "http.h"
+#include "curl.h"
 
 struct irc_type {
 	int sock;
@@ -48,7 +48,7 @@ void open_write(void) {
 		exit_msg("Failed to open file");
 
 	lseek(server->sock, 0, SEEK_SET);
-	pdata = malloc_w(sizeof(struct parse_type));
+	pdata = malloc_w(sizeof(*pdata));
 }
 
 void close_write(void) {
@@ -190,14 +190,6 @@ void close_write(void) {
 	char *pong = ping_reply(server, msg);
 	ck_assert_str_eq(pong, "PONG :pratchett.freenode.net\r\n");
 
-#test bot_command
-
-	pdata->target = "room";
-	pdata->nick = "troll";
-
-	char *msg = bot(server, pdata);
-	ck_assert_str_eq(msg, "PRIVMSG room :sup troll?\r\n");
-
 /*****************************************************************************/
 
 #tcase function match
@@ -215,11 +207,13 @@ void close_write(void) {
 	char *data = "random stuff ftw!";
 	curl_write_memory(data, strlen(data), 1, &mem);
 	ck_assert_str_eq(data, mem.buffer);
+	free(mem.buffer);
 
 #test url_shortener_valid
 
 	char *short_url = shorten_url("rofl.com");
 	ck_assert_str_eq(short_url, "http://goo.gl/LJbW");
+	free(short_url);
 
 #test parameter_extraction
 
@@ -239,6 +233,25 @@ void close_write(void) {
 
 	char *data = fetch_mumble_users();
 	ck_assert_str_eq(data, "7 Online clients: Chubby ZED gkino Erevos freestyler charkost tomkap");
+
+#test github_commits
+
+	Github *commit;
+	struct mem_buffer mem = {0};
+	int n = 10;
+
+	commit = fetch_github_commits("foss-teimes/irc-bot", &n, &mem);
+
+	ck_assert_str_eq(commit[0].sha, "8761f93");
+	ck_assert_str_eq(commit[0].author, "freestyl3r");
+	ck_assert_str_eq(commit[0].msg, "change a function name that conflicted with test framework");
+	ck_assert_str_eq(commit[0].url, "https://github.com/foss-teimes/irc-bot/commit/8761f932675c562c0c9b1cef8470534945e896e5");
+	ck_assert_str_eq(commit[1].sha, "c2513cf");
+	ck_assert_str_eq(commit[1].author, "freestyl3r");
+	ck_assert_str_eq(commit[1].msg, "Run bot commands in a new process");
+	ck_assert_str_eq(commit[1].url, "https://github.com/foss-teimes/irc-bot/commit/c2513cf1046400414a267ccd09918afcc174f786");
+
+	free(mem.buffer);
 
 /*****************************************************************************/
 

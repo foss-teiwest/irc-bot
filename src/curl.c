@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <curl/curl.h>
-#include "http.h"
+#include "curl.h"
 #include "helper.h"
 
 
@@ -68,7 +68,7 @@ char *shorten_url(char *long_url) {
 		printf("Error: %s\n", curl_easy_strerror(code));
 
 	// Find the short url in the reply and null terminate it
-	short_url = strstr(mem.buffer, "ht");
+	short_url = strstr(mem.buffer, "http");
 	if (short_url == NULL)
 		return NULL;
 
@@ -112,4 +112,76 @@ char *fetch_mumble_users(void) {
 
 	curl_easy_cleanup(curl);
 	return mem.buffer;
+}
+
+Github *fetch_github_commits(char *repo, int *n, struct mem_buffer *mem) {
+
+	CURL *curl;
+	CURLcode code;
+	Github *commit;
+	int max_commits, i;
+	char *API_URL, *temp;
+
+	max_commits = *n;
+	API_URL = malloc_w(URLLEN);
+	snprintf(API_URL, URLLEN, "https://api.github.com/repos/%s/commits?per_page=%d", repo, max_commits);
+
+	curl = curl_easy_init();
+	if (curl == NULL)
+		return 0;
+
+#ifdef TEST
+	curl_easy_setopt(curl, CURLOPT_URL, "file:///home/free/programming/c/git/irc-bot/test/github-commit.txt");
+#else
+	curl_easy_setopt(curl, CURLOPT_URL, API_URL);
+#endif
+	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+	curl_easy_setopt(curl, CURLOPT_USERAGENT, "irc-bot"); // Github requires a user-agent
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_memory);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, mem);
+
+	code = curl_easy_perform(curl);
+	if (code != CURLE_OK)
+		printf("Error: %s\n", curl_easy_strerror(code));
+
+	*n = 0;
+	commit = malloc_w(max_commits * sizeof(Github));
+	temp = mem->buffer;
+
+	for (i = 0; i < max_commits; i++) {
+		temp = strstr(temp + 1, "sha");
+		if (temp == NULL)
+			break;
+		commit[i].sha = temp + 6;
+		commit[i].sha[7] = '\0';
+
+		temp = strstr(commit[i].sha + 8, "name");
+		if (temp == NULL)
+			break;
+		commit[i].author = temp + 7;
+		temp = strchr(commit[i].author, '"');
+		*temp = '\0';
+
+		temp = strstr(temp + 1, "message");
+		if (temp == NULL)
+			break;
+		commit[i].msg = temp + 10;
+		temp = strchr(commit[i].msg, '"');
+		*temp = '\0';
+		if (strlen(commit[i].msg) > COMMITLEN) { // Truncate commit message if too long
+			commit[i].msg[COMMITLEN] = commit[i].msg[COMMITLEN + 1] = commit[i].msg[COMMITLEN + 2] = '.';
+			commit[i].msg[COMMITLEN + 3] = '\0';
+		}
+		temp = strstr(temp + 1, "html");
+		if (temp == NULL)
+			break;
+		commit[i].url = temp + 11;
+		temp = strchr(commit[i].url, '"');
+		*temp = '\0';
+
+		(*n)++;
+	}
+	free(API_URL);
+	curl_easy_cleanup(curl);
+	return commit;
 }

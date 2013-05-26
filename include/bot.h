@@ -11,19 +11,22 @@
 // All functions return the actual message send to server (raw form)
 
 // Reply with "sup" back to sender
-char *bot(Irc server, Parsed_data pdata);
+void bot(Irc server, Parsed_data pdata);
 
 // Extracts long url from message and replies back with a shortened version
-// Current url extraction is very weak. The url must come as the first parameter and it must have at least one '.'
-char *url(Irc server, Parsed_data pdata);
+// Current url extraction is weak. The url must come as the first parameter and it must have at least one '.'
+void url(Irc server, Parsed_data pdata);
 
 // Get foss-tesyd mumble user list
-char *mumble(Irc server, Parsed_data pdata);
+void mumble(Irc server, Parsed_data pdata);
 
 // Send funny messages
-char *bot_fail(Irc server, Parsed_data pdata);
+void bot_fail(Irc server, Parsed_data pdata);
 
 // Print available commands
-char *list(Irc server, Parsed_data pdata);
+void list(Irc server, Parsed_data pdata);
+
+// Print latest commits from a repo
+void github(Irc server, Parsed_data pdata);
 
 #endif

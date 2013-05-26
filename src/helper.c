@@ -24,7 +24,7 @@ void *_malloc_w(size_t size, const char *caller) {
 
 	buffer = malloc(size);
 	if (buffer == NULL)
-		exit_msg("Error: calloc failed in %s", caller);
+		exit_msg("Error: malloc failed in %s", caller);
 
 	return buffer;
 }

@@ -18,3 +18,4 @@ struct function_list;
 "fail", bot_fail
 "list", list
 "help", list
+"github", github

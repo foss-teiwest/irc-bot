@@ -16,7 +16,7 @@
 #include "gperf.h"
 #include "helper.h"
 #include "bot.h"
-#include "http.h"
+#include "curl.h"
 
 struct irc_type {
 	int sock;
@@ -56,7 +56,7 @@ void open_write(void) {
 		exit_msg("Failed to open file");
 
 	lseek(server->sock, 0, SEEK_SET);
-	pdata = malloc_w(sizeof(struct parse_type));
+	pdata = malloc_w(sizeof(*pdata));
 }
 
 void close_write(void) {
@@ -274,26 +274,13 @@ START_TEST(pingreply)
 	char *pong = ping_reply(server, msg);
 	ck_assert_str_eq(pong, "PONG :pratchett.freenode.net\r\n");
 
-}
-END_TEST
-
-START_TEST(bot_command)
-{
-#line 194
-
-	pdata->target = "room";
-	pdata->nick = "troll";
-
-	char *msg = bot(server, pdata);
-	ck_assert_str_eq(msg, "PRIVMSG room :sup troll?\r\n");
-
 /*****************************************************************************/
 
 }
 END_TEST
 START_TEST(gperf)
 {
-#line 205
+#line 197
 
 	Function_list flist = function_lookup("bot", 3);
 	ck_assert_ptr_ne(flist, NULL);
@@ -306,29 +293,31 @@ END_TEST
 
 START_TEST(curl_writeback)
 {
-#line 213
+#line 205
 
 	struct mem_buffer mem;
 	char *data = "random stuff ftw!";
 	curl_write_memory(data, strlen(data), 1, &mem);
 	ck_assert_str_eq(data, mem.buffer);
+	free(mem.buffer);
 
 }
 END_TEST
 
 START_TEST(url_shortener_valid)
 {
-#line 220
+#line 213
 
 	char *short_url = shorten_url("rofl.com");
 	ck_assert_str_eq(short_url, "http://goo.gl/LJbW");
+	free(short_url);
 
 }
 END_TEST
 
 START_TEST(parameter_extraction)
 {
-#line 225
+#line 219
 
 	char msg[] = " 	trolol  re noob  	\r\n";
 	char **argv;
@@ -347,10 +336,34 @@ END_TEST
 
 START_TEST(mumble_list)
 {
-#line 239
+#line 233
 
 	char *data = fetch_mumble_users();
 	ck_assert_str_eq(data, "7 Online clients: Chubby ZED gkino Erevos freestyler charkost tomkap");
+
+}
+END_TEST
+
+START_TEST(github_commits)
+{
+#line 238
+
+	Github *commit;
+	struct mem_buffer mem = {0};
+	int n = 10;
+
+	commit = fetch_github_commits("foss-teimes/irc-bot", &n, &mem);
+
+	ck_assert_str_eq(commit[0].sha, "8761f93");
+	ck_assert_str_eq(commit[0].author, "freestyl3r");
+	ck_assert_str_eq(commit[0].msg, "change a function name that conflicted with test framework");
+	ck_assert_str_eq(commit[0].url, "https://github.com/foss-teimes/irc-bot/commit/8761f932675c562c0c9b1cef8470534945e896e5");
+	ck_assert_str_eq(commit[1].sha, "c2513cf");
+	ck_assert_str_eq(commit[1].author, "freestyl3r");
+	ck_assert_str_eq(commit[1].msg, "Run bot commands in a new process");
+	ck_assert_str_eq(commit[1].url, "https://github.com/foss-teimes/irc-bot/commit/c2513cf1046400414a267ccd09918afcc174f786");
+
+	free(mem.buffer);
 
 /*****************************************************************************/
 
@@ -368,7 +381,7 @@ int main(void)
     int nf;
 
     /* User-specified pre-run code */
-#line 246
+#line 259
 	tcase_add_unchecked_fixture(tc1_2, open_read, close_read);
 	tcase_add_unchecked_fixture(tc1_3, open_write, close_write);
 	curl_global_init(CURL_GLOBAL_ALL);
@@ -394,20 +407,20 @@ int main(void)
     tcase_add_test(tc1_3, sendircmsg);
     tcase_add_test(tc1_3, privemsg);
     tcase_add_test(tc1_3, pingreply);
-    tcase_add_test(tc1_3, bot_command);
     suite_add_tcase(s1, tc1_4);
     tcase_add_test(tc1_4, gperf);
     tcase_add_test(tc1_4, curl_writeback);
     tcase_add_test(tc1_4, url_shortener_valid);
     tcase_add_test(tc1_4, parameter_extraction);
     tcase_add_test(tc1_4, mumble_list);
+    tcase_add_test(tc1_4, github_commits);
 
     srunner_run_all(sr, CK_ENV);
     nf = srunner_ntests_failed(sr);
     srunner_free(sr);
 
     /* User-specified post-run code */
-#line 251
+#line 264
 	curl_global_cleanup();
 	return nf == 0 ? 0 : 1;
 }
