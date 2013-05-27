@@ -54,7 +54,7 @@ void open_write(void) {
 void close_write(void) {
 
 	free(pdata);
-	quit_server(server, NULL);
+	quit_server(server, "bye");
 }
 
 /*****************************************************************************/
@@ -63,15 +63,15 @@ void close_write(void) {
 #tcase connection
 #test socket_connection
 
-	sock = sock_connect("chat.freenode.net", "6667");
+	sock = sock_connect("kornbluth.freenode.net", "6667");
 	ck_assert_msg(sock >= 0, "Socket creation failed");
 	close(sock);
 
 #test irc_connection
 
-	server = connect_server(0);
+	server = connect_server("kornbluth.freenode.net", "6667");
 	ck_assert_msg(server != NULL, "irc connection failed");
-	quit_server(server, NULL);
+	quit_server(server, "bye");
 
 /*****************************************************************************/
 
@@ -120,30 +120,15 @@ void close_write(void) {
 	ssize_t n = sock_write(server->sock, "troll", 0);
 	ck_assert_msg(n == 0 || n == -1, "Unexpected amount of bytes sent");
 
-#test set_nick_null
-
-	char *nick = set_nick(server, NULL);
-	ck_assert_str_eq(server->nick, nick);
-
 #test new_nick_match
 
 	set_nick(server, "trololol");
 	ck_assert_str_eq(server->nick, "trololol");
 
-#test set_user_null
-
-	char *user = set_user(server, NULL);
-	ck_assert_str_eq(server->user, user);
-
 #test new_user_match
 
 	set_user(server, "trololol");
 	ck_assert_str_eq(server->user, "trololol");
-
-#test set_chan_null
-
-	char *channel = join_channel(server, NULL);
-	ck_assert_str_eq(server->channel, channel);
 
 #test new_chan_match
 

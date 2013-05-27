@@ -19,7 +19,7 @@ int main(void) {
 	if (freenode == NULL)
 		exit_msg("Irc connection failed");
 
-	set_nick(freenode, "randombot");
+	set_nick(freenode, "foss-tesyd");
 	set_user(freenode, "bot");
 	join_channel(freenode, "foss-teimes");
 
