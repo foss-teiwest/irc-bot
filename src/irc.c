@@ -30,9 +30,6 @@ static const struct irc_type irc_servers[] = {
 		.nick  = "randombot", .user = "bot", .channel = "randombot" }
 };
 
-static char buffer[BUFSIZE];
-static char buffer2[BUFSIZE];
-
 
 Irc connect_server(enum server_list sl) {
 
@@ -49,56 +46,59 @@ Irc connect_server(enum server_list sl) {
 char *set_nick(Irc server, const char *nick) {
 
 	ssize_t n;
+	char irc_msg[IRCLEN];
 
 	if (nick != NULL)
 		strncpy(server->nick, nick, NICKLEN);
 
-	snprintf(buffer, BUFSIZE, "NICK %s\r\n", server->nick);
-	fputs(buffer, stdout);
-	n = sock_write(server->sock, buffer, strlen(buffer));
+	snprintf(irc_msg, IRCLEN, "NICK %s\r\n", server->nick);
+	fputs(irc_msg, stdout);
+	n = sock_write(server->sock, irc_msg, strlen(irc_msg));
 	if (n < 0)
 		exit_msg("Irc set nick failed");
 
-	return buffer;
+	return server->nick;
 }
 
 char *set_user(Irc server, const char *user) {
 
 	ssize_t n;
+	char irc_msg[IRCLEN];
 
 	if (user != NULL)
 		strncpy(server->user, user, USERLEN);
 
-	snprintf(buffer, BUFSIZE, "USER %s 0 * :%s\r\n", server->user, server->user);
-	fputs(buffer, stdout);
-	n = sock_write(server->sock, buffer, strlen(buffer));
+	snprintf(irc_msg, IRCLEN, "USER %s 0 * :%s\r\n", server->user, server->user);
+	fputs(irc_msg, stdout);
+	n = sock_write(server->sock, irc_msg, strlen(irc_msg));
 	if (n < 0)
 		exit_msg("Irc set user failed");
 
-	return buffer;
+	return server->user;
 }
 
 char *join_channel(Irc server, const char *channel) {
 
 	ssize_t n;
+	char irc_msg[IRCLEN];
 
 	if (channel != NULL)
 		strncpy(server->channel, channel, CHANLEN);
 
-	snprintf(buffer, BUFSIZE, "JOIN #%s\r\n", server->channel);
-	fputs(buffer, stdout);
-	n = sock_write(server->sock, buffer, strlen(buffer));
+	snprintf(irc_msg, IRCLEN, "JOIN #%s\r\n", server->channel);
+	fputs(irc_msg, stdout);
+	n = sock_write(server->sock, irc_msg, strlen(irc_msg));
 	if (n < 0)
 		exit_msg("Irc join channel failed");
 
-	return buffer;
+	return server->channel;
 }
 
 ssize_t get_line(Irc server, char *buf) {
 
 	ssize_t n;
 
-	n = sock_readline(server->sock, buf, BUFSIZE);
+	n = sock_readline(server->sock, buf, IRCLEN);
 	fputs(buf, stdout);
 
 	return n;
@@ -191,36 +191,36 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 		if (pid < 0)
 			perror("waitpid");
 	}
-	return;
 }
 
-char *send_message(Irc server, const char *target, const char *format, ...) {
+void send_message(Irc server, const char *target, const char *format, ...) {
 
 	ssize_t n;
 	va_list args;
+	char msg[IRCLEN - CHANLEN], irc_msg[IRCLEN];
 
 	va_start(args, format);
-	vsnprintf(buffer, BUFSIZE - CHANLEN, format, args);
-	snprintf(buffer2, BUFSIZE, "PRIVMSG %s :%s\r\n", target, buffer);
-	fputs(buffer2, stdout);
-	n = sock_write(server->sock, buffer2, strlen(buffer2));
+	vsnprintf(msg, IRCLEN - CHANLEN, format, args);
+	snprintf(irc_msg, IRCLEN, "PRIVMSG %s :%s\r\n", target, msg);
+	fputs(irc_msg, stdout);
+	n = sock_write(server->sock, irc_msg, strlen(irc_msg));
 	if (n < 0)
 		exit_msg("Failed to send message");
 
 	va_end(args);
-	return buffer2;
 }
 
-char *quit_server(Irc server, const char *msg) {
+void quit_server(Irc server, const char *msg) {
 
 	ssize_t n;
+	char irc_msg[IRCLEN];
 
 	if (msg == NULL)
 		msg = "";
 
-	snprintf(buffer, BUFSIZE, "QUIT :%s\r\n", msg);
-	fputs(buffer, stdout);
-	n = sock_write(server->sock, buffer, strlen(buffer));
+	snprintf(irc_msg, IRCLEN, "QUIT :%s\r\n", msg);
+	fputs(irc_msg, stdout);
+	n = sock_write(server->sock, irc_msg, strlen(irc_msg));
 	if (n < 0)
 		exit_msg("Quit failed");
 
@@ -228,5 +228,4 @@ char *quit_server(Irc server, const char *msg) {
 		perror("close");
 
 	free(server);
-	return buffer;
 }

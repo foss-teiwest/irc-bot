@@ -9,7 +9,7 @@
 #include "helper.h"
 
 static int bytes_read;
-static char buffer[BUFSIZE];
+static char buffer[IRCLEN];
 static char *buf_ptr;
 
 
@@ -83,7 +83,7 @@ ssize_t sock_write(int sock, const char *buf, size_t len) {
 {
 	// Stores the character in byte. Returns -1 for fail, 0 if connection is closed or 1 for success
 	while (bytes_read <= 0) {
-		bytes_read = read(sock, buffer, BUFSIZE);
+		bytes_read = read(sock, buffer, IRCLEN);
 		if (bytes_read < 0 && errno == EINTR) { // Interrupted by signal, retry
 			bytes_read = 0;
 			continue;

@@ -3,6 +3,11 @@
 
 #include "irc.h"
 
+#define LINELEN 300
+#define CMDLEN 200
+#define MAXCOMMITS 10
+#define MAXPINGCOUNT 10
+
 // Data available to all bot functions through pdata:
 // nick: the one initiated the request
 // target: the channel or the query it was requested on
@@ -29,7 +34,7 @@ void list(Irc server, Parsed_data pdata);
 // Print latest commits from a repo
 void github(Irc server, Parsed_data pdata);
 
-// Send resulting network command to the one who requested it in private
+// Print the result from the command specified. Traceroute will be printed in private to avoid spam
 void traceroute(Irc server, Parsed_data pdata);
 void ping(Irc server, Parsed_data pdata);
 void dns(Irc server, Parsed_data pdata);

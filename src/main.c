@@ -12,7 +12,7 @@ int main(void) {
 	Parsed_data pdata;
 	curl_global_init(CURL_GLOBAL_ALL);
 
-	line = malloc_w(BUFSIZE * sizeof(char) + 1); // Space for null char
+	line = malloc_w(IRCLEN * sizeof(char) + 1); // Space for null char
 	pdata = malloc_w(sizeof(*pdata));
 
 	freenode = connect_server(Freenode);

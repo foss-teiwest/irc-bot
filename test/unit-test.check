@@ -20,7 +20,7 @@ struct irc_type {
 };
 
 Irc server;
-char test_buffer[BUFSIZE + 1];
+char test_buffer[IRCLEN + 1];
 int sock, status;
 Parsed_data pdata;
 
@@ -89,17 +89,17 @@ void close_write(void) {
 
 #test socket_readline
 
-	char test_buffer2[BUFSIZE + 1] = { 0 };
+	char test_buffer2[IRCLEN + 1] = { 0 };
 
 	lseek(server->sock, 0, SEEK_SET);
-	while (sock_readline(server->sock, test_buffer, BUFSIZE) > 0)
+	while (sock_readline(server->sock, test_buffer, IRCLEN) > 0)
 		strcat(test_buffer2, test_buffer);
 
 	ck_assert_str_eq("lol\r\ntroll\r\n", test_buffer2);
 
 #test irc_readline
 
-	char test_buffer2[BUFSIZE + 1] = { 0 };
+	char test_buffer2[IRCLEN + 1] = { 0 };
 
 	lseek(server->sock, 0, SEEK_SET);
 	while (get_line(server, test_buffer) > 0)
@@ -122,39 +122,33 @@ void close_write(void) {
 
 #test set_nick_null
 
-	sprintf(test_buffer, "NICK %s\r\n", server->nick);
 	char *nick = set_nick(server, NULL);
-	ck_assert_str_eq(test_buffer, nick);
+	ck_assert_str_eq(server->nick, nick);
 
 #test new_nick_match
 
-	char *nick = set_nick(server, "trololol");
-	sprintf(test_buffer, "NICK %s\r\n", server->nick);
-	ck_assert_str_eq(test_buffer, nick);
+	set_nick(server, "trololol");
+	ck_assert_str_eq(server->nick, "trololol");
 
 #test set_user_null
 
-	sprintf(test_buffer, "USER %s 0 * :%s\r\n", server->user, server->user);
 	char *user = set_user(server, NULL);
-	ck_assert_str_eq(test_buffer, user);
+	ck_assert_str_eq(server->user, user);
 
 #test new_user_match
 
-	char *user = set_user(server, "trololol");
-	sprintf(test_buffer, "USER %s 0 * :%s\r\n", server->user, server->user);
-	ck_assert_str_eq(test_buffer, user);
+	set_user(server, "trololol");
+	ck_assert_str_eq(server->user, "trololol");
 
 #test set_chan_null
 
-	sprintf(test_buffer, "JOIN #%s\r\n", server->channel);
 	char *channel = join_channel(server, NULL);
-	ck_assert_str_eq(test_buffer, channel);
+	ck_assert_str_eq(server->channel, channel);
 
 #test new_chan_match
 
-	char *channel = join_channel(server, "trololol");
-	sprintf(test_buffer, "JOIN #%s\r\n", server->channel);
-	ck_assert_str_eq(test_buffer, channel);
+	join_channel(server, "trololol");
+	ck_assert_str_eq(server->channel, "trololol");
 
 #test parse_msg
 
@@ -163,14 +157,6 @@ void close_write(void) {
 	parse_line(server, line, pdata);
 	sprintf(test_buffer, "%s%s%s", pdata->nick, pdata->command, pdata->message);
 	ck_assert_str_eq(test_buffer, "freestyl3rPRIVEMSG#foss-teimes :freestylerbot");
-
-#test sendircmsg
-
-	char msg[] = ":freestyl3r!~free@ppp005055033225.access.hol.gr PRIVMSG #foss-teimes :freestylerbot";
-
-	parse_line(server, msg, pdata);
-	char *sent = send_message(server, pdata->target, "sup %s?", pdata->nick);
-	ck_assert_str_eq(sent, "PRIVMSG #foss-teimes :sup freestyl3r?\r\n");
 
 #test privemsg
 
@@ -251,19 +237,6 @@ void close_write(void) {
 	ck_assert_str_eq(commit[1].msg, "Run bot commands in a new process");
 	ck_assert_str_eq(commit[1].url, "https://github.com/foss-teimes/irc-bot/commit/c2513cf1046400414a267ccd09918afcc174f786");
 
-	free(mem.buffer);
-
-#test network_web_tools
-
-	char **line;
-	int lines;
-	struct mem_buffer mem;
-
-	line = network_tools("ping", "archlinux.org", &lines, &mem);
-	ck_assert_str_eq(line[0], "PING archlinux.org (66.211.214.131) 56(84) bytes of data.");
-	ck_assert_str_eq(line[lines - 1], "rtt min/avg/max/mdev = 159.856/160.388/160.917/0.618 ms");
-
-	free(line);
 	free(mem.buffer);
 
 /*****************************************************************************/

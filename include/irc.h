@@ -3,7 +3,7 @@
 
 #include <sys/types.h>
 
-#define BUFSIZE  512
+#define IRCLEN  512
 #define NICKLEN  16
 #define USERLEN  15
 #define CHANLEN  40
@@ -24,10 +24,9 @@ typedef struct {
 // Returns NULL on failure
 Irc connect_server(enum server_list sl);
 
-// The (char *) in the functions that return it, is the final message composed for sending to server
-
 // If NULL is entered then the default server value is used
 // User can only be set during server connection so it should only be called once
+// Returns the final account info set
 char *set_nick(Irc server, const char *nick);
 char *set_user(Irc server, const char *user);
 char *join_channel(Irc server, const char *channel);
@@ -47,9 +46,9 @@ char *parse_line(Irc server, char *line, Parsed_data pdata);
 void irc_privmsg(Irc server, Parsed_data pdata);
 
 // Send a message to a channel or a person specified by target. Standard printf format accepted
-char *send_message(Irc server, const char *target, const char *format, ...);
+void send_message(Irc server, const char *target, const char *format, ...);
 
 // Close socket and free structure. Returns -1 on failure
-char *quit_server(Irc server, const char *msg);
+void quit_server(Irc server, const char *msg);
 
 #endif
