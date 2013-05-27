@@ -12,7 +12,7 @@
 
 struct irc_type {
 	int sock;
-	char address[SERVLEN];
+	char address[ADDRLEN];
 	char port[PORTLEN];
 	char nick[NICKLEN];
 	char user[USERLEN];

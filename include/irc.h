@@ -7,10 +7,9 @@
 #define NICKLEN  16
 #define USERLEN  15
 #define CHANLEN  40
-#define SERVLEN  40
+#define ADDRLEN  40
 #define PORTLEN  5
 
-enum server_list { Freenode, Grnet, Testing };
 typedef struct irc_type *Irc;
 typedef struct {
 	char *nick;
@@ -22,7 +21,7 @@ typedef struct {
 // Fill server details with the one specified and connect to it.
 // Structure returned is allocated on the heap so it needs to be freed with quit_server()
 // Returns NULL on failure
-Irc connect_server(enum server_list sl);
+Irc connect_server(const char *address, const char *port);
 
 // If NULL is entered then the default server value is used
 // User can only be set during server connection so it should only be called once

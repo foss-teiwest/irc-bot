@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <ctype.h>
+#include <assert.h>
 #include "socket.h"
 #include "irc.h"
 #include "gperf.h"
@@ -14,29 +15,25 @@
 
 struct irc_type {
 	int sock;
-	char address[SERVLEN];
+	char address[ADDRLEN];
 	char port[PORTLEN];
 	char nick[NICKLEN];
 	char user[USERLEN];
 	char channel[CHANLEN];
 };
 
-static const struct irc_type irc_servers[] = {
-	[Freenode] = { .address = "chat.freenode.net", .port = "6667",
-		.nick  = "foss_tesyd", .user = "bot", .channel = "foss-teimes" },
-	[Grnet]    = { .address = "srv.irc.gr", .port = "6667",
-		.nick  = "freestylerbot", .user = "bot", .channel = "randomblabla" },
-	[Testing]  = { .address = "chat.freenode.net", .port = "6667",
-		.nick  = "randombot", .user = "bot", .channel = "randombot" }
-};
-
-
-Irc connect_server(enum server_list sl) {
+Irc connect_server(const char *address, const char *port) {
 
 	Irc server = malloc_w(sizeof(struct irc_type));
 
-	memcpy(server, &irc_servers[sl], sizeof(struct irc_type));
-	server->sock = sock_connect(server->address, server->port);
+	// Minimum validity checks
+	if (strchr(address, '.') == NULL || atoi(port) > 65535)
+		return NULL;
+
+	strncpy(server->port, port, PORTLEN);
+	strncpy(server->address, address, ADDRLEN);
+
+	server->sock = sock_connect(address, port);
 	if (server->sock < 0)
 		return NULL;
 
@@ -48,8 +45,8 @@ char *set_nick(Irc server, const char *nick) {
 	ssize_t n;
 	char irc_msg[IRCLEN];
 
-	if (nick != NULL)
-		strncpy(server->nick, nick, NICKLEN);
+	assert(nick != NULL && "Error in set_nick");
+	strncpy(server->nick, nick, NICKLEN);
 
 	snprintf(irc_msg, IRCLEN, "NICK %s\r\n", server->nick);
 	fputs(irc_msg, stdout);
@@ -65,8 +62,8 @@ char *set_user(Irc server, const char *user) {
 	ssize_t n;
 	char irc_msg[IRCLEN];
 
-	if (user != NULL)
-		strncpy(server->user, user, USERLEN);
+	assert(user != NULL && "Error in set_user");
+	strncpy(server->user, user, USERLEN);
 
 	snprintf(irc_msg, IRCLEN, "USER %s 0 * :%s\r\n", server->user, server->user);
 	fputs(irc_msg, stdout);
@@ -82,8 +79,8 @@ char *join_channel(Irc server, const char *channel) {
 	ssize_t n;
 	char irc_msg[IRCLEN];
 
-	if (channel != NULL)
-		strncpy(server->channel, channel, CHANLEN);
+	assert(channel != NULL && "Error in set_channel");
+	strncpy(server->channel, channel, CHANLEN);
 
 	snprintf(irc_msg, IRCLEN, "JOIN #%s\r\n", server->channel);
 	fputs(irc_msg, stdout);
@@ -215,8 +212,7 @@ void quit_server(Irc server, const char *msg) {
 	ssize_t n;
 	char irc_msg[IRCLEN];
 
-	if (msg == NULL)
-		msg = "";
+	assert(msg != NULL && "Error in quit_server");
 
 	snprintf(irc_msg, IRCLEN, "QUIT :%s\r\n", msg);
 	fputs(irc_msg, stdout);

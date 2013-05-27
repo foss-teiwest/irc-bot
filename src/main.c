@@ -15,14 +15,13 @@ int main(void) {
 	line = malloc_w(IRCLEN * sizeof(char) + 1); // Space for null char
 	pdata = malloc_w(sizeof(*pdata));
 
-	freenode = connect_server(Freenode);
+	freenode = connect_server("kornbluth.freenode.net", "6667");
 	if (freenode == NULL)
 		exit_msg("Irc connection failed");
 
-	// Use server's predefined values
-	set_nick(freenode, NULL);
-	set_user(freenode, NULL);
-	join_channel(freenode, NULL);
+	set_nick(freenode, "randombot");
+	set_user(freenode, "bot");
+	join_channel(freenode, "foss-teimes");
 
 	// Keep running as long the connection is active and act on any registered actions found
 	while (get_line(freenode, line) > 0)
@@ -30,7 +29,7 @@ int main(void) {
 
 	free(line);
 	free(pdata);
-	quit_server(freenode, NULL); // No quit message
+	quit_server(freenode, "bye");
 	curl_global_cleanup();
 	return 0;
 }
