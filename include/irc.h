@@ -30,6 +30,10 @@ char *set_nick(Irc server, const char *nick);
 char *set_user(Irc server, const char *user);
 char *join_channel(Irc server, const char *channel);
 
+// pwd is cleared after use so it doesn't stay in plain view (memory)
+// And also the command sent to server is not printed in stdout
+void identify_nick(Irc server, char *pwd);
+
 // Gets next line from server. Returns length
 ssize_t get_line(Irc server, char *buf);
 

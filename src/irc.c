@@ -74,6 +74,19 @@ char *set_user(Irc server, const char *user) {
 	return server->user;
 }
 
+void identify_nick(Irc server, char *pwd) {
+
+	ssize_t n;
+	char irc_msg[IRCLEN];
+
+	snprintf(irc_msg, IRCLEN, "PRIVMSG nickserv :identify %s\r\n", pwd);
+	n = sock_write(server->sock, irc_msg, strlen(irc_msg));
+	if (n < 0)
+		exit_msg("Irc identify nick failed");
+
+	memset(pwd, 0, strlen(pwd)); // Zero-out password so it doesn't stay in memory
+}
+
 char *join_channel(Irc server, const char *channel) {
 
 	ssize_t n;

@@ -169,7 +169,7 @@ void traceroute(Irc server, Parsed_data pdata) {
 		return;
 
 	snprintf(cmdline, CMDLEN, "%s %s", cmd, argv[0]);
-	send_message(server, pdata->target, "Printing result privately to %s", pdata->nick);
+	send_message(server, pdata->target, "Printing results privately to %s", pdata->nick);
 	print_cmd_output(server, pdata->nick, cmdline);
 
 	free(argv);
