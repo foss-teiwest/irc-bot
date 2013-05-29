@@ -13,32 +13,6 @@ void list(Irc server, Parsed_data pdata) {
 	send_message(server, pdata->target, "list / help, bot, url, mumble, fail, github, ping, traceroute, dns");
 }
 
-#ifdef TEST
-	void print_cmd_output(Irc server, const char *dest, const char *cmd)
-#else
-	static void print_cmd_output(Irc server, const char *dest, const char *cmd)
-#endif
-{
-	char line[LINELEN];
-	FILE *prog;
-	int len;
-
-	// Open the program with arguments specified
-	prog = popen(cmd, "r");
-	if (prog == NULL)
-		return;
-
-	// Print line by line the output of the program
-	while (fgets(line, LINELEN, prog) != NULL) {
-		len = strlen(line) - 1;
-		if (len > 1) { // Only print if line is not empty
-			line[len] = '\0'; // Remove last newline char (\n) since we add it inside send_message()
-			send_message(server, dest, "%s", line);
-		}
-	}
-	pclose(prog);
-}
-
 void bot(Irc server, Parsed_data pdata) {
 
 	send_message(server, pdata->target, "sup %s?", pdata->nick);
@@ -169,7 +143,8 @@ void traceroute(Irc server, Parsed_data pdata) {
 		return;
 
 	snprintf(cmdline, CMDLEN, "%s -m 20 %s", cmd, argv[0]); // Limit max hops to 20
-	send_message(server, pdata->target, "Printing results privately to %s", pdata->nick);
+	if (strchr(pdata->target, '#') != NULL) // Don't send the following msg if the request was initiated in private
+		send_message(server, pdata->target, "Printing results privately to %s", pdata->nick);
 	print_cmd_output(server, pdata->nick, cmdline);
 
 	free(argv);

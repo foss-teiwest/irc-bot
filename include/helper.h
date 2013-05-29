@@ -1,7 +1,10 @@
 #ifndef HELPER_H
 #define HELPER_H
 
+#include "irc.h"
+
 #define STARTSIZE 5
+#define LINELEN 300
 
 // Allocate memory and print the caller function on failure (before exiting)
 #define malloc_w(x) _malloc_w((x), __func__)
@@ -19,5 +22,8 @@ void exit_msg(const char *format, ...);
 // e.x: argv = extract_params(pdata->message, &argc);  argv[argc - 1] will contain the last parameter
 // The array returned must be freed.
 char **extract_params(char *msg, int *argc);
+
+// Run the program (and it's arguments) specified in cmd and print the result in dest
+void print_cmd_output(Irc server, const char *dest, const char *cmd);
 
 #endif

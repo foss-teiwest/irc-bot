@@ -3,7 +3,6 @@
 
 #include "irc.h"
 
-#define LINELEN 300
 #define CMDLEN 200
 #define MAXCOMMITS 10
 #define MAXPINGCOUNT 10

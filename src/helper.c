@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include "helper.h"
+#include "irc.h"
 
 
 void exit_msg(const char *format, ...) {
@@ -70,4 +71,26 @@ char **extract_params(char *msg, int *argc) {
 		argv[++(*argc)] = strtok(NULL, " \t");
 	}
 	return argv;
+}
+
+void print_cmd_output(Irc server, const char *dest, const char *cmd) {
+
+	char line[LINELEN];
+	FILE *prog;
+	int len;
+
+	// Open the program with arguments specified
+	prog = popen(cmd, "r");
+	if (prog == NULL)
+		return;
+
+	// Print line by line the output of the program
+	while (fgets(line, LINELEN, prog) != NULL) {
+		len = strlen(line) - 1;
+		if (len > 1) { // Only print if line is not empty
+			line[len] = '\0'; // Remove last newline char (\n) since we add it inside send_message()
+			send_message(server, dest, "%s", line);
+		}
+	}
+	pclose(prog);
 }

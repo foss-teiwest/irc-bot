@@ -21,11 +21,9 @@ int main(void) {
 
 	set_nick(freenode, "fossbot");
 	set_user(freenode, "bot");
-
 	printf("Enter nick identify password: ");
-	if (scanf("%15s", nick_pwd) != 0)
+	if (scanf("%15s", nick_pwd) != EOF)
 		identify_nick(freenode, nick_pwd);
-
 	join_channel(freenode, "foss-teimes");
 
 	// Keep running as long the connection is active and act on any registered actions found
