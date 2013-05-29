@@ -30,7 +30,7 @@ size_t curl_write_memory(char *data, size_t size, size_t elements, void *membuf)
 void open_read(void) {
 
 	server = malloc_w(sizeof(struct irc_type));
-	server->sock = open("test/input.txt", O_RDONLY);
+	server->sock = open("test-files/input.txt", O_RDONLY);
 	if (server->sock < 0)
 		exit_msg("Failed to open file");
 }
@@ -43,7 +43,7 @@ void close_read(void) {
 void open_write(void) {
 
 	server = malloc_w(sizeof(struct irc_type));
-	server->sock = open("test/output.txt", O_RDWR);
+	server->sock = open("test-files/output.txt", O_RDWR);
 	if (server->sock < 0)
 		exit_msg("Failed to open file");
 

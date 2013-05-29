@@ -8,6 +8,11 @@
 #include "helper.h"
 
 
+void list(Irc server, Parsed_data pdata) {
+
+	send_message(server, pdata->target, "list / help, bot, url, mumble, fail, github, ping, traceroute, dns");
+}
+
 #ifdef TEST
 	void print_cmd_output(Irc server, const char *dest, const char *cmd)
 #else
@@ -32,11 +37,6 @@
 		}
 	}
 	pclose(prog);
-}
-
-void list(Irc server, Parsed_data pdata) {
-
-	send_message(server, pdata->target, "list / help, bot, url, mumble, fail, github, ping, traceroute, dns");
 }
 
 void bot(Irc server, Parsed_data pdata) {
@@ -168,7 +168,7 @@ void traceroute(Irc server, Parsed_data pdata) {
 	else
 		return;
 
-	snprintf(cmdline, CMDLEN, "%s %s", cmd, argv[0]);
+	snprintf(cmdline, CMDLEN, "%s -m 20 %s", cmd, argv[0]); // Limit max hops to 20
 	send_message(server, pdata->target, "Printing results privately to %s", pdata->nick);
 	print_cmd_output(server, pdata->nick, cmdline);
 

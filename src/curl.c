@@ -50,7 +50,7 @@ char *shorten_url(char *long_url) {
 		return 0;
 
 #ifdef TEST
-	curl_easy_setopt(curl, CURLOPT_URL, "file:///home/free/programming/c/git/irc-bot/test/url-shorten.txt");
+	curl_easy_setopt(curl, CURLOPT_URL, "file:///home/free/programming/c/git/irc-bot/test-files/url-shorten.txt");
 #else
 	curl_easy_setopt(curl, CURLOPT_URL, "https://www.googleapis.com/urlshortener/v1/url"); // Set API url
 #endif
@@ -98,7 +98,7 @@ char *fetch_mumble_users(void) {
 		return 0;
 
 #ifdef TEST
-	curl_easy_setopt(curl, CURLOPT_URL, "file:///home/free/programming/c/git/irc-bot/test/mumble.txt");
+	curl_easy_setopt(curl, CURLOPT_URL, "file:///home/free/programming/c/git/irc-bot/test-files/mumble.txt");
 #else
 	curl_easy_setopt(curl, CURLOPT_URL, "https://foss.tesyd.teimes.gr/weblist-bot.php"); // Set mumble users list url
 #endif
@@ -132,7 +132,7 @@ Github *fetch_github_commits(char *repo, int *commits, struct mem_buffer *mem) {
 		return 0;
 
 #ifdef TEST
-	curl_easy_setopt(curl, CURLOPT_URL, "file:///home/free/programming/c/git/irc-bot/test/github-commit.txt");
+	curl_easy_setopt(curl, CURLOPT_URL, "file:///home/free/programming/c/git/irc-bot/test-files/github-commit.txt");
 #else
 	curl_easy_setopt(curl, CURLOPT_URL, API_URL);
 #endif

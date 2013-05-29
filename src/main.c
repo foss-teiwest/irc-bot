@@ -5,15 +5,12 @@
 #include "helper.h"
 
 
-int main(int argc, char *argv[]) {
+int main(void) {
 
 	Irc freenode;
-	char *line;
+	char *line, nick_pwd[NICKLEN];
 	Parsed_data pdata;
 	curl_global_init(CURL_GLOBAL_ALL);
-
-	if (argc != 1 && argc != 2)
-		exit_msg("Only valid argument is an optional nick password");
 
 	line = malloc_w(IRCLEN * sizeof(char) + 1); // Space for null char
 	pdata = malloc_w(sizeof(*pdata));
@@ -24,8 +21,11 @@ int main(int argc, char *argv[]) {
 
 	set_nick(freenode, "fossbot");
 	set_user(freenode, "bot");
-	if (argc > 1)
-		identify_nick(freenode, argv[1]);
+
+	printf("Enter nick identify password: ");
+	if (scanf("%15s", nick_pwd) != 0)
+		identify_nick(freenode, nick_pwd);
+
 	join_channel(freenode, "foss-teimes");
 
 	// Keep running as long the connection is active and act on any registered actions found

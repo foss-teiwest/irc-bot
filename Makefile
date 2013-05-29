@@ -37,7 +37,7 @@ SRCFILES-TEST := $(shell ls $(TESTDIR))
 TMPFILES-TEST  = $(SRCFILES-TEST:.c=.o)
 OBJFILES-TEST  = $(addprefix $(OUTDIR)/, $(TMPFILES-TEST))
 OBJFILES-TEST += $(OBJFILES)
-OBJFILES-TEST := $(filter-out %/main.o %.check %.txt, $(OBJFILES-TEST))
+OBJFILES-TEST := $(filter-out %/main.o %.check, $(OBJFILES-TEST))
 
 # Build main program
 $(OUTDIR)/$(PROGRAM): $(OBJFILES)
