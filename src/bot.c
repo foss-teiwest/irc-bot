@@ -88,7 +88,8 @@ void github(Irc server, Parsed_data pdata) {
 		short_url = shorten_url(commit[i].url);
 		if (short_url == NULL)
 			short_url = "";
-		send_message(server, pdata->target, "[%s] \"%s\" --%s @ %s", commit[i].sha, commit[i].msg, commit[i].author, short_url);
+		send_message(server, pdata->target, COLOR PURPLE "[%s]" COLOR " %s" COLOR ORANGE " --%s" COLOR BLUE " - %s",
+					commit[i].sha, commit[i].msg, commit[i].author, short_url);
 		free(short_url);
 	}
 	free(argv);

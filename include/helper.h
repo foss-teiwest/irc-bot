@@ -6,6 +6,23 @@
 #define STARTSIZE 5
 #define LINELEN 300
 
+// Irc color codes
+#define COLOR  "\x03"
+#define BLUE    "2"
+#define GREEN   "3"
+#define RED     "4"
+#define BROWN   "5"
+#define PURPLE  "6"
+#define ORANGE  "7"
+#define YELLOW  "8"
+#define LTGREEN "9"
+#define TEAL    "10"
+#define LTCYAN  "11"
+#define LTBLUE  "12"
+#define PINK    "13"
+#define GREY    "14"
+#define LTGREY  "15"
+
 // Allocate memory and print the caller function on failure (before exiting)
 #define malloc_w(x) _malloc_w((x), __func__)
 void *_malloc_w(size_t size, const char *caller);

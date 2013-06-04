@@ -120,7 +120,7 @@ Github *fetch_github_commits(char *repo, int *commits, struct mem_buffer *mem) {
 	CURLcode code;
 	Github *commit;
 	int max_commits, i;
-	char *API_URL, *temp;
+	char *API_URL, *temp, *temp2;
 
 	memset(mem, 0, sizeof(*mem));
 	max_commits = *commits;
@@ -169,7 +169,12 @@ Github *fetch_github_commits(char *repo, int *commits, struct mem_buffer *mem) {
 		commit[i].msg = temp + 10;
 		temp = strchr(commit[i].msg, '"');
 		*temp = '\0';
-		if (strlen(commit[i].msg) > COMMITLEN) { // Truncate commit message if too long
+
+		// Cut commit message at newline character if present
+		temp2 = strstr(commit[i].msg, "\\n");
+		if (temp2 != NULL)
+			*temp2 = '\0';
+		if (strlen(commit[i].msg) > COMMITLEN) { // Truncate message if too long
 			commit[i].msg[COMMITLEN] = commit[i].msg[COMMITLEN + 1] = commit[i].msg[COMMITLEN + 2] = '.';
 			commit[i].msg[COMMITLEN + 3] = '\0';
 		}
