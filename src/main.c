@@ -15,7 +15,7 @@ int main(void) {
 	line = malloc_w(IRCLEN * sizeof(char) + 1); // Space for null char
 	pdata = malloc_w(sizeof(*pdata));
 
-	freenode = connect_server("kornbluth.freenode.net", "6667");
+	freenode = connect_server("holmes.freenode.net", "6667");
 	if (freenode == NULL)
 		exit_msg("Irc connection failed");
 

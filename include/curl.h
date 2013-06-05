@@ -1,7 +1,7 @@
 #ifndef CURL_H
 #define CURL_H
 
-#define URLLEN 200
+#define URLLEN 440
 #define COMMITLEN 180
 
 struct mem_buffer {
