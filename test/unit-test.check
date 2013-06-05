@@ -145,7 +145,7 @@ void close_write(void) {
 
 #test privemsg
 
-	char msg[] = "freestyl3r\0PRIVEMSG\0freestylerbot :@bot lol re";
+	char msg[] = "freestyl3r\0PRIVEMSG\0freestylerbot :!bot lol re";
 
 	pdata->nick = &msg[0];
 	pdata->command = &msg[11];

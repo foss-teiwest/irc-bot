@@ -7,6 +7,7 @@
 #define LINELEN 300
 
 // Irc color codes
+#define RESETCOLOR COLOR
 #define COLOR  "\x03"
 #define BLUE    "2"
 #define GREEN   "3"

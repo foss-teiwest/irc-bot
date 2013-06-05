@@ -167,11 +167,11 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 	if (strchr(pdata->target, '#') == NULL) // Not a channel message, reply on private
 		pdata->target = pdata->nick;
 
-	// Bot commands must begin with '@'
+	// Bot commands must begin with '!'
 	pdata->command = strtok(NULL, " ");
-	if (pdata->command == NULL || *(pdata->command + 1) != '@')
+	if (pdata->command == NULL || *(pdata->command + 1) != '!')
 		return;
-	pdata->command += 2; // Skip starting ":@"
+	pdata->command += 2; // Skip starting ":!"
 
 	// Make sure bot command gets null terminated if there are no parameters
 	pdata->message = strtok(NULL, "");

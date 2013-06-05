@@ -10,7 +10,7 @@
 // Data available to all bot functions through pdata:
 // nick: the one initiated the request
 // target: the channel or the query it was requested on
-// command: the actual command that called the function without '@'
+// command: the actual command that called the function without '!'
 // message: all the text that comes after the command (parameters)
 // All functions return the actual message send to server (raw form)
 
