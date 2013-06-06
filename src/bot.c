@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <time.h>
 #include "bot.h"
 #include "irc.h"
 #include "curl.h"
@@ -10,12 +11,32 @@
 
 void list(Irc server, Parsed_data pdata) {
 
-	send_message(server, pdata->target, "list / help, bot, url, mumble, fail, github, ping, traceroute, dns");
+	send_message(server, pdata->target, "list / help, url, mumble, fail, github, ping, traceroute, dns");
 }
 
-void bot(Irc server, Parsed_data pdata) {
+void bot_fail(Irc server, Parsed_data pdata) {
 
-	send_message(server, pdata->target, "sup %s?", pdata->nick);
+	// Quotes are seperated by commas. Multiline quote sentences must be seperated by the newline character (\n)
+	// Newline char is optional if the sentence is the last OR the only one from a quote
+	static const char *quotes[] = {
+		"I mpala einai strogili\n"
+		"to gipedo einai paralilogramo\n"
+		"11 autoi, 11 emeis sinolo 23\n"
+		"kai tha boun kai 3 allages apo kathe omada sinolo 29!",
+		"fail indeed",
+		"total\nfailure\n"
+	};
+	int r;
+	size_t t, len, sum = 0;
+
+	srand(time(NULL));
+	r = rand() % SIZE(quotes);
+	len = strlen(quotes[r]);
+	while (sum < len && (t = strcspn(quotes[r] + sum, "\n")) > 0) {
+		send_message(server, pdata->target, "%.*s", (int) t, quotes[r] + sum);
+		sum += ++t;
+		sleep(1);
+	}
 }
 
 void url(Irc server, Parsed_data pdata) {
@@ -47,17 +68,6 @@ void mumble(Irc server, Parsed_data pdata) {
 	send_message(server, pdata->target, "%s", user_list);
 
 	free(user_list);
-}
-
-void bot_fail(Irc server, Parsed_data pdata) {
-
-	send_message(server, pdata->target, "I mpala einai strogili");
-	sleep(2);
-	send_message(server, pdata->target, "to gipedo einai paralilogramo");
-	sleep(2);
-	send_message(server, pdata->target, "11 autoi, 11 emeis sinolo 23");
-	sleep(2);
-	send_message(server, pdata->target, "kai tha boun kai 3 allages apo kathe omada sinolo 29!");
 }
 
 void github(Irc server, Parsed_data pdata) {

@@ -10,8 +10,8 @@ int main(void) {
 	Irc freenode;
 	char *line, nick_pwd[NICKLEN];
 	Parsed_data pdata;
-	curl_global_init(CURL_GLOBAL_ALL);
 
+	curl_global_init(CURL_GLOBAL_ALL);
 	line = malloc_w(IRCLEN * sizeof(char) + 1); // Space for null char
 	pdata = malloc_w(sizeof(*pdata));
 

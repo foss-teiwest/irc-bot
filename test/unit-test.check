@@ -63,13 +63,13 @@ void close_write(void) {
 #tcase connection
 #test socket_connection
 
-	sock = sock_connect("kornbluth.freenode.net", "6667");
+	sock = sock_connect("chat.freenode.net", "6667");
 	ck_assert_msg(sock >= 0, "Socket creation failed");
 	close(sock);
 
 #test irc_connection
 
-	server = connect_server("kornbluth.freenode.net", "6667");
+	server = connect_server("chat.freenode.net", "6667");
 	ck_assert_msg(server != NULL, "irc connection failed");
 	quit_server(server, "bye");
 
@@ -166,7 +166,7 @@ void close_write(void) {
 #tcase function match
 #test gperf
 
-	Function_list flist = function_lookup("bot", 3);
+	Function_list flist = function_lookup("list", 4);
 	ck_assert_ptr_ne(flist, NULL);
 
 	flist = function_lookup("random", 6);

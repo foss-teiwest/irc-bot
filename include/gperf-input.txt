@@ -12,7 +12,6 @@
 struct function_list;
 %%
 "PRIVMSG", irc_privmsg
-"bot", bot
 "url", url
 "mumble", mumble
 "fail", bot_fail
