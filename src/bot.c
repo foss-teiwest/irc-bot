@@ -24,7 +24,9 @@ void bot_fail(Irc server, Parsed_data pdata) {
 		"11 autoi, 11 emeis sinolo 23\n"
 		"kai tha boun kai 3 allages apo kathe omada sinolo 29!",
 		"fail indeed",
-		"total\nfailure\n"
+		"total\nfailure\n",
+		"popo, ti eipes twra\n"
+		"emeina me anoixto to...\tprogramma"
 	};
 	int r;
 	size_t t, len, sum = 0;
