@@ -19,14 +19,15 @@ void bot_fail(Irc server, Parsed_data pdata) {
 	// Quotes are seperated by commas. Multiline quote sentences must be seperated by the newline character (\n)
 	// Newline char is optional if the sentence is the last OR the only one from a quote
 	static const char *quotes[] = {
-		"I mpala einai strogili\n"
-		"to gipedo einai paralilogramo\n"
-		"11 autoi, 11 emeis sinolo 23\n"
-		"kai tha boun kai 3 allages apo kathe omada sinolo 29!",
-		"fail indeed",
-		"total\nfailure\n",
-		"popo, ti eipes twra\n"
-		"emeina me anoixto to...\tprogramma"
+		COLOR RED "I mpala einai strogili\n"
+		COLOR RED "to gipedo einai paralilogramo\n"
+		COLOR RED "11 autoi, 11 emeis sinolo 23\n"
+		COLOR RED "kai tha boun kai 3 allages apo kathe omada sinolo 29!",
+		COLOR LTCYAN "fail indeed",
+		COLOR PINK "total\nfailure\n",
+		COLOR LTGREEN "popo, ti eipes twra\n"
+		COLOR LTGREEN "emeina me anoixto to... "
+		COLOR RED "programma"
 	};
 	int r;
 	size_t t, len, sum = 0;
