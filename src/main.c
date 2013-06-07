@@ -32,7 +32,7 @@ int main(void) {
 
 	free(line);
 	free(pdata);
-	quit_server(freenode, "bye");
+	quit_server(freenode, "poulos");
 	curl_global_cleanup();
 	return 0;
 }

@@ -140,19 +140,19 @@ void close_write(void) {
 	char line[] = ":freestyl3r!~free@ppp005055033225.access.hol.gr PRIVEMSG #foss-teimes :freestylerbot";
 
 	parse_line(server, line, pdata);
-	sprintf(test_buffer, "%s%s%s", pdata->nick, pdata->command, pdata->message);
-	ck_assert_str_eq(test_buffer, "freestyl3rPRIVEMSG#foss-teimes :freestylerbot");
+	sprintf(test_buffer, "%s%s%s", pdata->sender, pdata->command, pdata->message);
+	ck_assert_str_eq(test_buffer, "freestyl3r!~free@ppp005055033225.access.hol.grPRIVEMSG#foss-teimes :freestylerbot");
 
 #test privemsg
 
 	char msg[] = "freestyl3r\0PRIVEMSG\0freestylerbot :!bot lol re";
 
-	pdata->nick = &msg[0];
+	pdata->sender = &msg[0];
 	pdata->command = &msg[11];
 	pdata->message = &msg[20];
 
 	irc_privmsg(server, pdata);
-	sprintf(test_buffer, "%s%s%s%s", pdata->nick, pdata->target, pdata->command, pdata->message);
+	sprintf(test_buffer, "%s%s%s%s", pdata->sender, pdata->target, pdata->command, pdata->message);
 	ck_assert_str_eq(test_buffer, "freestyl3rfreestyl3rbotlol re");
 
 #test pingreply
@@ -204,6 +204,11 @@ void close_write(void) {
 
 	char *data = fetch_mumble_users();
 	ck_assert_str_eq(data, "7 Online clients: Chubby ZED gkino Erevos freestyler charkost tomkap");
+
+#test titleurl
+
+	char *url_title = get_url_title("https://www.archlinux.org/");
+	ck_assert_str_eq(url_title, "Arch Linux");
 
 #test github_commits
 

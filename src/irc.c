@@ -3,7 +3,6 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdarg.h>
-#include <stdbool.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <ctype.h>
@@ -130,15 +129,14 @@ char *ping_reply(Irc server, char *buf) {
 char *parse_line(Irc server, char *line, Parsed_data pdata) {
 
 	Function_list flist;
+	int reply;
 
 	if (line[0] == 'P') { // Check first line character
 		ping_reply(server, line);
 		return "PING";
 	}
-	pdata->nick = strtok(line + 1, "!"); // Skip starting ':'
-	if (pdata->nick == NULL)
-		return NULL;
-	if (strtok(NULL, " ") == NULL) // Ignore hostname
+	pdata->sender = strtok(line + 1, " "); // Skip starting ':'
+	if (pdata->sender == NULL)
 		return NULL;
 	pdata->command = strtok(NULL, " ");
 	if (pdata->command == NULL)
@@ -147,10 +145,14 @@ char *parse_line(Irc server, char *line, Parsed_data pdata) {
 	if (pdata->message == NULL)
 		return NULL;
 
-	// Launch any actions registered to IRC commands
-	flist = function_lookup(pdata->command, strlen(pdata->command));
-	if (flist != NULL)
-		flist->function(server, pdata);
+	reply = atoi(pdata->command);
+	if (reply == 0) {
+		// Launch any actions registered to IRC commands
+		flist = function_lookup(pdata->command, strlen(pdata->command));
+		if (flist != NULL)
+			flist->function(server, pdata);
+	} else
+		numeric_reply(server, reply);
 
 	return pdata->command;
 }
@@ -158,14 +160,17 @@ char *parse_line(Irc server, char *line, Parsed_data pdata) {
 void irc_privmsg(Irc server, Parsed_data pdata) {
 
 	Function_list flist;
-	char *command_char;
-	pid_t pid;
+	char *test_char;
+
+	test_char = strchr(pdata->sender, '!');
+	if (test_char != NULL)
+		*test_char = '\0';
 
 	pdata->target = strtok(pdata->message, " ");
 	if (pdata->target == NULL)
 		return;
 	if (strchr(pdata->target, '#') == NULL) // Not a channel message, reply on private
-		pdata->target = pdata->nick;
+		pdata->target = pdata->sender;
 
 	// Bot commands must begin with '!'
 	pdata->command = strtok(NULL, " ");
@@ -176,31 +181,47 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 	// Make sure bot command gets null terminated if there are no parameters
 	pdata->message = strtok(NULL, "");
 	if (pdata->message == NULL) {
-		command_char = pdata->command;
-		for (int i = 0; islower(*command_char) && i < USERLEN; command_char++, i++) ; // No body
-		*command_char = '\0';
+		test_char = pdata->command;
+		for (int i = 0; islower(*test_char) && i < USERLEN; test_char++, i++) ; // No body
+		*test_char = '\0';
 	}
 	// Find any actions registered to BOT commands
 	flist = function_lookup(pdata->command, strlen(pdata->command));
 	if (flist == NULL)
 		return;
 
-	pid = fork();
-	if (pid < 0)
-		flist->function(server, pdata); // Fork failed, run command in single process
-	else if (pid == 0) {
-		pid = fork();
-		if (pid == 0) { // Run command in a new child and kill it's parent. That way we avoid zombies
-			flist->function(server, pdata);
-			_exit(EXIT_SUCCESS);
-		}
-		else if (pid > 0) // Kill 2nd's child parent
-			_exit(EXIT_SUCCESS);
-	} else { // Wait for the first child
-		pid = waitpid((pid_t) -1, NULL, 0);
-		if (pid < 0)
-			perror("waitpid");
+	switch (fork()) {
+		case -1:
+			flist->function(server, pdata); // Fork failed, run command in single process
+			break;
+		case 0:
+			switch (fork()) {
+				case -1: break;
+				case 0: // Run command in a new child and kill it's parent. That way we avoid zombies
+					flist->function(server, pdata);
+					_exit(EXIT_SUCCESS);
+					break;
+				default: // Kill 2nd's child parent
+					_exit(EXIT_SUCCESS);
+			}
+		default: // Wait for the first child
+			if (waitpid(-1, NULL, 0) < 0)
+				perror("waitpid");
 	}
+}
+
+int numeric_reply(Irc server, int reply) {
+
+	char newnick[NICKLEN];
+
+	switch (reply) {
+		case NICKNAMEINUSE: // Change nick and resend the join command that got lost
+			snprintf(newnick, NICKLEN, "%s%s", server->nick, "_");
+			set_nick(server, newnick);
+			join_channel(server, server->channel);
+			break;
+	}
+	return reply;
 }
 
 void send_message(Irc server, const char *target, const char *format, ...) {

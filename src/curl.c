@@ -33,7 +33,7 @@
 	return total_size;
 }
 
-char *shorten_url(char *long_url) {
+char *shorten_url(const char *long_url) {
 
 	CURL *curl;
 	CURLcode code;
@@ -190,4 +190,57 @@ Github *fetch_github_commits(char *repo, int *commits, struct mem_buffer *mem) {
 	free(API_URL);
 	curl_easy_cleanup(curl);
 	return commit;
+}
+
+char *get_url_title(const char *url) {
+
+	CURL *curl;
+	CURLcode code;
+	struct mem_buffer mem = {0};
+	char *temp, *url_title;
+
+	curl = curl_easy_init();
+	if (curl == NULL)
+		return 0;
+
+#ifdef TEST
+	curl_easy_setopt(curl, CURLOPT_URL, "file:///home/free/programming/c/git/irc-bot/test-files/url-title.txt");
+#else
+	curl_easy_setopt(curl, CURLOPT_URL, url);
+#endif
+	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+	curl_easy_setopt(curl, CURLOPT_TIMEOUT , 3L);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_memory);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &mem);
+
+	code = curl_easy_perform(curl);
+	if (code != CURLE_OK) {
+		printf("Error: %s\n", curl_easy_strerror(code));
+		free(mem.buffer);
+		curl_easy_cleanup(curl);
+		return NULL;
+	}
+	temp = strstr(mem.buffer, "<title>");
+	if (temp == NULL)
+		return NULL;
+	url_title = temp + 7;
+
+	temp = strstr(url_title, "</title>");
+	if (temp == NULL)
+		return NULL;
+	*temp = '\0';
+
+	// Replace all newline characters with spaces
+	temp = url_title;
+	while (*temp != '\0') {
+		if (*temp == '\n')
+			*temp = ' ';
+		temp++;
+	}
+	// url_title must be freed to avoid memory leak
+	url_title = strndup(url_title, TITLELEN);
+
+	free(mem.buffer);
+	curl_easy_cleanup(curl);
+	return url_title;
 }

@@ -3,6 +3,7 @@
 
 #define URLLEN 440
 #define COMMITLEN 180
+#define TITLELEN 300
 
 struct mem_buffer {
 	char *buffer;
@@ -18,7 +19,10 @@ typedef struct {
 
 // Send long_url to a shortener service and return the short version or NULL on failure
 // Returned string must be freed when no longer needed
-char *shorten_url(char *long_url);
+char *shorten_url(const char *long_url);
+
+// Returns url title
+char *get_url_title(const char *url);
 
 // Returns mumble user list
 char *fetch_mumble_users(void);

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/wait.h>
 #include <time.h>
 #include "bot.h"
 #include "irc.h"
@@ -40,8 +41,8 @@ void bot_fail(Irc server, Parsed_data pdata) {
 
 void url(Irc server, Parsed_data pdata) {
 
-	char *short_url, **argv;
-	int argc;
+	char *short_url, *temp, **argv, url_title[TITLELEN] = {0}, buffer[TITLELEN] = {0};
+	int argc, fd[2], n, sum = 0;
 
 	argv = extract_params(pdata->message, &argc);
 	if (argc != 1)
@@ -52,10 +53,35 @@ void url(Irc server, Parsed_data pdata) {
 		return;
 
 	short_url = shorten_url(argv[0]);
-	if (short_url != NULL) {
-		send_message(server, pdata->target, "%s", short_url);
-		free(short_url);
+	if (pipe(fd) < 0) // Open pipe for inter-process communication
+		perror("pipe");
+
+	switch (fork()) {
+		case -1:
+			perror("fork");
+			break;
+		case 0:
+			close(fd[0]); // Close reading end of the socket
+			temp = get_url_title(argv[0]);
+			if (temp != NULL)
+				write(fd[1], temp, strlen(temp));
+			close(fd[1]);
+			_exit(EXIT_SUCCESS);
+			break;
+		default:
+			close(fd[1]); // Close writting end
+			while ((n = read(fd[0], buffer, TITLELEN)) > 0) {
+				strncat(url_title + sum, buffer, TITLELEN);
+				sum += n;
+			}
+			close(fd[0]);
+			if (waitpid(-1, NULL, 0) < 0) // Wait for child results before continuing
+				perror("waitpid");
 	}
+	// Only print short_url / title if they are not empty
+	send_message(server, pdata->target, "%s -- %s", (short_url ? short_url : ""), (strlen(url_title) ? url_title : "<title request timeout>"));
+
+	free(short_url);
 	free(argv);
 }
 
@@ -73,16 +99,19 @@ void github(Irc server, Parsed_data pdata) {
 
 	Github *commit;
 	struct mem_buffer mem;
-	char **argv, *short_url;
+	char **argv, *short_url, *repo;
 	int argc, i, commits = 1;
 
 	argv = extract_params(pdata->message, &argc);
 	if (argc != 1 && argc != 2)
 		return;
 
-	// Argument must have the user/repo format
+	// If user is not supplied, substitute with a default one
+	repo = malloc_w(CMDLEN);
 	if (strchr(argv[0], '/') == NULL)
-		return;
+		snprintf(repo, CMDLEN, "%s/%s", DEFAULT_USER_REPO, argv[0]);
+	else
+		strncpy(repo, argv[0], CMDLEN);
 
 	// Do not return more than MAXCOMMITS
 	if (argc == 2) {
@@ -92,7 +121,7 @@ void github(Irc server, Parsed_data pdata) {
 		else if (commits < 0) // Integer overflowed / negative input, return only 1 commit
 			commits = 1;
 	}
-	commit = fetch_github_commits(argv[0], &commits, &mem);
+	commit = fetch_github_commits(repo, &commits, &mem);
 	for (i = 0; i < commits; i++) {
 		short_url = shorten_url(commit[i].url);
 		if (short_url == NULL)
@@ -101,6 +130,7 @@ void github(Irc server, Parsed_data pdata) {
 					commit[i].sha, commit[i].msg, commit[i].author, short_url);
 		free(short_url);
 	}
+	free(repo);
 	free(argv);
 	free(commit);
 	free(mem.buffer);
@@ -154,8 +184,8 @@ void traceroute(Irc server, Parsed_data pdata) {
 
 	snprintf(cmdline, CMDLEN, "%s -m 20 %s", cmd, argv[0]); // Limit max hops to 20
 	if (strchr(pdata->target, '#') != NULL) // Don't send the following msg if the request was initiated in private
-		send_message(server, pdata->target, "Printing results privately to %s", pdata->nick);
-	print_cmd_output(server, pdata->nick, cmdline);
+		send_message(server, pdata->target, "Printing results privately to %s", pdata->sender);
+	print_cmd_output(server, pdata->sender, cmdline);
 
 	free(argv);
 }
