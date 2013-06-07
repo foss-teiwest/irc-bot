@@ -46,16 +46,17 @@ void url(Irc server, Parsed_data pdata) {
 
 	argv = extract_params(pdata->message, &argc);
 	if (argc != 1)
-		return;
+		goto cleanup;
 
 	// Check first parameter for a URL that contains at least one dot.
 	if (strchr(argv[0], '.') == NULL)
-		return;
+		goto cleanup;
 
 	short_url = shorten_url(argv[0]);
-	if (pipe(fd) < 0) // Open pipe for inter-process communication
+	if (pipe(fd) < 0) { // Open pipe for inter-process communication
 		perror("pipe");
-
+		goto cleanup2;
+	}
 	switch (fork()) {
 		case -1:
 			perror("fork");
@@ -81,7 +82,9 @@ void url(Irc server, Parsed_data pdata) {
 	// Only print short_url / title if they are not empty
 	send_message(server, pdata->target, "%s -- %s", (short_url ? short_url : ""), (strlen(url_title) ? url_title : "<timeout>"));
 
+cleanup2:
 	free(short_url);
+cleanup:
 	free(argv);
 }
 
@@ -103,9 +106,10 @@ void github(Irc server, Parsed_data pdata) {
 	int argc, i, commits = 1;
 
 	argv = extract_params(pdata->message, &argc);
-	if (argc != 1 && argc != 2)
+	if (argc != 1 && argc != 2) {
+		free(argv);
 		return;
-
+	}
 	// If user is not supplied, substitute with a default one
 	repo = malloc_w(CMDLEN);
 	if (strchr(argv[0], '/') == NULL)
@@ -118,7 +122,7 @@ void github(Irc server, Parsed_data pdata) {
 		commits = atoi(argv[1]);
 		if (commits > MAXCOMMITS)
 			commits = MAXCOMMITS;
-		else if (commits < 0) // Integer overflowed / negative input, return only 1 commit
+		else if (commits <= 0) // Integer overflowed / negative input, return only 1 commit
 			commits = 1;
 	}
 	commit = fetch_github_commits(repo, &commits, &mem);
@@ -143,7 +147,7 @@ void ping(Irc server, Parsed_data pdata) {
 
 	argv = extract_params(pdata->message, &argc);
 	if (argc != 1 && argc != 2)
-		return;
+		goto cleanup;
 
 	// Find if the IP is an v4 or v6. Weak parsing
 	if (strchr(argv[0], '.') != NULL)
@@ -151,7 +155,7 @@ void ping(Irc server, Parsed_data pdata) {
 	else if (strchr(argv[0], ':') != NULL)
 		cmd = "ping6";
 	else
-		return;
+		goto cleanup;
 
 	if (argc == 2) {
 		count = atoi(argv[1]);
@@ -163,6 +167,7 @@ void ping(Irc server, Parsed_data pdata) {
 	snprintf(cmdline, CMDLEN, "%s -c %d %s", cmd, count, argv[0]);
 	print_cmd_output(server, pdata->target, cmdline);
 
+cleanup:
 	free(argv);
 }
 
@@ -173,20 +178,21 @@ void traceroute(Irc server, Parsed_data pdata) {
 
 	argv = extract_params(pdata->message, &argc);
 	if (argc != 1)
-		return;
+		goto cleanup;
 
 	if (strchr(argv[0], '.') != NULL)
 		cmd = "traceroute";
 	else if (strchr(argv[0], ':') != NULL)
 		cmd = "traceroute6";
 	else
-		return;
+		goto cleanup;
 
 	snprintf(cmdline, CMDLEN, "%s -m 20 %s", cmd, argv[0]); // Limit max hops to 20
 	if (strchr(pdata->target, '#') != NULL) // Don't send the following msg if the request was initiated in private
 		send_message(server, pdata->target, "Printing results privately to %s", pdata->sender);
 	print_cmd_output(server, pdata->sender, cmdline);
 
+cleanup:
 	free(argv);
 }
 
@@ -197,13 +203,14 @@ void dns(Irc server, Parsed_data pdata) {
 
 	argv = extract_params(pdata->message, &argc);
 	if (argc != 1)
-		return;
+		goto cleanup;
 
 	if (strchr(argv[0], '.') == NULL)
-		return;
+		goto cleanup;
 
 	snprintf(cmdline, CMDLEN, "nslookup %s", argv[0]);
 	print_cmd_output(server, pdata->target, cmdline);
 
+cleanup:
 	free(argv);
 }

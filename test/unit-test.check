@@ -10,13 +10,18 @@
 #include "bot.h"
 #include "curl.h"
 
+struct channels {
+	int channels_set;
+	char channel[MAXCHANS][CHANLEN];
+};
+
 struct irc_type {
 	int sock;
 	char address[ADDRLEN];
 	char port[PORTLEN];
 	char nick[NICKLEN];
 	char user[USERLEN];
-	char channel[CHANLEN];
+	struct channels ch;
 };
 
 Irc server;
@@ -132,8 +137,8 @@ void close_write(void) {
 
 #test new_chan_match
 
-	join_channel(server, "trololol");
-	ck_assert_str_eq(server->channel, "trololol");
+	set_channel(server, "#trololol");
+	ck_assert_str_eq(server->ch.channel[0], "#trololol");
 
 #test parse_msg
 

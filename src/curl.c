@@ -37,17 +37,18 @@ char *shorten_url(const char *long_url) {
 
 	CURL *curl;
 	CURLcode code;
-	char *short_url, *temp, *url_formatted = malloc_w(URLLEN);
+	char *temp, *url_formatted, *short_url = NULL;
 	struct mem_buffer mem = {0};
 	struct curl_slist *headers = NULL;
 
 	// Set the Content-type and url format as required by Google API for the POST request
 	headers = curl_slist_append(headers, "Content-Type: application/json");
+	url_formatted = malloc_w(URLLEN);
 	snprintf(url_formatted, URLLEN, "{\"longUrl\": \"%s\"}", long_url);
 
 	curl = curl_easy_init();
 	if (curl == NULL)
-		return 0;
+		goto cleanup;
 
 #ifdef TEST
 	curl_easy_setopt(curl, CURLOPT_URL, "file:///home/free/programming/c/git/irc-bot/test-files/url-shorten.txt");
@@ -65,22 +66,24 @@ char *shorten_url(const char *long_url) {
 
 	code = curl_easy_perform(curl); // Do the job!
 	if (code != CURLE_OK)
-		printf("Error: %s\n", curl_easy_strerror(code));
+		fprintf(stderr, "Error: %s\n", curl_easy_strerror(code));
 
 	// Find the short url in the reply and null terminate it
 	short_url = strstr(mem.buffer, "http");
 	if (short_url == NULL)
-		return NULL;
+		goto cleanup2;
 
 	temp = strchr(short_url, '"');
 	if (temp == NULL)
-		return NULL;
+		goto cleanup2;
 	*temp = '\0';
 
 	// short_url must be freed to avoid memory leak
 	short_url = strndup(short_url, 25);
 
+cleanup2:
 	free(mem.buffer);
+cleanup:
 	free(url_formatted);
 	curl_slist_free_all(headers);
 	curl_easy_cleanup(curl);
@@ -95,7 +98,7 @@ char *fetch_mumble_users(void) {
 
 	curl = curl_easy_init();
 	if (curl == NULL)
-		return 0;
+		return NULL;
 
 #ifdef TEST
 	curl_easy_setopt(curl, CURLOPT_URL, "file:///home/free/programming/c/git/irc-bot/test-files/mumble.txt");
@@ -108,7 +111,7 @@ char *fetch_mumble_users(void) {
 
 	code = curl_easy_perform(curl);
 	if (code != CURLE_OK)
-		printf("Error: %s\n", curl_easy_strerror(code));
+		fprintf(stderr, "Error: %s\n", curl_easy_strerror(code));
 
 	curl_easy_cleanup(curl);
 	return mem.buffer;
@@ -129,7 +132,7 @@ Github *fetch_github_commits(char *repo, int *commits, struct mem_buffer *mem) {
 
 	curl = curl_easy_init();
 	if (curl == NULL)
-		return 0;
+		return NULL;
 
 #ifdef TEST
 	curl_easy_setopt(curl, CURLOPT_URL, "file:///home/free/programming/c/git/irc-bot/test-files/github-commit.txt");
@@ -143,7 +146,7 @@ Github *fetch_github_commits(char *repo, int *commits, struct mem_buffer *mem) {
 
 	code = curl_easy_perform(curl);
 	if (code != CURLE_OK)
-		printf("Error: %s\n", curl_easy_strerror(code));
+		fprintf(stderr, "Error: %s\n", curl_easy_strerror(code));
 
 	*commits = 0;
 	commit = malloc_w(max_commits * sizeof(Github));
@@ -197,11 +200,11 @@ char *get_url_title(const char *url) {
 	CURL *curl;
 	CURLcode code;
 	struct mem_buffer mem = {0};
-	char *temp, *url_title;
+	char *temp, *url_title = NULL;
 
 	curl = curl_easy_init();
 	if (curl == NULL)
-		return 0;
+		return NULL;
 
 #ifdef TEST
 	curl_easy_setopt(curl, CURLOPT_URL, "file:///home/free/programming/c/git/irc-bot/test-files/url-title.txt");
@@ -215,19 +218,17 @@ char *get_url_title(const char *url) {
 
 	code = curl_easy_perform(curl);
 	if (code != CURLE_OK) {
-		printf("Error: %s\n", curl_easy_strerror(code));
-		free(mem.buffer);
-		curl_easy_cleanup(curl);
-		return NULL;
+		fprintf(stderr, "Error: %s\n", curl_easy_strerror(code));
+		goto cleanup;
 	}
 	temp = strstr(mem.buffer, "<title>");
 	if (temp == NULL)
-		return NULL;
+		goto cleanup;
 	url_title = temp + 7;
 
 	temp = strstr(url_title, "</title>");
 	if (temp == NULL)
-		return NULL;
+		goto cleanup;
 	*temp = '\0';
 
 	// Replace all newline characters with spaces
@@ -240,6 +241,7 @@ char *get_url_title(const char *url) {
 	// url_title must be freed to avoid memory leak
 	url_title = strndup(url_title, TITLELEN);
 
+cleanup:
 	free(mem.buffer);
 	curl_easy_cleanup(curl);
 	return url_title;

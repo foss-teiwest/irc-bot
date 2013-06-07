@@ -3,12 +3,16 @@
 
 #include <sys/types.h>
 
+#define GITHUB_HOOK_NICK "rthretujsf"
+#define GITHUB_HOOK_CHANNEL "#svdkgrlknag"
+
 #define IRCLEN  512
-#define NICKLEN  16
+#define NICKLEN  20
 #define USERLEN  15
 #define CHANLEN  40
 #define ADDRLEN  40
 #define PORTLEN  5
+#define MAXCHANS 2
 
 typedef struct irc_type *Irc;
 typedef struct {
@@ -18,7 +22,10 @@ typedef struct {
 	char *message;
 } *Parsed_data;
 
-enum { NICKNAMEINUSE = 433 };
+enum {
+	ENDOFMOTD = 376,
+	NICKNAMEINUSE = 433
+};
 
 // Fill server details with the one specified and connect to it.
 // Structure returned is allocated on the heap so it needs to be freed with quit_server()
@@ -27,10 +34,10 @@ Irc connect_server(const char *address, const char *port);
 
 // If NULL is entered then the default server value is used
 // User can only be set during server connection so it should only be called once
-// Returns the final account info set
+// Returns the account info set
 char *set_nick(Irc server, const char *nick);
 char *set_user(Irc server, const char *user);
-char *join_channel(Irc server, const char *channel);
+char *set_channel(Irc server, const char *channel);
 
 // pwd is cleared after use so it doesn't stay in plain view (memory)
 // And also the command sent to server is not printed in stdout
@@ -49,6 +56,8 @@ char *parse_line(Irc server, char *line, Parsed_data pdata);
 // Parse channel / private messages and launch the function that matches the bot command. Must begin with '!'
 // Info available in pdata: nick, command, message (the rest message after command, including target)
 void irc_privmsg(Irc server, Parsed_data pdata);
+
+void github_hook(Irc server, Parsed_data pdata);
 
 // Handle server numeric replies
 int numeric_reply(Irc Server, int reply);

@@ -12,13 +12,19 @@
 #include "gperf.h"
 #include "helper.h"
 
+
+struct channels {
+	int channels_set;
+	char channel[MAXCHANS][CHANLEN];
+};
+
 struct irc_type {
 	int sock;
 	char address[ADDRLEN];
 	char port[PORTLEN];
 	char nick[NICKLEN];
 	char user[USERLEN];
-	char channel[CHANLEN];
+	struct channels ch;
 };
 
 Irc connect_server(const char *address, const char *port) {
@@ -31,6 +37,7 @@ Irc connect_server(const char *address, const char *port) {
 
 	strncpy(server->port, port, PORTLEN);
 	strncpy(server->address, address, ADDRLEN);
+	server->ch.channels_set = 0;
 
 	server->sock = sock_connect(address, port);
 	if (server->sock < 0)
@@ -48,8 +55,8 @@ char *set_nick(Irc server, const char *nick) {
 	strncpy(server->nick, nick, NICKLEN);
 
 	snprintf(irc_msg, IRCLEN, "NICK %s\r\n", server->nick);
-	fputs(irc_msg, stdout);
 	n = sock_write(server->sock, irc_msg, strlen(irc_msg));
+	fputs(irc_msg, stdout);
 	if (n < 0)
 		exit_msg("Irc set nick failed");
 
@@ -65,8 +72,8 @@ char *set_user(Irc server, const char *user) {
 	strncpy(server->user, user, USERLEN);
 
 	snprintf(irc_msg, IRCLEN, "USER %s 0 * :%s\r\n", server->user, server->user);
-	fputs(irc_msg, stdout);
 	n = sock_write(server->sock, irc_msg, strlen(irc_msg));
+	fputs(irc_msg, stdout);
 	if (n < 0)
 		exit_msg("Irc set user failed");
 
@@ -86,21 +93,46 @@ void identify_nick(Irc server, char *pwd) {
 	memset(pwd, 0, strlen(pwd)); // Zero-out password so it doesn't stay in memory
 }
 
-char *join_channel(Irc server, const char *channel) {
-
+#ifdef TEST
+	int join_channels(Irc server)
+#else
+	static int join_channels(Irc server)
+#endif
+{
 	ssize_t n;
 	char irc_msg[IRCLEN];
+	int i;
 
-	assert(channel != NULL && "Error in set_channel");
-	strncpy(server->channel, channel, CHANLEN);
-
-	snprintf(irc_msg, IRCLEN, "JOIN #%s\r\n", server->channel);
-	fputs(irc_msg, stdout);
+	strcpy(irc_msg, "JOIN ");
+	for (i = 0; i < server->ch.channels_set; i++) {
+		strcat(irc_msg, server->ch.channel[i]);
+		strcat(irc_msg, ",");
+	}
+	// Prepare message for sending
+	i = strlen(irc_msg);
+	irc_msg[i - 1] = '\r';
+	irc_msg[i] = '\n';
+	irc_msg[i + 1] = '\0';
 	n = sock_write(server->sock, irc_msg, strlen(irc_msg));
+	fputs(irc_msg, stdout);
 	if (n < 0)
 		exit_msg("Irc join channel failed");
 
-	return server->channel;
+	return server->ch.channels_set;
+}
+
+char *set_channel(Irc server, const char *channel) {
+
+	assert(channel != NULL && "Error in set_channel");
+	assert(channel[0] == '#' && "Missing # in channel");
+	if (server->ch.channels_set == MAXCHANS) {
+		fprintf(stderr, "Channel limit reached\n");
+		return NULL;
+	}
+	strncpy(server->ch.channel[server->ch.channels_set], channel, CHANLEN);
+	server->ch.channels_set++;
+
+	return server->ch.channel[server->ch.channels_set];
 }
 
 ssize_t get_line(Irc server, char *buf) {
@@ -118,8 +150,8 @@ char *ping_reply(Irc server, char *buf) {
 	ssize_t n;
 
 	buf[1] = 'O';
-	fputs(buf, stdout);
 	n = sock_write(server->sock, buf, strlen(buf));
+	fputs(buf, stdout);
 	if (n < 0)
 		exit_msg("Irc ping reply failed");
 
@@ -162,6 +194,7 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 	Function_list flist;
 	char *test_char;
 
+	// Discard hostname from nickname
 	test_char = strchr(pdata->sender, '!');
 	if (test_char != NULL)
 		*test_char = '\0';
@@ -172,17 +205,23 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 	if (strchr(pdata->target, '#') == NULL) // Not a channel message, reply on private
 		pdata->target = pdata->sender;
 
-	// Bot commands must begin with '!'
-	pdata->command = strtok(NULL, " ");
-	if (pdata->command == NULL || *(pdata->command + 1) != '!')
-		return;
-	pdata->command += 2; // Skip starting ":!"
-
+	if (strcmp(pdata->sender, GITHUB_HOOK_NICK) == 0)
+		pdata->command = "github_hook";
+	else {
+		// Bot commands must begin with '!'
+		pdata->command = strtok(NULL, " ");
+		if (pdata->command == NULL || *(pdata->command + 1) != '!')
+			return;
+		pdata->command += 2; // Skip starting ":!"
+	}
 	// Make sure bot command gets null terminated if there are no parameters
+	// Even though we assign a read-only only string to pdata->message above in case of a nick match,
+	// it won't enter the "if" body (there is a ':' char in the buffer still) so it won't crash trying to edit read-only memory
 	pdata->message = strtok(NULL, "");
 	if (pdata->message == NULL) {
 		test_char = pdata->command;
-		for (int i = 0; islower(*test_char) && i < USERLEN; test_char++, i++) ; // No body
+		for (int i = 0; islower(*test_char) && i < USERLEN; test_char++, i++)
+			; // Empty body
 		*test_char = '\0';
 	}
 	// Find any actions registered to BOT commands
@@ -211,15 +250,49 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 	}
 }
 
+void github_hook(Irc server, Parsed_data pdata) {
+
+	int argc;
+	char *temp, **argv, repo[CHANLEN + 1] = {0};
+
+	argv = extract_params(pdata->message, &argc);
+	if (argc < 4)
+		goto cleanup;
+
+	// Example github hook channel line: "[c-progs] none pushed 1 new commits to master: http://git.io/NoMeug"
+	if (argv[0][1] != '[')
+		goto cleanup;
+	// Save repo name first without the surrounding '[]'
+	strncpy(repo, argv[0] + 2, CHANLEN - 6);
+	temp = strchr(repo, ']');
+	if (temp == NULL)
+		goto cleanup;
+	*temp = ' ';
+	*(temp + 1) = '\0';
+
+	// Add the number of commits pushed
+	strncat(repo, argv[3], 5);
+	repo[strlen(repo)] = '\r'; // Needed for extract_params() to play nice
+	pdata->message = repo;
+	pdata->target = server->ch.channel[0]; // Sent to the first channel joined
+	github(server, pdata);
+
+cleanup:
+	free(argv);
+}
+
 int numeric_reply(Irc server, int reply) {
 
-	char newnick[NICKLEN];
+	int i;
 
 	switch (reply) {
 		case NICKNAMEINUSE: // Change nick and resend the join command that got lost
-			snprintf(newnick, NICKLEN, "%s%s", server->nick, "_");
-			set_nick(server, newnick);
-			join_channel(server, server->channel);
+			strcat(server->nick, "_");
+			set_nick(server, server->nick);
+			break;
+		case ENDOFMOTD:
+			i = join_channels(server);
+			printf("%d channels joined\n", i);
 			break;
 	}
 	return reply;
@@ -234,8 +307,8 @@ void send_message(Irc server, const char *target, const char *format, ...) {
 	va_start(args, format);
 	vsnprintf(msg, IRCLEN - CHANLEN, format, args);
 	snprintf(irc_msg, IRCLEN, "PRIVMSG %s :%s\r\n", target, msg);
-	fputs(irc_msg, stdout);
 	n = sock_write(server->sock, irc_msg, strlen(irc_msg));
+	fputs(irc_msg, stdout);
 	if (n < 0)
 		exit_msg("Failed to send message");
 
@@ -250,8 +323,8 @@ void quit_server(Irc server, const char *msg) {
 	assert(msg != NULL && "Error in quit_server");
 
 	snprintf(irc_msg, IRCLEN, "QUIT :%s\r\n", msg);
-	fputs(irc_msg, stdout);
 	n = sock_write(server->sock, irc_msg, strlen(irc_msg));
+	fputs(irc_msg, stdout);
 	if (n < 0)
 		exit_msg("Quit failed");
 
