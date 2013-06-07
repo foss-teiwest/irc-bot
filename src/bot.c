@@ -79,7 +79,7 @@ void url(Irc server, Parsed_data pdata) {
 				perror("waitpid");
 	}
 	// Only print short_url / title if they are not empty
-	send_message(server, pdata->target, "%s -- %s", (short_url ? short_url : ""), (strlen(url_title) ? url_title : "<title request timeout>"));
+	send_message(server, pdata->target, "%s -- %s", (short_url ? short_url : ""), (strlen(url_title) ? url_title : "<timeout>"));
 
 	free(short_url);
 	free(argv);

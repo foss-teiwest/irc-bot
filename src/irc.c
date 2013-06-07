@@ -204,6 +204,7 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 				default: // Kill 2nd's child parent
 					_exit(EXIT_SUCCESS);
 			}
+			break;
 		default: // Wait for the first child
 			if (waitpid(-1, NULL, 0) < 0)
 				perror("waitpid");
