@@ -189,6 +189,23 @@ char *parse_line(Irc server, char *line, Parsed_data pdata) {
 	return pdata->command;
 }
 
+int numeric_reply(Irc server, int reply) {
+
+	int i;
+
+	switch (reply) {
+		case NICKNAMEINUSE: // Change nick and resend the join command that got lost
+			strcat(server->nick, "_");
+			set_nick(server, server->nick);
+			break;
+		case ENDOFMOTD:
+			i = join_channels(server);
+			printf("%d channels joined\n", i);
+			break;
+	}
+	return reply;
+}
+
 void irc_privmsg(Irc server, Parsed_data pdata) {
 
 	Function_list flist;
@@ -279,23 +296,6 @@ void github_hook(Irc server, Parsed_data pdata) {
 
 cleanup:
 	free(argv);
-}
-
-int numeric_reply(Irc server, int reply) {
-
-	int i;
-
-	switch (reply) {
-		case NICKNAMEINUSE: // Change nick and resend the join command that got lost
-			strcat(server->nick, "_");
-			set_nick(server, server->nick);
-			break;
-		case ENDOFMOTD:
-			i = join_channels(server);
-			printf("%d channels joined\n", i);
-			break;
-	}
-	return reply;
 }
 
 void send_message(Irc server, const char *target, const char *format, ...) {

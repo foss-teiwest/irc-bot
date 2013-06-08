@@ -12,18 +12,16 @@
 	static size_t curl_write_memory(char *data, size_t size, size_t elements, void *membuf)
 #endif
 {
-	void *newdata;
 	struct mem_buffer *mem = membuf;
 	size_t total_size = size * elements;
 
 	// Our function will be called as many times as needed by curl_easy_perform to complete the operation
 	// So we increase the size of our buffer each time to accommodate for it (and null char)
-	newdata = realloc(mem->buffer, mem->size + total_size + 1);
-	if (newdata == NULL)
+	mem->buffer = realloc(mem->buffer, mem->size + total_size + 1);
+	if (mem->buffer == NULL)
 		return 0;
 
 	// Our mem_buffer struct keeps the current size so far, so we begin writting to the end of it each time
-	mem->buffer = newdata;
 	memcpy(&(mem->buffer[mem->size]), data, total_size);
 	mem->size += total_size;
 	mem->buffer[mem->size] = '\0';
