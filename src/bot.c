@@ -16,7 +16,8 @@ static const char *quotes[] = {
 	COLOR TEAL "I mpala einai strogili\n" COLOR TEAL "to gipedo einai paralilogramo\n" COLOR TEAL " 11 autoi, 11 emeis sinolo 23\n" COLOR TEAL "kai tha boun kai 3 allages apo kathe omada sinolo 29!",
 	COLOR LTCYAN "fail indeed",
 	COLOR PINK "total\n" COLOR PINK "failure\n",
-	COLOR LTGREEN "popo, ti eipes twra\n" COLOR LTGREEN "emeina me anoixto to... " COLOR RED "programma"
+	COLOR LTGREEN "popo, ti eipes twra\n" COLOR LTGREEN "emeina me anoixto to... " COLOR RED "programma",
+	COLOR ORANGE "Exeis dei file I/O me threads sto linux?"
 };
 
 void list(Irc server, Parsed_data pdata) {
