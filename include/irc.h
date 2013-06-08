@@ -57,6 +57,7 @@ char *parse_line(Irc server, char *line, Parsed_data pdata);
 // Info available in pdata: nick, command, message (the rest message after command, including target)
 void irc_privmsg(Irc server, Parsed_data pdata);
 
+// Handle the github hook and post new commits announced
 void github_hook(Irc server, Parsed_data pdata);
 
 // Handle server numeric replies
