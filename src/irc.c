@@ -252,7 +252,9 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 			break;
 		case 0:
 			switch (fork()) {
-				case -1: break;
+				case -1: flist->function(server, pdata); // Fork failed, run command in 1st child
+						_exit(EXIT_SUCCESS);
+						break;
 				case 0: // Run command in a new child and kill it's parent. That way we avoid zombies
 					flist->function(server, pdata);
 					_exit(EXIT_SUCCESS);
