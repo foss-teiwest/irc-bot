@@ -21,13 +21,13 @@ void url(Irc server, Parsed_data pdata);
 // Get foss-tesyd mumble user list
 void mumble(Irc server, Parsed_data pdata);
 
-// Send random funny messages
+// Print random funny messages
 void bot_fail(Irc server, Parsed_data pdata);
 
 // Print available commands
 void list(Irc server, Parsed_data pdata);
 
-// Print latest commits from a repo
+// Print latest repo commits
 void github(Irc server, Parsed_data pdata);
 
 // Print the result from the command specified. Traceroute will be printed in private to avoid spam

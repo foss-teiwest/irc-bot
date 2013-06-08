@@ -15,7 +15,6 @@ struct function_list;
 "url", url
 "mumble", mumble
 "fail", bot_fail
-"github_hook", github_hook
 "list", list
 "help", list
 "github", github

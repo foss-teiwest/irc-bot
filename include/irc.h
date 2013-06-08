@@ -3,9 +3,6 @@
 
 #include <sys/types.h>
 
-#define GITHUB_HOOK_NICK "rthretujsf"
-#define GITHUB_HOOK_CHANNEL "#svdkgrlknag"
-
 #define IRCLEN  512
 #define NICKLEN  20
 #define USERLEN  15
@@ -56,9 +53,6 @@ char *parse_line(Irc server, char *line, Parsed_data pdata);
 // Parse channel / private messages and launch the function that matches the bot command. Must begin with '!'
 // Info available in pdata: nick, command, message (the rest message after command, including target)
 void irc_privmsg(Irc server, Parsed_data pdata);
-
-// Handle the github hook and post new commits announced
-void github_hook(Irc server, Parsed_data pdata);
 
 // Handle server numeric replies
 int numeric_reply(Irc Server, int reply);

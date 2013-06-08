@@ -191,16 +191,13 @@ char *parse_line(Irc server, char *line, Parsed_data pdata) {
 
 int numeric_reply(Irc server, int reply) {
 
-	int i;
-
 	switch (reply) {
 		case NICKNAMEINUSE: // Change nick and resend the join command that got lost
 			strcat(server->nick, "_");
 			set_nick(server, server->nick);
 			break;
 		case ENDOFMOTD:
-			i = join_channels(server);
-			printf("%d channels joined\n", i);
+			join_channels(server);
 			break;
 	}
 	return reply;
@@ -219,26 +216,21 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 	pdata->target = strtok(pdata->message, " ");
 	if (pdata->target == NULL)
 		return;
-	if (strchr(pdata->target, '#') == NULL) // Not a channel message, reply on private
+
+	// If target is not a channel, reply on private instead
+	if (strchr(pdata->target, '#') == NULL)
 		pdata->target = pdata->sender;
 
-	if (strcmp(pdata->sender, GITHUB_HOOK_NICK) == 0)
-		pdata->command = "github_hook";
-	else {
-		// Bot commands must begin with '!'
-		pdata->command = strtok(NULL, " ");
-		if (pdata->command == NULL || *(pdata->command + 1) != '!')
-			return;
-		pdata->command += 2; // Skip starting ":!"
-	}
+	// Bot commands must begin with '!'
+	pdata->command = strtok(NULL, " ");
+	if (pdata->command == NULL || *(pdata->command + 1) != '!')
+		return;
+	pdata->command += 2; // Skip starting ":!"
+
 	// Make sure bot command gets null terminated if there are no parameters
-	// Even though we assign a read-only only string to pdata->message above in case of a nick match,
-	// it won't enter the "if" body (there is a ':' char in the buffer still) so it won't crash trying to edit read-only memory
 	pdata->message = strtok(NULL, "");
 	if (pdata->message == NULL) {
-		test_char = pdata->command;
-		for (int i = 0; islower(*test_char) && i < USERLEN; test_char++, i++)
-			; // Empty body
+		test_char = strrchr(pdata->command, '\r');
 		*test_char = '\0';
 	}
 	// Find any actions registered to BOT commands
@@ -267,37 +259,6 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 			if (waitpid(-1, NULL, 0) < 0)
 				perror("waitpid");
 	}
-}
-
-void github_hook(Irc server, Parsed_data pdata) {
-
-	int argc;
-	char *temp, **argv, repo[CHANLEN + 1] = {0};
-
-	argv = extract_params(pdata->message, &argc);
-	if (argc < 4)
-		goto cleanup;
-
-	// Example github hook channel line: "[c-progs] none pushed 1 new commits to master: http://git.io/NoMeug"
-	if (argv[0][1] != '[')
-		goto cleanup;
-	// Save repo name first without the surrounding '[]'
-	strncpy(repo, argv[0] + 2, CHANLEN - 6);
-	temp = strchr(repo, ']');
-	if (temp == NULL)
-		goto cleanup;
-	*temp = ' ';
-	*(temp + 1) = '\0';
-
-	// Add the number of commits pushed
-	strncat(repo, argv[3], 5);
-	repo[strlen(repo)] = '\r'; // Needed for extract_params() to play nice
-	pdata->message = repo;
-	pdata->target = server->ch.channel[0]; // Sent to the first channel joined
-	github(server, pdata);
-
-cleanup:
-	free(argv);
 }
 
 void send_message(Irc server, const char *target, const char *format, ...) {
