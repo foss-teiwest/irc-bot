@@ -1,6 +1,8 @@
 #ifndef CURL_H
 #define CURL_H
 
+#include <sys/types.h>
+
 #define URLLEN 440
 #define COMMITLEN 180
 #define TITLELEN 300

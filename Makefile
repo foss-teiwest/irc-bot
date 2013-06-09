@@ -4,11 +4,12 @@ OUTDIR  = bin
 SRCDIR  = src
 INCLDIR = include
 TESTDIR = test
+CC      = gcc
 CFLAGS  = -g -Wall -Wextra -std=gnu99
 LDLIBS  = -lcurl
 CFLAGS-test := $(CFLAGS)
 
-# Disable assertions, enable gcc optimizations and strip binary for "release" rule
+# Disable assertions, enable compiler optimizations and strip binary for "release" rule
 ifeq "$(MAKECMDGOALS)" "release"
 	CPPFLAGS = -DNDEBUG
 	CFLAGS  += -march=native -O2 -pipe
@@ -41,7 +42,7 @@ OBJFILES-TEST := $(filter-out %/main.o %.check, $(OBJFILES-TEST))
 
 # Build main program
 $(OUTDIR)/$(PROGRAM): $(OBJFILES)
-	gcc $(LDFLAGS) $^ -o $@ $(LDLIBS)
+	$(CC) $(LDFLAGS) $^ -o $@ $(LDLIBS)
 
 # Build a lookup table to quickly match string commands -> function pointers
 $(SRCDIR)/gperf.c: $(INCLDIR)/gperf-input.txt
@@ -49,21 +50,21 @@ $(SRCDIR)/gperf.c: $(INCLDIR)/gperf-input.txt
 
 # Generic rule to build all source files needed for main
 $(OUTDIR)/%.o: $(SRCDIR)/%.c
-	gcc $(CPPFLAGS) $(CFLAGS) -I$(INCLDIR) -c $< -o $@
+	$(CC) $(CPPFLAGS) $(CFLAGS) -I$(INCLDIR) -c $< -o $@
 
 # Run test program and produce coverage stats in html
 test: $(OUTDIR)/$(PROGRAM)-test
 	./$<
-	lcov --capture --directory $(OUTDIR)/ --output-file $(OUTDIR)/coverage.info >/dev/null
-	genhtml $(OUTDIR)/coverage.info --output-directory $(OUTDIR)/lcov >/dev/null
+	# lcov --capture --directory $(OUTDIR)/ --output-file $(OUTDIR)/coverage.info >/dev/null
+	# genhtml $(OUTDIR)/coverage.info --output-directory $(OUTDIR)/lcov >/dev/null
 
 # Build test program
 $(OUTDIR)/$(PROGRAM)-test: $(OBJFILES-TEST)
-	gcc $(LDFLAGS) $^ -o $@ $(LDLIBS)
+	$(CC) $(LDFLAGS) $^ -o $@ $(LDLIBS)
 
 # Generic rule to build all source files needed for test
 $(OUTDIR)/%.o: $(TESTDIR)/%.c
-	gcc $(CFLAGS-test) -I$(INCLDIR) -c $< -o $@
+	$(CC) $(CFLAGS-test) -I$(INCLDIR) -c $< -o $@
 
 # Generate .c files from the easier to write .check tests
 $(TESTDIR)/%.c: $(TESTDIR)/%.check

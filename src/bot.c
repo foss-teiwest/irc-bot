@@ -28,14 +28,14 @@ void list(Irc server, Parsed_data pdata) {
 void bot_fail(Irc server, Parsed_data pdata) {
 
 	int r;
-	size_t t, len, sum = 0;
+	size_t len, maxlen, sum = 0;
 
 	srand(time(NULL));
 	r = rand() % SIZE(quotes);
-	len = strlen(quotes[r]);
-	while (sum < len && (t = strcspn(quotes[r] + sum, "\n")) > 0) {
-		send_message(server, pdata->target, "%.*s", (int) t, quotes[r] + sum);
-		sum += ++t;
+	maxlen = strlen(quotes[r]);
+	while (sum < maxlen && (len = strcspn(quotes[r] + sum, "\n")) > 0) {
+		send_message(server, pdata->target, "%.*s", (int) len, quotes[r] + sum);
+		sum += ++len;
 		sleep(1);
 	}
 }
