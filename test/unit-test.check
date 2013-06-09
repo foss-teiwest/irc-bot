@@ -29,6 +29,7 @@ char test_buffer[IRCLEN + 1];
 int sock, status;
 Parsed_data pdata;
 
+int join_channels(Irc server);
 ssize_t sock_readbyte(int sock, char *byte);
 size_t curl_write_memory(char *data, size_t size, size_t elements, void *membuf);
 
@@ -166,6 +167,12 @@ void close_write(void) {
 	char *pong = ping_reply(server, msg);
 	ck_assert_str_eq(pong, "PONG :pratchett.freenode.net\r\n");
 
+#test nick_identify
+
+	char pwd[] = "nicepass";
+	identify_nick(server, pwd);
+	ck_assert_int_eq(strlen(pwd), 0);
+
 /*****************************************************************************/
 
 #tcase function match
@@ -218,7 +225,7 @@ void close_write(void) {
 #test github_commits
 
 	Github *commit;
-	struct mem_buffer mem;
+	struct mem_buffer mem = {0};
 	int n = 10;
 
 	commit = fetch_github_commits("foss-teimes/irc-bot", &n, &mem);
@@ -233,6 +240,45 @@ void close_write(void) {
 	ck_assert_str_eq(commit[1].url, "https://github.com/foss-teimes/irc-bot/commit/c2513cf1046400414a267ccd09918afcc174f786");
 
 	free(mem.buffer);
+
+#test cmd_command
+
+	char buf[IRCLEN];
+	server = malloc_w(sizeof(struct irc_type));
+	server->sock = open("test-files/cmd_output.txt", O_RDWR | O_CREAT, 0755);
+	if (server->sock < 0)
+		exit_msg("Failed to open file");
+
+	print_cmd_output(server, "#troll", "echo rofl");
+	lseek(server->sock, 0, SEEK_SET);
+	read(server->sock, buf, IRCLEN);
+	buf[strlen(buf) - 2] = '\0';
+	ck_assert_str_eq(buf, "PRIVMSG #troll :rofl");
+
+	free(server);
+	close(server->sock);
+
+#test channels_joined
+
+	char buf[IRCLEN];
+	server = malloc_w(sizeof(struct irc_type));
+	server->sock = open("test-files/channels.txt", O_RDWR | O_CREAT | O_TRUNC, 0755);
+	if (server->sock < 0)
+		exit_msg("Failed to open file");
+
+	set_channel(server, "#foss-teimes");
+	set_channel(server, "#trolltown");
+	set_channel(server, "#noobs");
+	join_channels(server);
+	lseek(server->sock, 0, SEEK_SET);
+
+	read(server->sock, buf, IRCLEN);
+	buf[strlen(buf) - 2] = '\0';
+
+	ck_assert_str_eq(buf, "JOIN #foss-teimes,#trolltown");
+
+	free(server);
+	close(server->sock);
 
 /*****************************************************************************/
 

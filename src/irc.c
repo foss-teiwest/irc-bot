@@ -5,7 +5,6 @@
 #include <stdarg.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <ctype.h>
 #include <assert.h>
 #include "socket.h"
 #include "irc.h"
@@ -189,7 +188,7 @@ char *parse_line(Irc server, char *line, Parsed_data pdata) {
 	return pdata->command;
 }
 
-int numeric_reply(Irc server, int reply) {
+int numeric_reply(Irc server, enum irc_reply reply) {
 
 	switch (reply) {
 		case NICKNAMEINUSE: // Change nick and resend the join command that got lost

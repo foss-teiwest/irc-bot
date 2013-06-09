@@ -19,7 +19,7 @@ typedef struct {
 	char *message;
 } *Parsed_data;
 
-enum {
+enum irc_reply {
 	ENDOFMOTD = 376,
 	NICKNAMEINUSE = 433
 };
@@ -55,7 +55,7 @@ char *parse_line(Irc server, char *line, Parsed_data pdata);
 void irc_privmsg(Irc server, Parsed_data pdata);
 
 // Handle server numeric replies
-int numeric_reply(Irc Server, int reply);
+int numeric_reply(Irc Server, enum irc_reply reply);
 
 // Send a message to a channel or a person specified by target. Standard printf format accepted
 void send_message(Irc server, const char *target, const char *format, ...);

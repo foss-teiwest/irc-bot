@@ -55,6 +55,7 @@ char *shorten_url(const char *long_url) {
 #endif
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, url_formatted); // Send the formatted POST
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L); // Allow redirects
+	curl_easy_setopt(curl, CURLOPT_TIMEOUT , 3L);
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers); // Use our modified header
 
 	// By default curl_easy_perform output the result in stdout, so we provide own function and data struct,
@@ -96,7 +97,7 @@ char *fetch_mumble_users(void) {
 
 	curl = curl_easy_init();
 	if (curl == NULL)
-		return NULL;
+		goto cleanup;
 
 #ifdef TEST
 	curl_easy_setopt(curl, CURLOPT_URL, "file:///home/free/programming/c/git/irc-bot/test-files/mumble.txt");
@@ -111,26 +112,27 @@ char *fetch_mumble_users(void) {
 	if (code != CURLE_OK)
 		fprintf(stderr, "Error: %s\n", curl_easy_strerror(code));
 
+cleanup:
 	curl_easy_cleanup(curl);
 	return mem.buffer;
 }
 
-Github *fetch_github_commits(char *repo, int *commits, struct mem_buffer *mem) {
+Github *fetch_github_commits(const char *repo, int *commits, struct mem_buffer *mem) {
 
 	CURL *curl;
 	CURLcode code;
-	Github *commit;
+	Github *commit = NULL;
 	int max_commits, i;
 	char *API_URL, *temp, *temp2;
 
-	memset(mem, 0, sizeof(*mem));
 	max_commits = *commits;
-	API_URL = malloc_w(URLLEN);
-	snprintf(API_URL, URLLEN, "https://api.github.com/repos/%s/commits?per_page=%d", repo, max_commits);
-
+	*commits = 0;
 	curl = curl_easy_init();
 	if (curl == NULL)
-		return NULL;
+		goto cleanup;
+
+	API_URL = malloc_w(URLLEN);
+	snprintf(API_URL, URLLEN, "https://api.github.com/repos/%s/commits?per_page=%d", repo, max_commits);
 
 #ifdef TEST
 	curl_easy_setopt(curl, CURLOPT_URL, "file:///home/free/programming/c/git/irc-bot/test-files/github-commit.txt");
@@ -143,10 +145,10 @@ Github *fetch_github_commits(char *repo, int *commits, struct mem_buffer *mem) {
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, mem);
 
 	code = curl_easy_perform(curl);
-	if (code != CURLE_OK)
+	if (code != CURLE_OK) {
 		fprintf(stderr, "Error: %s\n", curl_easy_strerror(code));
-
-	*commits = 0;
+		goto cleanup2;
+	}
 	commit = malloc_w(max_commits * sizeof(Github));
 	temp = mem->buffer;
 
@@ -188,7 +190,9 @@ Github *fetch_github_commits(char *repo, int *commits, struct mem_buffer *mem) {
 
 		(*commits)++;
 	}
+cleanup2:
 	free(API_URL);
+cleanup:
 	curl_easy_cleanup(curl);
 	return commit;
 }
@@ -202,7 +206,7 @@ char *get_url_title(const char *url) {
 
 	curl = curl_easy_init();
 	if (curl == NULL)
-		return NULL;
+		goto cleanup;
 
 #ifdef TEST
 	curl_easy_setopt(curl, CURLOPT_URL, "file:///home/free/programming/c/git/irc-bot/test-files/url-title.txt");
@@ -217,16 +221,16 @@ char *get_url_title(const char *url) {
 	code = curl_easy_perform(curl);
 	if (code != CURLE_OK) {
 		fprintf(stderr, "Error: %s\n", curl_easy_strerror(code));
-		goto cleanup;
+		goto cleanup2;
 	}
 	temp = strstr(mem.buffer, "<title>");
 	if (temp == NULL)
-		goto cleanup;
+		goto cleanup2;
 	url_title = temp + 7;
 
 	temp = strstr(url_title, "</title>");
 	if (temp == NULL)
-		goto cleanup;
+		goto cleanup2;
 	*temp = '\0';
 
 	// Replace all newline characters with spaces
@@ -236,11 +240,12 @@ char *get_url_title(const char *url) {
 			*temp = ' ';
 		temp++;
 	}
-	// url_title must be freed to avoid memory leak
-	url_title = strndup(url_title, TITLELEN);
+	// Return value must be freed to avoid memory leak
+	return strndup(url_title, TITLELEN);
 
-cleanup:
+cleanup2:
 	free(mem.buffer);
+cleanup:
 	curl_easy_cleanup(curl);
-	return url_title;
+	return NULL;
 }

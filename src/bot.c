@@ -42,8 +42,8 @@ void bot_fail(Irc server, Parsed_data pdata) {
 
 void url(Irc server, Parsed_data pdata) {
 
-	char *short_url, *temp, **argv, url_title[TITLELEN] = {0}, buffer[TITLELEN] = {0};
-	int argc, fd[2], n, sum = 0;
+	char **argv, *temp, *url_title = NULL, short_url[ADDRLEN] = {0};
+	int argc, fd[2], short_url_len = 0;
 
 	argv = extract_params(pdata->message, &argc);
 	if (argc != 1)
@@ -53,10 +53,10 @@ void url(Irc server, Parsed_data pdata) {
 	if (strchr(argv[0], '.') == NULL)
 		goto cleanup;
 
-	short_url = shorten_url(argv[0]);
-	if (pipe(fd) < 0) { // Open pipe for inter-process communication
+	// Open pipe for inter-process communication
+	if (pipe(fd) < 0) {
 		perror("pipe");
-		goto cleanup2;
+		goto cleanup;
 	}
 	switch (fork()) {
 		case -1:
@@ -64,27 +64,28 @@ void url(Irc server, Parsed_data pdata) {
 			break;
 		case 0:
 			close(fd[0]); // Close reading end of the socket
-			temp = get_url_title(argv[0]);
-			if (temp != NULL)
+			temp = shorten_url(argv[0]);
+			if (temp == NULL)
+				free(temp);
+			else
 				write(fd[1], temp, strlen(temp));
 			close(fd[1]);
 			_exit(EXIT_SUCCESS);
 			break;
 		default:
+			url_title = get_url_title(argv[0]);
+			if (url_title == NULL)
+				free(url_title);
+
 			close(fd[1]); // Close writting end
-			while ((n = read(fd[0], buffer, TITLELEN)) > 0) {
-				strncat(url_title + sum, buffer, TITLELEN);
-				sum += n;
-			}
+			short_url_len = read(fd[0], short_url, ADDRLEN);
 			close(fd[0]);
 			if (waitpid(-1, NULL, 0) < 0) // Wait for child results before continuing
 				perror("waitpid");
 	}
 	// Only print short_url / title if they are not empty
-	send_message(server, pdata->target, "%s -- %s", (short_url ? short_url : ""), (strlen(url_title) ? url_title : "<timeout>"));
+	send_message(server, pdata->target, "%s -- %s", (short_url_len ? short_url : ""), (url_title ? url_title : ""));
 
-cleanup2:
-	free(short_url);
 cleanup:
 	free(argv);
 }
@@ -94,50 +95,53 @@ void mumble(Irc server, Parsed_data pdata) {
 	char *user_list;
 
 	user_list = fetch_mumble_users();
-	send_message(server, pdata->target, "%s", user_list);
-
-	free(user_list);
+	if (user_list != NULL) {
+		send_message(server, pdata->target, user_list);
+		free(user_list);
+	}
 }
 
 void github(Irc server, Parsed_data pdata) {
 
 	Github *commit;
-	struct mem_buffer mem;
-	char **argv, *short_url, *repo;
+	struct mem_buffer mem = {0};
+	char **argv, *short_url, repo[REPOLEN + 1] = {0};
 	int argc, i, commits = 1;
 
 	argv = extract_params(pdata->message, &argc);
 	if (argc != 1 && argc != 2) {
 		free(argv);
 		return;
-	}
+	} printf("%s-%s\n", DEFAULT_USER_REPO, argv[0]);
 	// If user is not supplied, substitute with a default one
-	repo = malloc_w(CMDLEN);
 	if (strchr(argv[0], '/') == NULL)
 		snprintf(repo, CMDLEN, "%s/%s", DEFAULT_USER_REPO, argv[0]);
 	else
-		strncpy(repo, argv[0], CMDLEN);
+		strncat(repo, argv[0], REPOLEN);
 
 	// Do not return more than MAXCOMMITS
 	if (argc == 2) {
 		commits = atoi(argv[1]);
 		if (commits > MAXCOMMITS)
 			commits = MAXCOMMITS;
-		else if (commits <= 0) // Integer overflowed / negative input, return only 1 commit
+		else if (commits <= 0) // Integer overflowed or negative input, return only 1 commit
 			commits = 1;
 	}
 	commit = fetch_github_commits(repo, &commits, &mem);
+	if (commits == 0)
+		goto cleanup;
+
 	for (i = 0; i < commits; i++) {
 		short_url = shorten_url(commit[i].url);
-		if (short_url == NULL)
-			short_url = "";
 		send_message(server, pdata->target, COLOR PURPLE "[%s]" RESETCOLOR " %s" COLOR ORANGE " --%s" COLOR BLUE " - %s",
-					commit[i].sha, commit[i].msg, commit[i].author, short_url);
-		free(short_url);
+					commit[i].sha, commit[i].msg, commit[i].author, (short_url ? short_url : ""));
+		if (short_url != NULL)
+			free(short_url);
 	}
-	free(repo);
+cleanup:
+	if (commit != NULL)
+		free(commit);
 	free(argv);
-	free(commit);
 	free(mem.buffer);
 }
 

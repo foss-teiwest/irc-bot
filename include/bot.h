@@ -6,6 +6,7 @@
 #define CMDLEN 200
 #define MAXCOMMITS 10
 #define MAXPINGCOUNT 10
+#define REPOLEN 60
 #define DEFAULT_USER_REPO "foss-teimes"
 
 // Data available to all bot functions through pdata:
