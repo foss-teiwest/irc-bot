@@ -1,28 +1,29 @@
 # Main program variables
-PROGRAM = irc-bot
-OUTDIR  = bin
-SRCDIR  = src
-INCLDIR = include
-TESTDIR = test
-CC      = gcc
-CFLAGS  = -g -Wall -Wextra -std=gnu99
-LDLIBS  = -lcurl
+PROGRAM  = irc-bot
+OUTDIR   = bin
+SRCDIR   = src
+INCLDIR  = include
+TESTDIR  = test
+CC       = gcc
+CFLAGS   = -g -Wall -Wextra -std=gnu99
+LDLIBS   = -lcurl
+CPPFLAGS = -D_GNU_SOURCE
 CFLAGS-test := $(CFLAGS)
 
 # Disable assertions, enable compiler optimizations and strip binary for "release" rule
 ifeq "$(MAKECMDGOALS)" "release"
-	CPPFLAGS = -DNDEBUG
-	CFLAGS  += -march=native -O2 -pipe
-	CFLAGS  := $(filter-out -g, $(CFLAGS))
+	CPPFLAGS += -DNDEBUG
+	CFLAGS   += -march=native -O2 -pipe
+	CFLAGS   := $(filter-out -g, $(CFLAGS))
 	LDFLAGS  = -s
 endif
 
 # If test rule is selected, add debugging symbols and test unit coverage
 ifeq "$(MAKECMDGOALS)" "test"
-	CFLAGS  += --coverage
-	CPPFLAGS = -DTEST
-	LDFLAGS  = --coverage
-	LDLIBS  += -lcheck
+	CFLAGS   += --coverage
+	CPPFLAGS += -DTEST
+	LDFLAGS   = --coverage
+	LDLIBS   += -lcheck
 endif
 
 ############################# Do not edit below this line #############################

@@ -223,12 +223,12 @@ char *get_url_title(const char *url) {
 		fprintf(stderr, "Error: %s\n", curl_easy_strerror(code));
 		goto cleanup2;
 	}
-	temp = strstr(mem.buffer, "<title>");
+	temp = strcasestr(mem.buffer, "<title");
 	if (temp == NULL)
 		goto cleanup2;
 	url_title = temp + 7;
 
-	temp = strstr(url_title, "</title>");
+	temp = strcasestr(url_title, "</title");
 	if (temp == NULL)
 		goto cleanup2;
 	*temp = '\0';
