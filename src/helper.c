@@ -73,6 +73,19 @@ char **extract_params(char *msg, int *argc) {
 	return argv;
 }
 
+int get_int(const char *num, int max) {
+
+	long converted_num;
+
+	converted_num = strtol(num, NULL, 10);
+	if (converted_num > max)
+		return max;
+	else if (converted_num <= 0)
+		return 1;
+	else
+		return converted_num;
+}
+
 void print_cmd_output(Irc server, const char *dest, const char *cmd) {
 
 	char line[LINELEN];

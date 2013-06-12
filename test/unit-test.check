@@ -186,7 +186,7 @@ void close_write(void) {
 
 #test curl_writeback
 
-	struct mem_buffer mem;
+	Mem_buffer mem;
 	char *data = "random stuff ftw!";
 	curl_write_memory(data, strlen(data), 1, &mem);
 	ck_assert_str_eq(data, mem.buffer);
@@ -225,7 +225,7 @@ void close_write(void) {
 #test github_commits
 
 	Github *commit;
-	struct mem_buffer mem = {0};
+	Mem_buffer mem = {NULL, 0};
 	int n = 10;
 
 	commit = fetch_github_commits("foss-teimes/irc-bot", &n, &mem);

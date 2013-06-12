@@ -7,10 +7,10 @@
 #define COMMITLEN 180
 #define TITLELEN 300
 
-struct mem_buffer {
+typedef struct {
 	char *buffer;
 	size_t size;
-};
+} Mem_buffer;
 
 typedef struct {
 	char *sha;
@@ -30,6 +30,6 @@ char *get_url_title(const char *url);
 char *fetch_mumble_users(void);
 
 // Returns an array containing commits. The number of commits actually read, are stored in "commits"
-Github *fetch_github_commits(const char *repo, int *commits, struct mem_buffer *mem);
+Github *fetch_github_commits(const char *repo, int *commits, Mem_buffer *mem);
 
 #endif

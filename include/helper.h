@@ -44,6 +44,9 @@ void exit_msg(const char *format, ...);
 // The array returned must be freed.
 char **extract_params(char *msg, int *argc);
 
+// Convert string to number. max is the maximum number returned and 1 for negative values
+int get_int(const char *num, int max);
+
 // Run the program (and it's arguments) specified in cmd and print the result in dest
 void print_cmd_output(Irc server, const char *dest, const char *cmd);
 

@@ -12,7 +12,7 @@
 	static size_t curl_write_memory(char *data, size_t size, size_t elements, void *membuf)
 #endif
 {
-	struct mem_buffer *mem = membuf;
+	Mem_buffer *mem = membuf;
 	size_t total_size = size * elements;
 
 	// Our function will be called as many times as needed by curl_easy_perform to complete the operation
@@ -36,7 +36,7 @@ char *shorten_url(const char *long_url) {
 	CURL *curl;
 	CURLcode code;
 	char *temp, *url_formatted, *short_url = NULL;
-	struct mem_buffer mem = {0};
+	Mem_buffer mem = {NULL, 0};
 	struct curl_slist *headers = NULL;
 
 	// Set the Content-type and url format as required by Google API for the POST request
@@ -93,7 +93,7 @@ char *fetch_mumble_users(void) {
 
 	CURL *curl;
 	CURLcode code;
-	struct mem_buffer mem = {0};
+	Mem_buffer mem = {NULL, 0};
 
 	curl = curl_easy_init();
 	if (curl == NULL)
@@ -117,7 +117,7 @@ cleanup:
 	return mem.buffer;
 }
 
-Github *fetch_github_commits(const char *repo, int *commits, struct mem_buffer *mem) {
+Github *fetch_github_commits(const char *repo, int *commits, Mem_buffer *mem) {
 
 	CURL *curl;
 	CURLcode code;
@@ -201,7 +201,7 @@ char *get_url_title(const char *url) {
 
 	CURL *curl;
 	CURLcode code;
-	struct mem_buffer mem = {0};
+	Mem_buffer mem = {NULL, 0};
 	char *temp, *url_title = NULL;
 
 	curl = curl_easy_init();

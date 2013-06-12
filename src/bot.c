@@ -104,7 +104,7 @@ void mumble(Irc server, Parsed_data pdata) {
 void github(Irc server, Parsed_data pdata) {
 
 	Github *commit;
-	struct mem_buffer mem = {0};
+	Mem_buffer mem = {NULL, 0};
 	char **argv, *short_url, repo[REPOLEN + 1] = {0};
 	int argc, i, commits = 1;
 
@@ -112,7 +112,7 @@ void github(Irc server, Parsed_data pdata) {
 	if (argc != 1 && argc != 2) {
 		free(argv);
 		return;
-	} printf("%s-%s\n", DEFAULT_USER_REPO, argv[0]);
+	}
 	// If user is not supplied, substitute with a default one
 	if (strchr(argv[0], '/') == NULL)
 		snprintf(repo, CMDLEN, "%s/%s", DEFAULT_USER_REPO, argv[0]);
@@ -120,13 +120,9 @@ void github(Irc server, Parsed_data pdata) {
 		strncat(repo, argv[0], REPOLEN);
 
 	// Do not return more than MAXCOMMITS
-	if (argc == 2) {
-		commits = atoi(argv[1]);
-		if (commits > MAXCOMMITS)
-			commits = MAXCOMMITS;
-		else if (commits <= 0) // Integer overflowed or negative input, return only 1 commit
-			commits = 1;
-	}
+	if (argc == 2)
+		commits = get_int(argv[1], MAXCOMMITS);
+
 	commit = fetch_github_commits(repo, &commits, &mem);
 	if (commits == 0)
 		goto cleanup;
@@ -162,13 +158,9 @@ void ping(Irc server, Parsed_data pdata) {
 	else
 		goto cleanup;
 
-	if (argc == 2) {
-		count = atoi(argv[1]);
-		if (count > MAXPINGCOUNT)
-			count = MAXPINGCOUNT;
-		else if (count < 0)
-			count = 1;
-	}
+	if (argc == 2)
+		count = get_int(argv[1], MAXPINGCOUNT);
+
 	snprintf(cmdline, CMDLEN, "%s -c %d %s", cmd, count, argv[0]);
 	print_cmd_output(server, pdata->target, cmdline);
 
