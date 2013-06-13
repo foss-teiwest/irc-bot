@@ -134,12 +134,15 @@ char *set_channel(Irc server, const char *channel) {
 	return server->ch.channels_set;
 }
 
-ssize_t parse_line(Irc server, char *line, Parsed_data pdata) {
+ssize_t parse_line(Irc server) {
 
+	char line[IRCLEN + 1];
+	Parsed_data pdata;
 	Function_list flist;
 	int reply;
 	ssize_t n;
 
+	// Read line from server
 	n = sock_readline(server->sock, line, IRCLEN);
 	fputs(line, stdout);
 
@@ -147,20 +150,20 @@ ssize_t parse_line(Irc server, char *line, Parsed_data pdata) {
 		ping_reply(server, line);
 		return n;
 	}
-	pdata->sender = strtok(line + 1, " "); // Skip starting ':'
-	if (pdata->sender == NULL)
+	pdata.sender = strtok(line + 1, " "); // Skip starting ':'
+	if (pdata.sender == NULL)
 		return n;
-	pdata->command = strtok(NULL, " ");
-	if (pdata->command == NULL)
+	pdata.command = strtok(NULL, " ");
+	if (pdata.command == NULL)
 		return n;
-	pdata->message = strtok(NULL, "");
-	if (pdata->message == NULL)
+	pdata.message = strtok(NULL, "");
+	if (pdata.message == NULL)
 		return n;
 
-	reply = atoi(pdata->command);
+	reply = atoi(pdata.command);
 	if (reply == 0) {
 		// Launch any actions registered to IRC commands
-		flist = function_lookup(pdata->command, strlen(pdata->command));
+		flist = function_lookup(pdata.command, strlen(pdata.command));
 		if (flist != NULL)
 			flist->function(server, pdata);
 	} else
@@ -182,7 +185,7 @@ char *ping_reply(Irc server, char *buf) {
 	return buf;
 }
 
-int numeric_reply(Irc server, enum irc_reply reply) {
+int numeric_reply(Irc server, int reply) {
 
 	switch (reply) {
 		case NICKNAMEINUSE: // Change nick and resend the join command that got lost
@@ -202,32 +205,32 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 	char *test_char;
 
 	// Discard hostname from nickname
-	test_char = strchr(pdata->sender, '!');
+	test_char = strchr(pdata.sender, '!');
 	if (test_char != NULL)
 		*test_char = '\0';
 
-	pdata->target = strtok(pdata->message, " ");
-	if (pdata->target == NULL)
+	pdata.target = strtok(pdata.message, " ");
+	if (pdata.target == NULL)
 		return;
 
 	// If target is not a channel, reply on private instead
-	if (strchr(pdata->target, '#') == NULL)
-		pdata->target = pdata->sender;
+	if (strchr(pdata.target, '#') == NULL)
+		pdata.target = pdata.sender;
 
 	// Bot commands must begin with '!'
-	pdata->command = strtok(NULL, " ");
-	if (pdata->command == NULL || *(pdata->command + 1) != '!')
+	pdata.command = strtok(NULL, " ");
+	if (pdata.command == NULL || *(pdata.command + 1) != '!')
 		return;
-	pdata->command += 2; // Skip starting ":!"
+	pdata.command += 2; // Skip starting ":!"
 
 	// Make sure bot command gets null terminated if there are no parameters
-	pdata->message = strtok(NULL, "");
-	if (pdata->message == NULL) {
-		test_char = strrchr(pdata->command, '\r');
+	pdata.message = strtok(NULL, "");
+	if (pdata.message == NULL) {
+		test_char = strrchr(pdata.command, '\r');
 		*test_char = '\0';
 	}
 	// Find any actions registered to BOT commands
-	flist = function_lookup(pdata->command, strlen(pdata->command));
+	flist = function_lookup(pdata.command, strlen(pdata.command));
 	if (flist == NULL)
 		return;
 
@@ -240,7 +243,7 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 				case -1: flist->function(server, pdata); // Fork failed, run command in 1st child
 						_exit(EXIT_SUCCESS);
 						break;
-				case 0: // Run command in a new child and kill it's parent. That way we avoid zombies
+				case 0: // Run command in a new child and kill it's parent, that way we avoid zombies
 					flist->function(server, pdata);
 					_exit(EXIT_SUCCESS);
 					break;

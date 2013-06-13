@@ -8,12 +8,10 @@
 int main(void) {
 
 	Irc freenode;
-	char *line, nick_pwd[NICKLEN];
-	Parsed_data pdata;
+	char nick_pwd[NICKLEN];
 
+	// Initialize curl library
 	curl_global_init(CURL_GLOBAL_ALL);
-	line = malloc_w(IRCLEN * sizeof(char) + 1); // Space for null char
-	pdata = malloc_w(sizeof(*pdata));
 
 	freenode = connect_server("wolfe.freenode.net", "6667");
 	if (freenode == NULL)
@@ -28,12 +26,12 @@ int main(void) {
 		identify_nick(freenode, nick_pwd);
 
 	// Keep running as long the connection is active and act on any registered actions found
-	while (parse_line(freenode, line, pdata) > 0)
+	while (parse_line(freenode) > 0)
 		;
 
+	// Close server connection
 	quit_server(freenode, "poulos");
+
 	curl_global_cleanup();
-	free(line);
-	free(pdata);
 	return 0;
 }

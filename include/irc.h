@@ -17,7 +17,7 @@ typedef struct {
 	char *command;
 	char *target;
 	char *message;
-} *Parsed_data;
+} Parsed_data;
 
 enum irc_reply {
 	ENDOFMOTD = 376,
@@ -40,8 +40,8 @@ char *set_channel(Irc server, const char *channel);
 // And also the command sent to server is not printed in stdout
 void identify_nick(Irc server, char *pwd);
 
-// Read line and split it into Parsed_data structure elements and launch the function associated with IRC commands
-ssize_t parse_line(Irc server, char *line, Parsed_data pdata);
+// Read line from server, split it into Parsed_data structure elements and launch the function associated with IRC commands
+ssize_t parse_line(Irc server);
 
 // Change second character of PING request, from 'I' to 'O' and send it back
 char *ping_reply(Irc server, char *buf);
@@ -51,12 +51,12 @@ char *ping_reply(Irc server, char *buf);
 void irc_privmsg(Irc server, Parsed_data pdata);
 
 // Handle server numeric replies
-int numeric_reply(Irc Server, enum irc_reply reply);
+int numeric_reply(Irc Server, int reply);
 
 // Send a message to a channel or a person specified by target. Standard printf format accepted
 void send_message(Irc server, const char *target, const char *format, ...);
 
-// Close socket and free structure. Returns -1 on failure
+// Close socket and free structure
 void quit_server(Irc server, const char *msg);
 
 #endif

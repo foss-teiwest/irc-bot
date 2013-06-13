@@ -54,12 +54,10 @@ void open_write(void) {
 		exit_msg("Failed to open file");
 
 	lseek(server->sock, 0, SEEK_SET);
-	pdata = malloc_w(sizeof(*pdata));
 }
 
 void close_write(void) {
 
-	free(pdata);
 	quit_server(server, "bye");
 }
 
@@ -103,16 +101,6 @@ void close_write(void) {
 
 	ck_assert_str_eq("lol\r\ntroll\r\n", test_buffer2);
 
-#test irc_readline
-
-	char test_buffer2[IRCLEN + 1] = { 0 };
-
-	lseek(server->sock, 0, SEEK_SET);
-	while (get_line(server, test_buffer) > 0)
-		strcat(test_buffer2, test_buffer);
-
-	ck_assert_str_eq("lol\r\ntroll\r\n", test_buffer2);
-
 /*****************************************************************************/
 
 #tcase socket write operations
@@ -141,25 +129,17 @@ void close_write(void) {
 	set_channel(server, "#trololol");
 	ck_assert_str_eq(server->ch.channel[0], "#trololol");
 
-#test parse_msg
-
-	char line[] = ":freestyl3r!~free@ppp005055033225.access.hol.gr PRIVEMSG #foss-teimes :freestylerbot";
-
-	parse_line(server, line, pdata);
-	sprintf(test_buffer, "%s%s%s", pdata->sender, pdata->command, pdata->message);
-	ck_assert_str_eq(test_buffer, "freestyl3r!~free@ppp005055033225.access.hol.grPRIVEMSG#foss-teimes :freestylerbot");
-
 #test privemsg
 
 	char msg[] = "freestyl3r\0PRIVEMSG\0freestylerbot :!bot lol re";
 
-	pdata->sender = &msg[0];
-	pdata->command = &msg[11];
-	pdata->message = &msg[20];
+	pdata.sender = &msg[0];
+	pdata.command = &msg[11];
+	pdata.message = &msg[20];
 
 	irc_privmsg(server, pdata);
-	sprintf(test_buffer, "%s%s%s%s", pdata->sender, pdata->target, pdata->command, pdata->message);
-	ck_assert_str_eq(test_buffer, "freestyl3rfreestyl3rbotlol re");
+	sprintf(test_buffer, "%s%s%s%s", pdata.sender, pdata.target, pdata.command, pdata.message);
+	ck_assert_str_eq(test_buffer, "freestyl3rfreestyl3rbot");
 
 #test pingreply
 

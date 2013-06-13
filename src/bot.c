@@ -22,7 +22,7 @@ static const char *quotes[] = {
 
 void list(Irc server, Parsed_data pdata) {
 
-	send_message(server, pdata->target, "list / help, url, mumble, fail, github, ping, traceroute, dns");
+	send_message(server, pdata.target, "list / help, url, mumble, fail, github, ping, traceroute, dns");
 }
 
 void bot_fail(Irc server, Parsed_data pdata) {
@@ -34,7 +34,7 @@ void bot_fail(Irc server, Parsed_data pdata) {
 	r = rand() % SIZE(quotes);
 	maxlen = strlen(quotes[r]);
 	while (sum < maxlen && (len = strcspn(quotes[r] + sum, "\n")) > 0) {
-		send_message(server, pdata->target, "%.*s", (int) len, quotes[r] + sum);
+		send_message(server, pdata.target, "%.*s", (int) len, quotes[r] + sum);
 		sum += ++len;
 		sleep(1);
 	}
@@ -45,7 +45,7 @@ void url(Irc server, Parsed_data pdata) {
 	char **argv, *temp, *url_title = NULL, short_url[ADDRLEN] = {0};
 	int argc, fd[2], short_url_len = 0;
 
-	argv = extract_params(pdata->message, &argc);
+	argv = extract_params(pdata.message, &argc);
 	if (argc != 1)
 		goto cleanup;
 
@@ -84,7 +84,7 @@ void url(Irc server, Parsed_data pdata) {
 				perror("waitpid");
 	}
 	// Only print short_url / title if they are not empty
-	send_message(server, pdata->target, "%s -- %s", (short_url_len ? short_url : ""), (url_title ? url_title : ""));
+	send_message(server, pdata.target, "%s -- %s", (short_url_len ? short_url : ""), (url_title ? url_title : ""));
 
 cleanup:
 	free(argv);
@@ -96,7 +96,7 @@ void mumble(Irc server, Parsed_data pdata) {
 
 	user_list = fetch_mumble_users();
 	if (user_list != NULL) {
-		send_message(server, pdata->target, user_list);
+		send_message(server, pdata.target, user_list);
 		free(user_list);
 	}
 }
@@ -108,7 +108,7 @@ void github(Irc server, Parsed_data pdata) {
 	char **argv, *short_url, repo[REPOLEN + 1] = {0};
 	int argc, i, commits = 1;
 
-	argv = extract_params(pdata->message, &argc);
+	argv = extract_params(pdata.message, &argc);
 	if (argc != 1 && argc != 2) {
 		free(argv);
 		return;
@@ -129,7 +129,7 @@ void github(Irc server, Parsed_data pdata) {
 
 	for (i = 0; i < commits; i++) {
 		short_url = shorten_url(commit[i].url);
-		send_message(server, pdata->target, COLOR PURPLE "[%s]" RESETCOLOR " %s" COLOR ORANGE " --%s" COLOR BLUE " - %s",
+		send_message(server, pdata.target, COLOR PURPLE "[%s]" RESETCOLOR " %s" COLOR ORANGE " --%s" COLOR BLUE " - %s",
 					commit[i].sha, commit[i].msg, commit[i].author, (short_url ? short_url : ""));
 		if (short_url != NULL)
 			free(short_url);
@@ -146,7 +146,7 @@ void ping(Irc server, Parsed_data pdata) {
 	char **argv, *cmd, cmdline[CMDLEN];
 	int argc, count = 3;
 
-	argv = extract_params(pdata->message, &argc);
+	argv = extract_params(pdata.message, &argc);
 	if (argc != 1 && argc != 2)
 		goto cleanup;
 
@@ -162,7 +162,7 @@ void ping(Irc server, Parsed_data pdata) {
 		count = get_int(argv[1], MAXPINGCOUNT);
 
 	snprintf(cmdline, CMDLEN, "%s -c %d %s", cmd, count, argv[0]);
-	print_cmd_output(server, pdata->target, cmdline);
+	print_cmd_output(server, pdata.target, cmdline);
 
 cleanup:
 	free(argv);
@@ -173,7 +173,7 @@ void traceroute(Irc server, Parsed_data pdata) {
 	char **argv, *cmd, cmdline[CMDLEN];
 	int argc;
 
-	argv = extract_params(pdata->message, &argc);
+	argv = extract_params(pdata.message, &argc);
 	if (argc != 1)
 		goto cleanup;
 
@@ -185,9 +185,9 @@ void traceroute(Irc server, Parsed_data pdata) {
 		goto cleanup;
 
 	snprintf(cmdline, CMDLEN, "%s -m 20 %s", cmd, argv[0]); // Limit max hops to 20
-	if (strchr(pdata->target, '#') != NULL) // Don't send the following msg if the request was initiated in private
-		send_message(server, pdata->target, "Printing results privately to %s", pdata->sender);
-	print_cmd_output(server, pdata->sender, cmdline);
+	if (strchr(pdata.target, '#') != NULL) // Don't send the following msg if the request was initiated in private
+		send_message(server, pdata.target, "Printing results privately to %s", pdata.sender);
+	print_cmd_output(server, pdata.sender, cmdline);
 
 cleanup:
 	free(argv);
@@ -198,7 +198,7 @@ void dns(Irc server, Parsed_data pdata) {
 	char **argv, cmdline[CMDLEN];
 	int argc;
 
-	argv = extract_params(pdata->message, &argc);
+	argv = extract_params(pdata.message, &argc);
 	if (argc != 1)
 		goto cleanup;
 
@@ -206,7 +206,7 @@ void dns(Irc server, Parsed_data pdata) {
 		goto cleanup;
 
 	snprintf(cmdline, CMDLEN, "nslookup %s", argv[0]);
-	print_cmd_output(server, pdata->target, cmdline);
+	print_cmd_output(server, pdata.target, cmdline);
 
 cleanup:
 	free(argv);
