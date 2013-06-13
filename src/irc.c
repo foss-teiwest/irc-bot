@@ -159,6 +159,7 @@ ssize_t parse_line(Irc server) {
 	pdata.message = strtok(NULL, "");
 	if (pdata.message == NULL)
 		return n;
+	pdata.target = NULL; // Initialize the last struct member to silence compiler warnings
 
 	reply = atoi(pdata.command);
 	if (reply == 0) {
@@ -188,7 +189,7 @@ char *ping_reply(Irc server, char *buf) {
 int numeric_reply(Irc server, int reply) {
 
 	switch (reply) {
-		case NICKNAMEINUSE: // Change nick and resend the join command that got lost
+		case NICKNAMEINUSE:
 			strcat(server->nick, "_");
 			set_nick(server, server->nick);
 			break;

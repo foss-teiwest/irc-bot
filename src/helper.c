@@ -78,7 +78,7 @@ int get_int(const char *num, int max) {
 	long converted_num;
 
 	converted_num = strtol(num, NULL, 10);
-	if (converted_num > max)
+	if (converted_num >= max)
 		return max;
 	else if (converted_num <= 0)
 		return 1;

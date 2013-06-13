@@ -101,6 +101,12 @@ void close_write(void) {
 
 	ck_assert_str_eq("lol\r\ntroll\r\n", test_buffer2);
 
+#test parseline
+
+	ck_assert_int_eq(parse_line(server), 0);
+	lseek(server->sock, 0, SEEK_SET);
+	ck_assert_int_eq(parse_line(server), 5);
+
 /*****************************************************************************/
 
 #tcase socket write operations
@@ -131,15 +137,15 @@ void close_write(void) {
 
 #test privemsg
 
-	char msg[] = "freestyl3r\0PRIVEMSG\0freestylerbot :!bot lol re";
+	char msg[] = "freestyl3r\0PRIVMSG\0freestylerbot :!bot lol re";
 
 	pdata.sender = &msg[0];
 	pdata.command = &msg[11];
 	pdata.message = &msg[20];
 
 	irc_privmsg(server, pdata);
-	sprintf(test_buffer, "%s%s%s%s", pdata.sender, pdata.target, pdata.command, pdata.message);
-	ck_assert_str_eq(test_buffer, "freestyl3rfreestyl3rbot");
+	if (memcmp(msg, "freestyl3r\0PRIVMSG\0freestylerbot\0:!bot\0lol re", sizeof(msg)) != 0)
+		ck_abort_msg("privemsg parsing failed");
 
 #test pingreply
 
@@ -152,6 +158,12 @@ void close_write(void) {
 	char pwd[] = "nicepass";
 	identify_nick(server, pwd);
 	ck_assert_int_eq(strlen(pwd), 0);
+
+#test numeric_replies
+
+	numeric_reply(server, NICKNAMEINUSE);
+	if (server->nick[strlen(server->nick) - 1] != '_')
+		ck_abort_msg("nick rename failed");
 
 /*****************************************************************************/
 
@@ -192,6 +204,17 @@ void close_write(void) {
 
 	free(argv);
 
+#test getint
+
+	ck_assert_int_eq(get_int("234", 50), 50);
+	ck_assert_int_eq(get_int("-234", 50), 1);
+	ck_assert_int_eq(get_int("0", 50), 1);
+	ck_assert_int_eq(get_int("0", 0), 0);
+	ck_assert_int_eq(get_int("543463464463634634436346436346", 2), 2);
+	ck_assert_int_eq(get_int("-543463464463634634436346436346", 2), 1);
+	ck_assert_int_eq(get_int("432efgdger", 21324124), 432);
+	ck_assert_int_eq(get_int("sdfsdf462", 2), 1);
+
 #test mumble_list
 
 	char *data = fetch_mumble_users();
@@ -212,7 +235,7 @@ void close_write(void) {
 
 	ck_assert_str_eq(commit[0].sha, "8761f93");
 	ck_assert_str_eq(commit[0].author, "freestyl3r");
-	ck_assert_str_eq(commit[0].msg, "change a function name that conflicted with test framework");
+	ck_assert_str_eq(commit[0].msg, "change a function name that conflicted with test framework. I'm writing random things in order to properly unit test the github commit function with check framework. The message sh...");
 	ck_assert_str_eq(commit[0].url, "https://github.com/foss-teimes/irc-bot/commit/8761f932675c562c0c9b1cef8470534945e896e5");
 	ck_assert_str_eq(commit[1].sha, "c2513cf");
 	ck_assert_str_eq(commit[1].author, "freestyl3r");
