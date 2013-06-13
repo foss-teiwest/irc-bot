@@ -40,15 +40,11 @@ char *set_channel(Irc server, const char *channel);
 // And also the command sent to server is not printed in stdout
 void identify_nick(Irc server, char *pwd);
 
-// Gets next line from server. Returns length
-ssize_t get_line(Irc server, char *buf);
+// Read line and split it into Parsed_data structure elements and launch the function associated with IRC commands
+ssize_t parse_line(Irc server, char *line, Parsed_data pdata);
 
 // Change second character of PING request, from 'I' to 'O' and send it back
 char *ping_reply(Irc server, char *buf);
-
-// Split line into Parsed_data structure elements and launch the function associated with IRC commands
-// The function called gets the parameters after command, to parse them itself
-char *parse_line(Irc server, char *line, Parsed_data pdata);
 
 // Parse channel / private messages and launch the function that matches the bot command. Must begin with '!'
 // Info available in pdata: nick, command, message (the rest message after command, including target)

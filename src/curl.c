@@ -55,7 +55,7 @@ char *shorten_url(const char *long_url) {
 #endif
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, url_formatted); // Send the formatted POST
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L); // Allow redirects
-	curl_easy_setopt(curl, CURLOPT_TIMEOUT , 3L);
+	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 3L);
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers); // Use our modified header
 
 	// By default curl_easy_perform output the result in stdout, so we provide own function and data struct,
@@ -105,6 +105,7 @@ char *fetch_mumble_users(void) {
 	curl_easy_setopt(curl, CURLOPT_URL, "https://foss.tesyd.teimes.gr/weblist-bot.php"); // Set mumble users list url
 #endif
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 8L);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_memory);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &mem);
 
@@ -141,6 +142,7 @@ Github *fetch_github_commits(const char *repo, int *commits, Mem_buffer *mem) {
 #endif
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 	curl_easy_setopt(curl, CURLOPT_USERAGENT, "irc-bot"); // Github requires a user-agent
+	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 8L);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_memory);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, mem);
 
@@ -214,7 +216,7 @@ char *get_url_title(const char *url) {
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 #endif
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-	curl_easy_setopt(curl, CURLOPT_TIMEOUT , 3L);
+	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 3L);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_memory);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &mem);
 

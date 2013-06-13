@@ -28,8 +28,8 @@ int main(void) {
 		identify_nick(freenode, nick_pwd);
 
 	// Keep running as long the connection is active and act on any registered actions found
-	while (get_line(freenode, line) > 0)
-		parse_line(freenode, line, pdata);
+	while (parse_line(freenode, line, pdata) > 0)
+		;
 
 	quit_server(freenode, "poulos");
 	curl_global_cleanup();

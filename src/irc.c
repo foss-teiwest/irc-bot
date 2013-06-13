@@ -92,6 +92,20 @@ void identify_nick(Irc server, char *pwd) {
 	memset(pwd, 0, strlen(pwd)); // Zero-out password so it doesn't stay in memory
 }
 
+char *set_channel(Irc server, const char *channel) {
+
+	assert(channel != NULL && "Error in set_channel");
+	assert(channel[0] == '#' && "Missing # in channel");
+	if (server->ch.channels_set == MAXCHANS) {
+		fprintf(stderr, "Channel limit reached\n");
+		return NULL;
+	}
+	strncpy(server->ch.channel[server->ch.channels_set], channel, CHANLEN);
+	server->ch.channels_set++;
+
+	return server->ch.channel[server->ch.channels_set];
+}
+
 #ifdef TEST
 	int join_channels(Irc server)
 #else
@@ -120,26 +134,37 @@ void identify_nick(Irc server, char *pwd) {
 	return server->ch.channels_set;
 }
 
-char *set_channel(Irc server, const char *channel) {
+ssize_t parse_line(Irc server, char *line, Parsed_data pdata) {
 
-	assert(channel != NULL && "Error in set_channel");
-	assert(channel[0] == '#' && "Missing # in channel");
-	if (server->ch.channels_set == MAXCHANS) {
-		fprintf(stderr, "Channel limit reached\n");
-		return NULL;
-	}
-	strncpy(server->ch.channel[server->ch.channels_set], channel, CHANLEN);
-	server->ch.channels_set++;
-
-	return server->ch.channel[server->ch.channels_set];
-}
-
-ssize_t get_line(Irc server, char *buf) {
-
+	Function_list flist;
+	int reply;
 	ssize_t n;
 
-	n = sock_readline(server->sock, buf, IRCLEN);
-	fputs(buf, stdout);
+	n = sock_readline(server->sock, line, IRCLEN);
+	fputs(line, stdout);
+
+	if (line[0] == 'P') { // Check first line character
+		ping_reply(server, line);
+		return n;
+	}
+	pdata->sender = strtok(line + 1, " "); // Skip starting ':'
+	if (pdata->sender == NULL)
+		return n;
+	pdata->command = strtok(NULL, " ");
+	if (pdata->command == NULL)
+		return n;
+	pdata->message = strtok(NULL, "");
+	if (pdata->message == NULL)
+		return n;
+
+	reply = atoi(pdata->command);
+	if (reply == 0) {
+		// Launch any actions registered to IRC commands
+		flist = function_lookup(pdata->command, strlen(pdata->command));
+		if (flist != NULL)
+			flist->function(server, pdata);
+	} else
+		numeric_reply(server, reply);
 
 	return n;
 }
@@ -155,37 +180,6 @@ char *ping_reply(Irc server, char *buf) {
 		exit_msg("Irc ping reply failed");
 
 	return buf;
-}
-
-char *parse_line(Irc server, char *line, Parsed_data pdata) {
-
-	Function_list flist;
-	int reply;
-
-	if (line[0] == 'P') { // Check first line character
-		ping_reply(server, line);
-		return "PING";
-	}
-	pdata->sender = strtok(line + 1, " "); // Skip starting ':'
-	if (pdata->sender == NULL)
-		return NULL;
-	pdata->command = strtok(NULL, " ");
-	if (pdata->command == NULL)
-		return NULL;
-	pdata->message = strtok(NULL, "");
-	if (pdata->message == NULL)
-		return NULL;
-
-	reply = atoi(pdata->command);
-	if (reply == 0) {
-		// Launch any actions registered to IRC commands
-		flist = function_lookup(pdata->command, strlen(pdata->command));
-		if (flist != NULL)
-			flist->function(server, pdata);
-	} else
-		numeric_reply(server, reply);
-
-	return pdata->command;
 }
 
 int numeric_reply(Irc server, enum irc_reply reply) {
