@@ -78,7 +78,7 @@ char *shorten_url(const char *long_url) {
 	*temp = '\0';
 
 	// short_url must be freed to avoid memory leak
-	short_url = strndup(short_url, 25);
+	short_url = strndup(short_url, ADDRLEN);
 
 cleanup2:
 	free(mem.buffer);
@@ -231,11 +231,13 @@ char *get_url_title(const char *url) {
 	url_title = temp + 7;
 
 	temp = strcasestr(url_title, "</title");
-	if (temp == NULL)
+	if (temp == NULL) {
+		url_title = NULL;
 		goto cleanup2;
+	}
 	*temp = '\0';
 
-	// Replace all newline characters with spaces
+	// Replace newline characters with spaces
 	temp = url_title;
 	while (*temp != '\0') {
 		if (*temp == '\n')
@@ -243,11 +245,11 @@ char *get_url_title(const char *url) {
 		temp++;
 	}
 	// Return value must be freed to avoid memory leak
-	return strndup(url_title, TITLELEN);
+	url_title = strndup(url_title, TITLELEN);
 
 cleanup2:
 	free(mem.buffer);
 cleanup:
 	curl_easy_cleanup(curl);
-	return NULL;
+	return url_title;
 }

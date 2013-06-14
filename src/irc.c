@@ -237,14 +237,14 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 
 	switch (fork()) {
 		case -1:
-			flist->function(server, pdata); // Fork failed, run command in single process
+			perror("fork");
 			break;
 		case 0:
 			switch (fork()) {
 				case -1: flist->function(server, pdata); // Fork failed, run command in 1st child
 						_exit(EXIT_SUCCESS);
 						break;
-				case 0: // Run command in a new child and kill it's parent, that way we avoid zombies
+				case 0: // Run command in a new child and kill it's parent in order to avoid zombies
 					flist->function(server, pdata);
 					_exit(EXIT_SUCCESS);
 					break;
@@ -253,8 +253,8 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 			}
 			break;
 		default: // Wait for the first child
-			if (waitpid(-1, NULL, 0) < 0)
-				perror("waitpid");
+			if (wait(NULL) < 0)
+				perror("wait");
 	}
 }
 

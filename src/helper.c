@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 #include <stdarg.h>
 #include "helper.h"
 #include "irc.h"
 
+pid_t main_pid;
 
 void exit_msg(const char *format, ...) {
 
@@ -16,7 +18,10 @@ void exit_msg(const char *format, ...) {
 	vfprintf(stderr, buf, args);
 	va_end(args);
 
-	exit(EXIT_FAILURE);
+	if (getpid() == main_pid)
+		exit(EXIT_FAILURE);
+	else
+		_exit(EXIT_FAILURE);
 }
 
 void *_malloc_w(size_t size, const char *caller) {

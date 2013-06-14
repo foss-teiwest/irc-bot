@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <sys/mman.h>
 #include <time.h>
 #include "bot.h"
 #include "irc.h"
@@ -42,8 +43,8 @@ void bot_fail(Irc server, Parsed_data pdata) {
 
 void url(Irc server, Parsed_data pdata) {
 
-	char **argv, *temp, *url_title = NULL, short_url[ADDRLEN] = {0};
-	int argc, fd[2], short_url_len = 0;
+	char **argv, *temp, *short_url, *url_title = NULL;
+	int argc;
 
 	argv = extract_params(pdata.message, &argc);
 	if (argc != 1)
@@ -53,41 +54,41 @@ void url(Irc server, Parsed_data pdata) {
 	if (strchr(argv[0], '.') == NULL)
 		goto cleanup;
 
-	// Open pipe for inter-process communication
-	if (pipe(fd) < 0) {
-		perror("pipe");
+	// Map shared memory for inter-process communication
+	short_url = mmap(NULL, ADDRLEN + 1, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+	if (short_url == MAP_FAILED) {
+		perror("mmap");
 		goto cleanup;
 	}
+
 	switch (fork()) {
 		case -1:
 			perror("fork");
+			munmap(short_url, ADDRLEN + 1);
 			break;
 		case 0:
-			close(fd[0]); // Close reading end of the socket
 			temp = shorten_url(argv[0]);
-			if (temp == NULL)
+			if (temp != NULL) {
+				strncpy(short_url, temp, ADDRLEN);
 				free(temp);
-			else
-				write(fd[1], temp, strlen(temp));
-			close(fd[1]);
+			} else // Put a null char in the first byte if shorten_url fails so we can test for it in send_message
+				*short_url = '\0';
+
+			munmap(short_url, ADDRLEN + 1);
 			_exit(EXIT_SUCCESS);
 			break;
 		default:
 			url_title = get_url_title(argv[0]);
-			if (url_title == NULL)
-				free(url_title);
+			if (wait(NULL) < 0) // Wait for child results before continuing
+				perror("wait");
 
-			close(fd[1]); // Close writting end
-			short_url_len = read(fd[0], short_url, ADDRLEN);
-			close(fd[0]);
-			if (waitpid(-1, NULL, 0) < 0) // Wait for child results before continuing
-				perror("waitpid");
+			// Only print short_url / title if they are not empty
+			send_message(server, pdata.target, "%s -- %s", (*short_url ? short_url : ""), (url_title ? url_title : ""));
+			munmap(short_url, ADDRLEN + 1);
 	}
-	// Only print short_url / title if they are not empty
-	send_message(server, pdata.target, "%s -- %s", (short_url_len ? short_url : ""), (url_title ? url_title : ""));
-
 cleanup:
 	free(argv);
+	free(url_title);
 }
 
 void mumble(Irc server, Parsed_data pdata) {
@@ -135,8 +136,7 @@ void github(Irc server, Parsed_data pdata) {
 			free(short_url);
 	}
 cleanup:
-	if (commit != NULL)
-		free(commit);
+	free(commit);
 	free(argv);
 	free(mem.buffer);
 }
