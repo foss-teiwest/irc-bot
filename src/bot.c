@@ -64,7 +64,6 @@ void url(Irc server, Parsed_data pdata) {
 	switch (fork()) {
 		case -1:
 			perror("fork");
-			munmap(short_url, ADDRLEN + 1);
 			break;
 		case 0:
 			temp = shorten_url(argv[0]);
@@ -74,7 +73,7 @@ void url(Irc server, Parsed_data pdata) {
 			} else // Put a null char in the first byte if shorten_url fails so we can test for it in send_message
 				*short_url = '\0';
 
-			munmap(short_url, ADDRLEN + 1);
+			munmap(short_url, ADDRLEN + 1); // Unmap pages from child process
 			_exit(EXIT_SUCCESS);
 			break;
 		default:
@@ -84,8 +83,9 @@ void url(Irc server, Parsed_data pdata) {
 
 			// Only print short_url / title if they are not empty
 			send_message(server, pdata.target, "%s -- %s", (*short_url ? short_url : ""), (url_title ? url_title : ""));
-			munmap(short_url, ADDRLEN + 1);
 	}
+	munmap(short_url, ADDRLEN + 1); // Unmap from parent as well
+
 cleanup:
 	free(argv);
 	free(url_title);

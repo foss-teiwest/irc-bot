@@ -70,19 +70,18 @@ char *shorten_url(const char *long_url) {
 	// Find the short url in the reply and null terminate it
 	short_url = strstr(mem.buffer, "http");
 	if (short_url == NULL)
-		goto cleanup2;
+		goto cleanup;
 
 	temp = strchr(short_url, '"');
 	if (temp == NULL)
-		goto cleanup2;
+		goto cleanup;
 	*temp = '\0';
 
 	// short_url must be freed to avoid memory leak
 	short_url = strndup(short_url, ADDRLEN);
 
-cleanup2:
-	free(mem.buffer);
 cleanup:
+	free(mem.buffer);
 	free(url_formatted);
 	curl_slist_free_all(headers);
 	curl_easy_cleanup(curl);
@@ -124,7 +123,7 @@ Github *fetch_github_commits(const char *repo, int *commits, Mem_buffer *mem) {
 	CURLcode code;
 	Github *commit = NULL;
 	int max_commits, i;
-	char *API_URL, *temp, *temp2;
+	char *temp, *temp2, *API_URL = NULL;
 
 	max_commits = *commits;
 	*commits = 0;
@@ -149,7 +148,7 @@ Github *fetch_github_commits(const char *repo, int *commits, Mem_buffer *mem) {
 	code = curl_easy_perform(curl);
 	if (code != CURLE_OK) {
 		fprintf(stderr, "Error: %s\n", curl_easy_strerror(code));
-		goto cleanup2;
+		goto cleanup;
 	}
 	commit = malloc_w(max_commits * sizeof(Github));
 	temp = mem->buffer;
@@ -192,9 +191,8 @@ Github *fetch_github_commits(const char *repo, int *commits, Mem_buffer *mem) {
 
 		(*commits)++;
 	}
-cleanup2:
-	free(API_URL);
 cleanup:
+	free(API_URL);
 	curl_easy_cleanup(curl);
 	return commit;
 }
@@ -223,17 +221,17 @@ char *get_url_title(const char *url) {
 	code = curl_easy_perform(curl);
 	if (code != CURLE_OK) {
 		fprintf(stderr, "Error: %s\n", curl_easy_strerror(code));
-		goto cleanup2;
+		goto cleanup;
 	}
 	temp = strcasestr(mem.buffer, "<title");
 	if (temp == NULL)
-		goto cleanup2;
+		goto cleanup;
 	url_title = temp + 7;
 
 	temp = strcasestr(url_title, "</title");
 	if (temp == NULL) {
 		url_title = NULL;
-		goto cleanup2;
+		goto cleanup;
 	}
 	*temp = '\0';
 
@@ -247,9 +245,8 @@ char *get_url_title(const char *url) {
 	// Return value must be freed to avoid memory leak
 	url_title = strndup(url_title, TITLELEN);
 
-cleanup2:
-	free(mem.buffer);
 cleanup:
+	free(mem.buffer);
 	curl_easy_cleanup(curl);
 	return url_title;
 }
