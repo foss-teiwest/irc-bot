@@ -23,7 +23,7 @@ static const char *quotes[] = {
 
 void list(Irc server, Parsed_data pdata) {
 
-	send_message(server, pdata.target, "list / help, url, mumble, fail, github, ping, traceroute, dns");
+	send_message(server, pdata.target, "list / help, url, mumble, fail, github, ping, traceroute, dns, uptime");
 }
 
 void bot_fail(Irc server, Parsed_data pdata) {
