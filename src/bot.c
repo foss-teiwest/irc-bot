@@ -211,3 +211,8 @@ void dns(Irc server, Parsed_data pdata) {
 cleanup:
 	free(argv);
 }
+
+void uptime(Irc server, Parsed_data pdata){
+
+	print_cmd_output(server, pdata.target, "uptime");
+}
