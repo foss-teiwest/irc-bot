@@ -35,5 +35,6 @@ void github(Irc server, Parsed_data pdata);
 void traceroute(Irc server, Parsed_data pdata);
 void ping(Irc server, Parsed_data pdata);
 void dns(Irc server, Parsed_data pdata);
+void uptime(Irc server, Parsed_data pdata);
 
 #endif

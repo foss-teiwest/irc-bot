@@ -21,3 +21,4 @@ struct function_list;
 "traceroute", traceroute
 "ping", ping
 "dns", dns
+"uptime", uptime
