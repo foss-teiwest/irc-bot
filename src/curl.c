@@ -182,6 +182,7 @@ Github *fetch_github_commits(const char *repo, int *commits, Mem_buffer *mem) {
 			commit[i].msg[COMMITLEN] = commit[i].msg[COMMITLEN + 1] = commit[i].msg[COMMITLEN + 2] = '.';
 			commit[i].msg[COMMITLEN + 3] = '\0';
 		}
+		// Get long url
 		temp = strstr(temp + 1, "html");
 		if (temp == NULL)
 			break;

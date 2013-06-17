@@ -34,6 +34,9 @@ void bot_fail(Irc server, Parsed_data pdata) {
 	srand(time(NULL));
 	r = rand() % SIZE(quotes);
 	maxlen = strlen(quotes[r]);
+
+	// Pick a random entry from the read-only quotes array and print it.
+	// We use indexes and lengths since we can't make changes to the array
 	while (sum < maxlen && (len = strcspn(quotes[r] + sum, "\n")) > 0) {
 		send_message(server, pdata.target, "%.*s", (int) len, quotes[r] + sum);
 		sum += ++len;
@@ -128,12 +131,12 @@ void github(Irc server, Parsed_data pdata) {
 	if (commits == 0)
 		goto cleanup;
 
+	// Print each commit info with it's short url in a seperate colorized line
 	for (i = 0; i < commits; i++) {
 		short_url = shorten_url(commit[i].url);
 		send_message(server, pdata.target, COLOR PURPLE "[%s]" RESETCOLOR " %s" COLOR ORANGE " --%s" COLOR BLUE " - %s",
 					commit[i].sha, commit[i].msg, commit[i].author, (short_url ? short_url : ""));
-		if (short_url != NULL)
-			free(short_url);
+		free(short_url);
 	}
 cleanup:
 	free(commit);

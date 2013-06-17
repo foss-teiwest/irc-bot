@@ -142,25 +142,37 @@ ssize_t parse_line(Irc server) {
 	int reply;
 	ssize_t n;
 
-	// Read line from server
+	// Read raw line from server. Example: ":laxanofido!~laxanofid@snf-23545.vm.okeanos.grnet.gr PRIVMSG #foss-teimes :How YA doing fossbot"
 	n = sock_readline(server->sock, line, IRCLEN);
 	fputs(line, stdout);
 
-	if (line[0] == 'P') { // Check first line character
+	// Check for server ping request. Example: "PING :wolfe.freenode.net"
+	// If first character matches 'P' then change the 2nd char to 'O' and send the message back
+	if (line[0] == 'P') {
 		ping_reply(server, line);
 		return n;
 	}
-	pdata.sender = strtok(line + 1, " "); // Skip starting ':'
+	// Store the sender of the message / server command without the leading ':'.
+	// Examples: "laxanofido!~laxanofid@snf-23545.vm.okeanos.grnet.gr", "wolfe.freenode.net"
+	pdata.sender = strtok(line + 1, " ");
 	if (pdata.sender == NULL)
 		return n;
+
+	// Store the server command. Examples: "PRIVMSG", "MODE", "433"
 	pdata.command = strtok(NULL, " ");
 	if (pdata.command == NULL)
 		return n;
+
+	// Store everything that comes after the server command
+	// Examples: "#foss-teimes :How YA doing fossbot_", "fossbot :How YA doing fossbot"
 	pdata.message = strtok(NULL, "");
 	if (pdata.message == NULL)
 		return n;
-	pdata.target = NULL; // Initialize the last struct member to silence compiler warnings
 
+	// Initialize the last struct member to silence compiler warnings
+	pdata.target = NULL;
+
+	// Find out if server command is a numeric reply
 	reply = atoi(pdata.command);
 	if (reply == 0) {
 		// Launch any actions registered to IRC commands
@@ -205,16 +217,17 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 	Function_list flist;
 	char *test_char;
 
-	// Discard hostname from nickname
+	// Discard hostname from nickname. "laxanofido!~laxanofid@snf-23545.vm.okeanos.grnet.gr" becomes "laxanofido"
 	test_char = strchr(pdata.sender, '!');
 	if (test_char != NULL)
 		*test_char = '\0';
 
+	// Store message destination. Example channel: "#foss-teimes" or private: "fossbot"
 	pdata.target = strtok(pdata.message, " ");
 	if (pdata.target == NULL)
 		return;
 
-	// If target is not a channel, reply on private instead
+	// If target is not a channel, reply on private back to sender instead
 	if (strchr(pdata.target, '#') == NULL)
 		pdata.target = pdata.sender;
 
@@ -241,9 +254,10 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 			break;
 		case 0:
 			switch (fork()) {
-				case -1: flist->function(server, pdata); // Fork failed, run command in 1st child
-						_exit(EXIT_SUCCESS);
-						break;
+				case -1: // Fork failed, run command in 1st child
+					flist->function(server, pdata);
+					_exit(EXIT_SUCCESS);
+					break;
 				case 0: // Run command in a new child and kill it's parent in order to avoid zombies
 					flist->function(server, pdata);
 					_exit(EXIT_SUCCESS);
