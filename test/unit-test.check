@@ -153,12 +153,6 @@ void close_write(void) {
 	char *pong = ping_reply(server, msg);
 	ck_assert_str_eq(pong, "PONG :pratchett.freenode.net\r\n");
 
-#test nick_identify
-
-	char pwd[] = "nicepass";
-	identify_nick(server, pwd);
-	ck_assert_int_eq(strlen(pwd), 0);
-
 #test numeric_replies
 
 	numeric_reply(server, NICKNAMEINUSE);

@@ -36,10 +36,6 @@ char *set_nick(Irc server, const char *nick);
 char *set_user(Irc server, const char *user);
 char *set_channel(Irc server, const char *channel);
 
-// pwd is cleared after use so it doesn't stay in plain view (memory)
-// And also the command sent to server is not printed in stdout
-void identify_nick(Irc server, char *pwd);
-
 // Read line from server, split it into Parsed_data structure elements and launch the function associated with IRC commands
 ssize_t parse_line(Irc server);
 
@@ -49,6 +45,9 @@ char *ping_reply(Irc server, char *buf);
 // Parse channel / private messages and launch the function that matches the bot command. Must begin with '!'
 // Info available in pdata: nick, command, message (the rest message after command, including target)
 void irc_privmsg(Irc server, Parsed_data pdata);
+
+// Handle notices. If for example nick requires identify, you will be prompted to enter it in standard input
+void irc_notice(Irc server, Parsed_data pdata);
 
 // Handle server numeric replies
 int numeric_reply(Irc Server, int reply);
