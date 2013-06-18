@@ -64,8 +64,10 @@ char *shorten_url(const char *long_url) {
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &mem);
 
 	code = curl_easy_perform(curl); // Do the job!
-	if (code != CURLE_OK)
+	if (code != CURLE_OK || mem.buffer == NULL) {
 		fprintf(stderr, "Error: %s\n", curl_easy_strerror(code));
+		goto cleanup;
+	}
 
 	// Find the short url in the reply and null terminate it
 	short_url = strstr(mem.buffer, "http");
@@ -109,7 +111,7 @@ char *fetch_mumble_users(void) {
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &mem);
 
 	code = curl_easy_perform(curl);
-	if (code != CURLE_OK)
+	if (code != CURLE_OK || mem.buffer == NULL)
 		fprintf(stderr, "Error: %s\n", curl_easy_strerror(code));
 
 cleanup:
@@ -146,7 +148,7 @@ Github *fetch_github_commits(const char *repo, int *commits, Mem_buffer *mem) {
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, mem);
 
 	code = curl_easy_perform(curl);
-	if (code != CURLE_OK) {
+	if (code != CURLE_OK || mem->buffer == NULL) {
 		fprintf(stderr, "Error: %s\n", curl_easy_strerror(code));
 		goto cleanup;
 	}
@@ -220,7 +222,7 @@ char *get_url_title(const char *url) {
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &mem);
 
 	code = curl_easy_perform(curl);
-	if (code != CURLE_OK) {
+	if (code != CURLE_OK || mem.buffer == NULL) {
 		fprintf(stderr, "Error: %s\n", curl_easy_strerror(code));
 		goto cleanup;
 	}
