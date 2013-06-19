@@ -9,6 +9,23 @@
 #define REPOLEN 60
 #define DEFAULT_USER_REPO "foss-teimes"
 
+// Irc color codes
+#define RESET   "\x03"
+#define BLUE    "\x03""2"
+#define GREEN   "\x03""3"
+#define RED     "\x03""4"
+#define BROWN   "\x03""5"
+#define PURPLE  "\x03""6"
+#define ORANGE  "\x03""7"
+#define YELLOW  "\x03""8"
+#define LTGREEN "\x03""9"
+#define TEAL    "\x03""10"
+#define LTCYAN  "\x03""11"
+#define LTBLUE  "\x03""12"
+#define PINK    "\x03""13"
+#define GREY    "\x03""14"
+#define LTGREY  "\x03""15"
+
 // Data available to all bot functions through pdata:
 // sender: the one initiated the request
 // target: the channel or the query it was requested on

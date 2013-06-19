@@ -229,35 +229,40 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 	if (strchr(pdata.target, '#') == NULL)
 		pdata.target = pdata.sender;
 
-	// Example command we might receive: :!url in.gr  -- Skip starting ":"
-	pdata.command++;
-
-	// Bot commands must begin with '!'
+	// Example commands we might receive: ":!url in.gr", ":\x01VERSION\x01"
 	pdata.command = strtok(NULL, " ");
-	if (pdata.command == NULL || *(pdata.command + 1) != '!')
+	if (pdata.command == NULL)
 		return;
+	pdata.command++; // Skip leading ":" character
 
-	// Skip leading ":!" characters. Example command we might receive: :!url in.gr
-	pdata.command += 2;
-
-	// Make sure bot command gets null terminated if there are no parameters
+	// Make sure BOT command / CTCP request gets null terminated if there are no parameters
 	pdata.message = strtok(NULL, "");
 	if (pdata.message == NULL) {
 		test_char = strrchr(pdata.command, '\r');
 		*test_char = '\0';
 	}
-	// Query our hash table for any functions registered to BOT commands
-	flist = function_lookup(pdata.command, strlen(pdata.command));
-	if (flist == NULL)
-		return;
+	// Bot commands must begin with '!'
+	if (*pdata.command == '!') {
+		pdata.command++; // Skip leading '!' before passing the command
 
-	// Launch the function in a new process
-	switch (fork()) {
-		case 0:
-			flist->function(server, pdata);
-			_exit(EXIT_SUCCESS);
-		case -1:
-			perror("fork");
+		// Query our hash table for any functions registered to BOT commands
+		flist = function_lookup(pdata.command, strlen(pdata.command));
+		if (flist == NULL)
+			return;
+
+		// Launch the function in a new process
+		switch (fork()) {
+			case 0:
+				flist->function(server, pdata);
+				_exit(EXIT_SUCCESS);
+			case -1:
+				perror("fork");
+		}
+	}
+	// CTCP requests must be received in private & begin with ascii char 1 (\x01)
+	else if (*pdata.command == '\x01' && pdata.target == pdata.sender) {
+		if (strncmp(pdata.command + 1, "VERSION", 7) == 0) // Skip leading escape char \x01
+			ctcp_reply(server, pdata.sender, BOTVERSION);
 	}
 }
 
@@ -300,6 +305,18 @@ void send_message(Irc server, const char *target, const char *format, ...) {
 		exit_msg("Failed to send message");
 
 	va_end(args);
+}
+
+void ctcp_reply(Irc server, const char *target, const char *msg) {
+
+	ssize_t n;
+	char irc_msg[IRCLEN];
+
+	snprintf(irc_msg, IRCLEN, "NOTICE %s :\x01%s\x01\r\n", target, msg);
+	n = sock_write(server->sock, irc_msg, strlen(irc_msg));
+	fputs(irc_msg, stdout);
+	if (n < 0)
+		exit_msg("Failed to send notice");
 }
 
 void quit_server(Irc server, const char *msg) {

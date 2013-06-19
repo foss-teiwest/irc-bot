@@ -14,12 +14,12 @@
 // Newline char is optional if the sentence is the last OR the only one from a quote
 // If a color is provided to a quote starting with a number, a space must be added to avoid messing with the escape sequence
 static const char *quotes[] = {
-	COLOR TEAL "I mpala einai strogili\n" COLOR TEAL "to gipedo einai paralilogramo\n" COLOR TEAL " 11 autoi, 11 emeis sinolo 23\n" COLOR TEAL "kai tha boun kai 3 allages apo kathe omada sinolo 29!",
-	COLOR LTCYAN "fail indeed",
-	COLOR PINK "fail den les tipota",
-	COLOR LTGREEN "popo, ti eipes twra\n" COLOR LTGREEN "emeina me anoixto to... " COLOR RED "programma",
-	COLOR ORANGE "Exeis dei file I/O me threads sto linux?",
-	COLOR ORANGE "Kai ta Ubuntu kala einai"
+	TEAL "I mpala einai strogili\n" TEAL "to gipedo einai paralilogramo\n" TEAL "11 autoi, 11 emeis sinolo 23\n" TEAL "kai tha boun kai 3 allages apo kathe omada sinolo 29!",
+	LTCYAN "fail indeed",
+	PINK "fail den les tipota",
+	LTGREEN "popo, ti eipes twra\n" LTGREEN "emeina me anoixto to... " RED "programma",
+	ORANGE "Exeis dei file I/O me threads sto linux?",
+	ORANGE "Kai ta Ubuntu kala einai"
 };
 
 void list(Irc server, Parsed_data pdata) {
@@ -133,7 +133,7 @@ void github(Irc server, Parsed_data pdata) {
 	// Print each commit info with it's short url in a seperate colorized line
 	for (i = 0; i < commits; i++) {
 		short_url = shorten_url(commit[i].url);
-		send_message(server, pdata.target, COLOR PURPLE "[%s]" RESETCOLOR " %s" COLOR ORANGE " --%s" COLOR BLUE " - %s",
+		send_message(server, pdata.target, PURPLE "[%s]" RESET " %s" ORANGE " --%s" BLUE " - %s",
 					commit[i].sha, commit[i].msg, commit[i].author, (short_url ? short_url : ""));
 		free(short_url);
 	}

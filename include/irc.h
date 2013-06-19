@@ -42,7 +42,7 @@ ssize_t parse_line(Irc server);
 // Change second character of PING request, from 'I' to 'O' and send it back
 char *ping_reply(Irc server, char *buf);
 
-// Parse channel / private messages and launch the function that matches the bot command. Must begin with '!'
+// Parse channel / private messages and launch the function that matches the BOT command (must begin with '!') or CTCP request.
 // Info available in pdata: nick, command, message (the rest message after command, including target)
 void irc_privmsg(Irc server, Parsed_data pdata);
 
@@ -54,6 +54,9 @@ int numeric_reply(Irc Server, int reply);
 
 // Send a message to a channel or a person specified by target. Standard printf format accepted
 void send_message(Irc server, const char *target, const char *format, ...);
+
+// Send msg as a ctcp reply to target
+void ctcp_reply(Irc server, const char *target, const char *msg);
 
 // Close socket and free structure
 void quit_server(Irc server, const char *msg);
