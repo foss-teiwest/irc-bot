@@ -173,7 +173,7 @@ ssize_t parse_line(Irc server) {
 	// Find out if server command is a numeric reply
 	reply = atoi(pdata.command);
 	if (reply == 0) {
-		// Launch any actions registered to IRC commands
+		// Find & launch any functions registered to IRC commands
 		flist = function_lookup(pdata.command, strlen(pdata.command));
 		if (flist != NULL)
 			flist->function(server, pdata);
@@ -246,32 +246,18 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 		test_char = strrchr(pdata.command, '\r');
 		*test_char = '\0';
 	}
-	// Find any actions registered to BOT commands
+	// Query our hash table for any functions registered to BOT commands
 	flist = function_lookup(pdata.command, strlen(pdata.command));
 	if (flist == NULL)
 		return;
 
+	// Launch the function in a new process
 	switch (fork()) {
+		case 0:
+			flist->function(server, pdata);
+			_exit(EXIT_SUCCESS);
 		case -1:
 			perror("fork");
-			break;
-		case 0:
-			switch (fork()) {
-				case -1: // Fork failed, run command in 1st child
-					flist->function(server, pdata);
-					_exit(EXIT_SUCCESS);
-					break;
-				case 0: // Run command in a new child and kill it's parent in order to avoid zombies
-					flist->function(server, pdata);
-					_exit(EXIT_SUCCESS);
-					break;
-				default: // Kill 2nd's child parent
-					_exit(EXIT_SUCCESS);
-			}
-			break;
-		default: // Wait for the first child
-			if (wait(NULL) < 0)
-				perror("wait");
 	}
 }
 

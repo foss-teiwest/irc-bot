@@ -16,9 +16,10 @@
 static const char *quotes[] = {
 	COLOR TEAL "I mpala einai strogili\n" COLOR TEAL "to gipedo einai paralilogramo\n" COLOR TEAL " 11 autoi, 11 emeis sinolo 23\n" COLOR TEAL "kai tha boun kai 3 allages apo kathe omada sinolo 29!",
 	COLOR LTCYAN "fail indeed",
-	COLOR PINK "total\n" COLOR PINK "failure",
+	COLOR PINK "fail den les tipota",
 	COLOR LTGREEN "popo, ti eipes twra\n" COLOR LTGREEN "emeina me anoixto to... " COLOR RED "programma",
-	COLOR ORANGE "Exeis dei file I/O me threads sto linux?"
+	COLOR ORANGE "Exeis dei file I/O me threads sto linux?",
+	COLOR ORANGE "Kai ta Ubuntu kala einai"
 };
 
 void list(Irc server, Parsed_data pdata) {
@@ -78,16 +79,14 @@ void url(Irc server, Parsed_data pdata) {
 
 			munmap(short_url, ADDRLEN + 1); // Unmap pages from child process
 			_exit(EXIT_SUCCESS);
-			break;
 		default:
 			url_title = get_url_title(argv[0]);
-			if (wait(NULL) < 0) // Wait for child results before continuing
-				perror("wait");
+			wait(NULL); // Wait for child results before continuing
 
 			// Only print short_url / title if they are not empty
 			send_message(server, pdata.target, "%s -- %s", (*short_url ? short_url : ""), (url_title ? url_title : ""));
 	}
-	munmap(short_url, ADDRLEN + 1); // Unmap from parent as well
+	munmap(short_url, ADDRLEN + 1); // Unmap pages from parent as well
 
 cleanup:
 	free(argv);
