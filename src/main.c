@@ -10,7 +10,7 @@ int main(void) {
 
 	Irc freenode;
 
-	// Initialize curl library and store our process id to help exit_msg function exit appropriately,
+	// Initialize curl library and store our process id to help exit_msg function exit appropriately
 	curl_global_init(CURL_GLOBAL_ALL);
 	main_pid = getpid();
 

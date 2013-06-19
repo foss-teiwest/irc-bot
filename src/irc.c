@@ -229,11 +229,16 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 	if (strchr(pdata.target, '#') == NULL)
 		pdata.target = pdata.sender;
 
+	// Example command we might receive: :!url in.gr  -- Skip starting ":"
+	pdata.command++;
+
 	// Bot commands must begin with '!'
 	pdata.command = strtok(NULL, " ");
 	if (pdata.command == NULL || *(pdata.command + 1) != '!')
 		return;
-	pdata.command += 2; // Skip starting ":!"
+
+	// Skip leading ":!" characters. Example command we might receive: :!url in.gr
+	pdata.command += 2;
 
 	// Make sure bot command gets null terminated if there are no parameters
 	pdata.message = strtok(NULL, "");
@@ -284,8 +289,10 @@ void irc_notice(Irc server, Parsed_data pdata) {
 	if (pdata.message == NULL)
 		return;
 
-	// Skip leading ':' before comparing
-	if (strncmp(pdata.message + 1, "This nickname is registered", 27) == 0) {
+	// Skip leading ':'
+	pdata.message++;
+
+	if (strncmp(pdata.message, "This nickname is registered", 27) == 0) {
 		printf("Enter nick identify password: ");
 		if (scanf("%19s", nick_pwd) != EOF) // Don't identify if password is not given
 			identify_nick(server, nick_pwd);
