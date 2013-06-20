@@ -68,7 +68,6 @@ char *shorten_url(const char *long_url) {
 		fprintf(stderr, "Error: %s\n", curl_easy_strerror(code));
 		goto cleanup;
 	}
-
 	// Find the short url in the reply and null terminate it
 	short_url = strstr(mem.buffer, "http");
 	if (short_url == NULL)
@@ -127,6 +126,8 @@ Github *fetch_github_commits(const char *repo, int *commits, Mem_buffer *mem) {
 	int max_commits, i;
 	char *temp, *temp2, *API_URL = NULL;
 
+	// Save the number of commits requested to a new variable and overwrite the original value,
+	// with the number of commits we actually read. (a repo might have less)
 	max_commits = *commits;
 	*commits = 0;
 	curl = curl_easy_init();
@@ -155,6 +156,7 @@ Github *fetch_github_commits(const char *repo, int *commits, Mem_buffer *mem) {
 	commit = malloc_w(max_commits * sizeof(Github));
 	temp = mem->buffer;
 
+	// Find the field we are interested in the json reply, save a reference to it & null terminate
 	for (i = 0; i < max_commits; i++) {
 		temp = strstr(temp + 1, "sha");
 		if (temp == NULL)
@@ -180,7 +182,9 @@ Github *fetch_github_commits(const char *repo, int *commits, Mem_buffer *mem) {
 		temp2 = strstr(commit[i].msg, "\\n");
 		if (temp2 != NULL)
 			*temp2 = '\0';
-		if (strlen(commit[i].msg) > COMMITLEN) { // Truncate message if too long
+
+		// Truncate message if too long
+		if (strlen(commit[i].msg) > COMMITLEN) {
 			commit[i].msg[COMMITLEN] = commit[i].msg[COMMITLEN + 1] = commit[i].msg[COMMITLEN + 2] = '.';
 			commit[i].msg[COMMITLEN + 3] = '\0';
 		}
@@ -192,6 +196,7 @@ Github *fetch_github_commits(const char *repo, int *commits, Mem_buffer *mem) {
 		temp = strchr(commit[i].url, '"');
 		*temp = '\0';
 
+		// Counter to the number of commits actually processed
 		(*commits)++;
 	}
 cleanup:
@@ -229,22 +234,20 @@ char *get_url_title(const char *url) {
 	temp = strcasestr(mem.buffer, "<title");
 	if (temp == NULL)
 		goto cleanup;
-	url_title = temp + 7;
+	url_title = temp + 7; // Point url_title to the first title character
 
 	temp = strcasestr(url_title, "</title");
 	if (temp == NULL) {
 		url_title = NULL;
 		goto cleanup;
 	}
-	*temp = '\0';
+	*temp = '\0'; // Terminate title string
 
 	// Replace newline characters with spaces
-	temp = url_title;
-	while (*temp != '\0') {
+	for (temp = url_title; *temp != '\0'; temp++)
 		if (*temp == '\n')
 			*temp = ' ';
-		temp++;
-	}
+
 	// Return value must be freed to avoid memory leak
 	url_title = strndup(url_title, TITLELEN);
 

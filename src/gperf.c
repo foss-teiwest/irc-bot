@@ -36,7 +36,7 @@
 struct function_list;
 #include <string.h>
 
-#define TOTAL_KEYWORDS 12
+#define TOTAL_KEYWORDS 13
 #define MIN_WORD_LENGTH 3
 #define MAX_WORD_LENGTH 10
 #define MIN_HASH_VALUE 3
@@ -62,7 +62,7 @@ hash (register const char *str, register unsigned int len)
       22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
       22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
       22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
-      22, 22, 22, 22, 22, 22, 22, 22, 15, 22,
+      22, 22, 22, 22, 22,  9, 22, 22, 15, 22,
        0, 22, 22, 22, 22, 22, 22, 22, 22, 22,
       22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
        5, 22, 15, 10, 10, 22, 22, 22,  5,  5,
@@ -96,27 +96,29 @@ function_lookup (register const char *str, register unsigned int len)
 {
   static const struct function_list wordlist[] =
     {
-#line 16 "include/gperf-input.txt"
+#line 21 "include/gperf-input.txt"
       {"url", url},
 #line 23 "include/gperf-input.txt"
       {"ping", ping},
-#line 25 "include/gperf-input.txt"
+#line 26 "include/gperf-input.txt"
       {"uptime", uptime},
 #line 14 "include/gperf-input.txt"
       {"PRIVMSG", irc_privmsg},
 #line 24 "include/gperf-input.txt"
       {"dns", dns},
-#line 19 "include/gperf-input.txt"
-      {"list", list},
-#line 22 "include/gperf-input.txt"
-      {"traceroute", traceroute},
-#line 17 "include/gperf-input.txt"
-      {"mumble", mumble},
-#line 20 "include/gperf-input.txt"
-      {"help", list},
-#line 21 "include/gperf-input.txt"
-      {"github", github},
 #line 18 "include/gperf-input.txt"
+      {"list", list},
+#line 25 "include/gperf-input.txt"
+      {"traceroute", traceroute},
+#line 20 "include/gperf-input.txt"
+      {"mumble", mumble},
+#line 16 "include/gperf-input.txt"
+      {"KICK", irc_kick},
+#line 17 "include/gperf-input.txt"
+      {"help", list},
+#line 22 "include/gperf-input.txt"
+      {"github", github},
+#line 19 "include/gperf-input.txt"
       {"fail", bot_fail},
 #line 15 "include/gperf-input.txt"
       {"NOTICE", irc_notice}
@@ -188,31 +190,38 @@ function_lookup (register const char *str, register unsigned int len)
                     goto compare;
                   }
                 break;
-              case 11:
+              case 10:
                 if (len == 4)
                   {
                     resword = &wordlist[8];
                     goto compare;
                   }
                 break;
+              case 11:
+                if (len == 4)
+                  {
+                    resword = &wordlist[9];
+                    goto compare;
+                  }
+                break;
               case 13:
                 if (len == 6)
                   {
-                    resword = &wordlist[9];
+                    resword = &wordlist[10];
                     goto compare;
                   }
                 break;
               case 16:
                 if (len == 4)
                   {
-                    resword = &wordlist[10];
+                    resword = &wordlist[11];
                     goto compare;
                   }
                 break;
               case 18:
                 if (len == 6)
                   {
-                    resword = &wordlist[11];
+                    resword = &wordlist[12];
                     goto compare;
                   }
                 break;

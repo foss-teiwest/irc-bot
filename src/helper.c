@@ -107,7 +107,7 @@ void print_cmd_output(Irc server, const char *dest, const char *cmd) {
 		len = strlen(line) - 1;
 		if (len > 1) { // Only print if line is not empty
 			line[len] = '\0'; // Remove last newline char (\n) since we add it inside send_message()
-			send_message(server, dest, "%s", line);
+			send_message(server, dest, "%s", line); // The %s is needed to avoid interpeting format specifiers in output
 		}
 	}
 	pclose(prog);

@@ -11,6 +11,13 @@
 #include "gperf.h"
 #include "helper.h"
 
+// Wrapper functions. If VA_ARGS is NULL then ':' will be ommited. Do not call _send_irc_command directly
+// Example: "send_nick_command(server, "newnick_", NULL);" will produce "NICK newnick_"
+#define send_nick_command(server, target, ...)    _send_irc_command(server, "NICK", target, __VA_ARGS__)
+#define send_user_command(server, target, ...)    _send_irc_command(server, "USER", target, __VA_ARGS__)
+#define send_channel_command(server, target, ...) _send_irc_command(server, "JOIN", target, __VA_ARGS__)
+#define send_ping_command(server, target, ...)    _send_irc_command(server, "PONG", target, __VA_ARGS__)
+#define send_quit_command(server, target, ...)    _send_irc_command(server, "QUIT", target, __VA_ARGS__)
 
 struct channels {
 	int channels_set;
@@ -45,96 +52,54 @@ Irc connect_server(const char *address, const char *port) {
 	return server;
 }
 
-char *set_nick(Irc server, const char *nick) {
-
-	ssize_t n;
-	char irc_msg[IRCLEN];
+void set_nick(Irc server, const char *nick) {
 
 	assert(nick != NULL && "Error in set_nick");
 	strncpy(server->nick, nick, NICKLEN);
+	send_nick_command(server, server->nick, NULL);
 
-	snprintf(irc_msg, IRCLEN, "NICK %s\r\n", server->nick);
-	n = sock_write(server->sock, irc_msg, strlen(irc_msg));
-	fputs(irc_msg, stdout);
-	if (n < 0)
-		exit_msg("Irc set nick failed");
-
-	return server->nick;
 }
 
-char *set_user(Irc server, const char *user) {
+void set_user(Irc server, const char *user) {
 
-	ssize_t n;
-	char irc_msg[IRCLEN];
+	char user_with_flags[USERLEN * 2 + 6];
 
 	assert(user != NULL && "Error in set_user");
 	strncpy(server->user, user, USERLEN);
 
-	snprintf(irc_msg, IRCLEN, "USER %s 0 * :%s\r\n", server->user, server->user);
-	n = sock_write(server->sock, irc_msg, strlen(irc_msg));
-	fputs(irc_msg, stdout);
-	if (n < 0)
-		exit_msg("Irc set user failed");
-
-	return server->user;
+	snprintf(user_with_flags, USERLEN * 2 + 6, "%s 0 * :%s", server->user, server->user);
+	send_user_command(server, user_with_flags, NULL);
 }
 
-static void identify_nick(Irc server, char *pwd) {
-
-	ssize_t n;
-	char irc_msg[IRCLEN];
-
-	snprintf(irc_msg, IRCLEN, "PRIVMSG nickserv :identify %s\r\n", pwd);
-	n = sock_write(server->sock, irc_msg, strlen(irc_msg));
-	if (n < 0)
-		exit_msg("Irc identify nick failed");
-}
-
-char *set_channel(Irc server, const char *channel) {
+void set_channel(Irc server, const char *channel) {
 
 	assert(channel != NULL && "Error in set_channel");
 	assert(channel[0] == '#' && "Missing # in channel");
+
 	if (server->ch.channels_set == MAXCHANS) {
 		fprintf(stderr, "Channel limit reached\n");
-		return NULL;
+		return;
 	}
-	strncpy(server->ch.channel[server->ch.channels_set], channel, CHANLEN);
-	server->ch.channels_set++;
-
-	return server->ch.channel[server->ch.channels_set];
+	strncpy(server->ch.channel[server->ch.channels_set++], channel, CHANLEN);
 }
 
-#ifdef TEST
-	int join_channels(Irc server)
-#else
-	static int join_channels(Irc server)
-#endif
-{
-	ssize_t n;
-	char irc_msg[IRCLEN];
+
+int join_channel(Irc server, const char *channel) {
+
 	int i;
 
-	strcpy(irc_msg, "JOIN ");
-	for (i = 0; i < server->ch.channels_set; i++) {
-		strcat(irc_msg, server->ch.channel[i]);
-		strcat(irc_msg, ",");
+	if (channel == NULL) {
+		for (i = 0; i < server->ch.channels_set; i++)
+			send_channel_command(server, server->ch.channel[i], NULL);
+		return server->ch.channels_set;
 	}
-	// Prepare message for sending
-	i = strlen(irc_msg);
-	irc_msg[i - 1] = '\r';
-	irc_msg[i] = '\n';
-	irc_msg[i + 1] = '\0';
-	n = sock_write(server->sock, irc_msg, strlen(irc_msg));
-	fputs(irc_msg, stdout);
-	if (n < 0)
-		exit_msg("Irc join channel failed");
-
-	return server->ch.channels_set;
+	send_channel_command(server, channel, NULL);
+	return 1;
 }
 
 ssize_t parse_line(Irc server) {
 
-	char line[IRCLEN + 1];
+	char *test_char, line[IRCLEN + 1];
 	Parsed_data pdata;
 	Function_list flist;
 	int reply;
@@ -145,9 +110,11 @@ ssize_t parse_line(Irc server) {
 	fputs(line, stdout);
 
 	// Check for server ping request. Example: "PING :wolfe.freenode.net"
-	// If first character matches 'P' then change the 2nd char to 'O' and send the message back
-	if (line[0] == 'P') {
-		ping_reply(server, line);
+	// If we match PING then change the 2nd char to 'O' and send the message back
+	if (strncmp(line, "PING", 4) == 0) {
+		test_char = strrchr(line, '\r');
+		*test_char = '\0';
+		send_ping_command(server, "", line + 6);
 		return n;
 	}
 	// Store the sender of the message / server command without the leading ':'.
@@ -183,19 +150,6 @@ ssize_t parse_line(Irc server) {
 	return n;
 }
 
-char *ping_reply(Irc server, char *buf) {
-
-	ssize_t n;
-
-	buf[1] = 'O';
-	n = sock_write(server->sock, buf, strlen(buf));
-	fputs(buf, stdout);
-	if (n < 0)
-		exit_msg("Irc ping reply failed");
-
-	return buf;
-}
-
 int numeric_reply(Irc server, int reply) {
 
 	switch (reply) {
@@ -204,7 +158,7 @@ int numeric_reply(Irc server, int reply) {
 			set_nick(server, server->nick);
 			break;
 		case ENDOFMOTD:
-			join_channels(server);
+			join_channel(server, NULL);
 			break;
 	}
 	return reply;
@@ -262,7 +216,7 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 	// CTCP requests must be received in private & begin with ascii char 1 (\x01)
 	else if (*pdata.command == '\x01' && pdata.target == pdata.sender) {
 		if (strncmp(pdata.command + 1, "VERSION", 7) == 0) // Skip leading escape char \x01
-			ctcp_reply(server, pdata.sender, BOTVERSION);
+			send_notice(server, pdata.sender, "\x01%s\x01", BOTVERSION);
 	}
 }
 
@@ -286,19 +240,49 @@ void irc_notice(Irc server, Parsed_data pdata) {
 	if (strncmp(pdata.message, "This nickname is registered", 27) == 0) {
 		printf("Enter nick identify password: ");
 		if (scanf("%19s", nick_pwd) != EOF) // Don't identify if password is not given
-			identify_nick(server, nick_pwd);
+			send_message(server, "nickserv", "identify %s", nick_pwd);
 	}
 }
 
-void send_message(Irc server, const char *target, const char *format, ...) {
+void irc_kick(Irc server, Parsed_data pdata) {
+
+	char *test_char, *victim;
+
+	// Discard hostname from nickname
+	test_char = strchr(pdata.sender, '!');
+	if (test_char != NULL)
+		*test_char = '\0';
+
+	// Which channel did the kick happen
+	pdata.target = strtok(pdata.message, " ");
+	if (pdata.target == NULL)
+		return;
+
+	// Who got kicked
+	victim = strtok(NULL, " ");
+	if (victim == NULL)
+		return;
+
+	// Rejoin and send a message back to the one who kicked us
+	if (strncmp(victim, server->nick, strlen(server->nick)) == 0) {
+		sleep(5);
+		send_channel_command(server, pdata.target, NULL);
+		sleep(1);
+		send_message(server, pdata.target, "%s magkas...", pdata.sender);
+	}
+}
+
+void _send_irc_command(Irc server, const char *type, const char *target, ...) {
 
 	ssize_t n;
 	va_list args;
 	char msg[IRCLEN - CHANLEN], irc_msg[IRCLEN];
 
-	va_start(args, format);
-	vsnprintf(msg, IRCLEN - CHANLEN, format, args);
-	snprintf(irc_msg, IRCLEN, "PRIVMSG %s :%s\r\n", target, msg);
+	va_start(args, target);
+	vsnprintf(msg, IRCLEN - CHANLEN, va_arg(args, char *), args);
+	snprintf(irc_msg, IRCLEN, "%s %s %s%s\r\n", type, target, (*msg ? ":" : ""), msg);
+
+	// Send message & print it on stdout
 	n = sock_write(server->sock, irc_msg, strlen(irc_msg));
 	fputs(irc_msg, stdout);
 	if (n < 0)
@@ -307,30 +291,10 @@ void send_message(Irc server, const char *target, const char *format, ...) {
 	va_end(args);
 }
 
-void ctcp_reply(Irc server, const char *target, const char *msg) {
-
-	ssize_t n;
-	char irc_msg[IRCLEN];
-
-	snprintf(irc_msg, IRCLEN, "NOTICE %s :\x01%s\x01\r\n", target, msg);
-	n = sock_write(server->sock, irc_msg, strlen(irc_msg));
-	fputs(irc_msg, stdout);
-	if (n < 0)
-		exit_msg("Failed to send notice");
-}
-
 void quit_server(Irc server, const char *msg) {
 
-	ssize_t n;
-	char irc_msg[IRCLEN];
-
 	assert(msg != NULL && "Error in quit_server");
-
-	snprintf(irc_msg, IRCLEN, "QUIT :%s\r\n", msg);
-	n = sock_write(server->sock, irc_msg, strlen(irc_msg));
-	fputs(irc_msg, stdout);
-	if (n < 0)
-		exit_msg("Quit failed");
+	send_quit_command(server, "", msg);
 
 	if (close(server->sock) < 0)
 		perror("close");

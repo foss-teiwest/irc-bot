@@ -32,7 +32,8 @@ void bot_fail(Irc server, Parsed_data pdata) {
 	int r;
 	size_t len, maxlen, sum = 0;
 
-	srand(time(NULL));
+	// Make sure the seed is different even if we call the command twice in a second
+	srand(time(NULL) + getpid());
 	r = rand() % SIZE(quotes);
 	maxlen = strlen(quotes[r]);
 
@@ -133,7 +134,11 @@ void github(Irc server, Parsed_data pdata) {
 	// Print each commit info with it's short url in a seperate colorized line
 	for (i = 0; i < commits; i++) {
 		short_url = shorten_url(commit[i].url);
-		send_message(server, pdata.target, PURPLE "[%s]" RESET " %s" ORANGE " --%s" BLUE " - %s",
+		send_message(server, pdata.target,
+					PURPLE "[%s]"
+					RESET " %s"
+					ORANGE " --%s"
+					BLUE " - %s",
 					commit[i].sha, commit[i].msg, commit[i].author, (short_url ? short_url : ""));
 		free(short_url);
 	}

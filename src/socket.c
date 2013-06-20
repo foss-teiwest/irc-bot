@@ -23,6 +23,7 @@ int sock_connect(const char *address, const char *port) {
 	addr_filter.ai_family   = AF_UNSPEC; 	   // IPv4 or IPv6
 	addr_filter.ai_socktype = SOCK_STREAM; 	   // Stream socket
 	addr_filter.ai_protocol = IPPROTO_TCP;	   // TCP protocol
+
 	// Don't try to resolve service -> port, since we already provide it in numeric form
 	addr_filter.ai_flags   |= AI_NUMERICSERV;
 
@@ -33,6 +34,7 @@ int sock_connect(const char *address, const char *port) {
 
 	sock = -1;
 	for (addr_iterator = addr_holder; addr_iterator != NULL; addr_iterator = addr_holder->ai_next) {
+
 		// Create TCP socket
 		sock = socket(addr_iterator->ai_family, addr_iterator->ai_socktype, addr_iterator->ai_protocol);
 		if (sock < 0)
@@ -92,8 +94,9 @@ ssize_t sock_write(int sock, const char *buf, size_t len) {
 			perror("read");
 			return -1;
 		}
-		else if (bytes_read == 0)
-			return 0; // Connection closed
+		else if (bytes_read == 0) // Connection closed
+			return 0;
+
 		buf_ptr = buffer;
 	}
 	bytes_read--;
@@ -112,9 +115,9 @@ ssize_t sock_readline(int sock, char *line_buf, size_t len) {
 		n = sock_readbyte(sock, &byte);
 		if (n < 0)
 			return -1;
-		else if (n == 0) {
+		else if (n == 0) { // Connection closed, return bytes read so far
 			*line_buf = '\0';
-			return n_read - 1; // Connection closed, return bytes read so far
+			return n_read - 1;
 		}
 		*line_buf++ = byte;
 		if (byte == '\n' && *(line_buf - 2) == '\r')

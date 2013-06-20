@@ -11,7 +11,7 @@ int main(void) {
 	Irc freenode;
 
 	curl_global_init(CURL_GLOBAL_ALL); // Initialize curl library
-	signal(SIGCHLD, SIG_IGN); // Instruct child processes to not leave zombies behind when killed
+	signal(SIGCHLD, SIG_IGN); // Make child processes not leave zombies behind when killed
 	main_pid = getpid(); // store our process id to help exit_msg function exit appropriately
 
 	freenode = connect_server("wolfe.freenode.net", "6667");

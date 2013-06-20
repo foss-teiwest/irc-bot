@@ -147,12 +147,6 @@ void close_write(void) {
 	if (memcmp(msg, "freestyl3r\0PRIVMSG\0freestylerbot\0:!bot\0lol re", sizeof(msg)) != 0)
 		ck_abort_msg("privemsg parsing failed");
 
-#test pingreply
-
-	char msg[] = "PING :pratchett.freenode.net\r\n";
-	char *pong = ping_reply(server, msg);
-	ck_assert_str_eq(pong, "PONG :pratchett.freenode.net\r\n");
-
 #test numeric_replies
 
 	numeric_reply(server, NICKNAMEINUSE);
@@ -257,7 +251,7 @@ void close_write(void) {
 
 #test channels_joined
 
-	char buf[IRCLEN];
+	int i;
 	server = malloc_w(sizeof(struct irc_type));
 	server->sock = open("test-files/channels.txt", O_RDWR | O_CREAT | O_TRUNC, 0755);
 	if (server->sock < 0)
@@ -266,13 +260,14 @@ void close_write(void) {
 	set_channel(server, "#foss-teimes");
 	set_channel(server, "#trolltown");
 	set_channel(server, "#noobs");
-	join_channels(server);
+	i = join_channel(server, NULL);
+	ck_assert_int_eq(i, 2);
 	lseek(server->sock, 0, SEEK_SET);
 
-	read(server->sock, buf, IRCLEN);
-	buf[strlen(buf) - 2] = '\0';
+	sock_readline(server->sock, test_buffer, IRCLEN);
+	test_buffer[strlen(test_buffer) - 2] = '\0';
 
-	ck_assert_str_eq(buf, "JOIN #foss-teimes,#trolltown");
+	ck_assert_str_eq(test_buffer, "JOIN #foss-teimes ");
 
 	free(server);
 	close(server->sock);

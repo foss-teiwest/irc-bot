@@ -13,13 +13,14 @@ struct function_list;
 %%
 "PRIVMSG", irc_privmsg
 "NOTICE", irc_notice
-"url", url
-"mumble", mumble
-"fail", bot_fail
-"list", list
+"KICK", irc_kick
 "help", list
+"list", list
+"fail", bot_fail
+"mumble", mumble
+"url", url
 "github", github
-"traceroute", traceroute
 "ping", ping
 "dns", dns
+"traceroute", traceroute
 "uptime", uptime

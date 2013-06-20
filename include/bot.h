@@ -26,7 +26,9 @@
 #define GREY    "\x03""14"
 #define LTGREY  "\x03""15"
 
-// Data available to all bot functions through pdata:
+// *** All BOT functions in this file are running in a new process. They will not crash main program in case of failure ***
+
+// Data available to all bot functions through pdata structure:
 // sender: the one initiated the request
 // target: the channel or the query it was requested on
 // command: the actual command that called the function without '!'
