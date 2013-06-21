@@ -29,14 +29,12 @@ enum irc_reply {
 // Returns NULL on failure
 Irc connect_server(const char *address, const char *port);
 
-// If NULL is entered then the default server value is used
 // User can only be set during server connection so it should only be called once
-// Returns the account info set
 void set_nick(Irc server, const char *nick);
 void set_user(Irc server, const char *user);
 void set_channel(Irc server, const char *channel);
 
-// If channel argument is NULL then join all channels set with set_channel()
+// If channel argument is NULL then join all channels registered with set_channel()
 int join_channel(Irc server, const char *channel);
 
 // Read line from server, split it into Parsed_data structure elements and launch the function associated with IRC commands

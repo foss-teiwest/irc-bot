@@ -15,8 +15,7 @@ int main(void) {
 	set_channel(freenode, "#foss-teimes");
 
 	// Keep reading & parsing lines as long the connection is active and act on any registered actions found
-	while (parse_line(freenode) > 0)
-		continue;
+	while (parse_line(freenode) > 0);
 
 	quit_server(freenode, "poulos");
 	return 0;
