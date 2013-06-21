@@ -6,12 +6,14 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <assert.h>
+#include <signal.h>
+#include <curl/curl.h>
 #include "socket.h"
 #include "irc.h"
 #include "gperf.h"
 #include "helper.h"
 
-// Wrapper functions. If VA_ARGS is NULL then ':' will be ommited. Do not call _send_irc_command directly
+// Wrapper functions. If VA_ARGS is NULL then ':' will be ommited. Do not call _send_irc_command() directly
 // Example: "send_nick_command(server, "newnick_", NULL);" will produce "NICK newnick_"
 #define send_nick_command(server, target, ...)    _send_irc_command(server, "NICK", target, __VA_ARGS__)
 #define send_user_command(server, target, ...)    _send_irc_command(server, "USER", target, __VA_ARGS__)
@@ -33,6 +35,8 @@ struct irc_type {
 	struct channels ch;
 };
 
+extern pid_t main_pid;
+
 Irc connect_server(const char *address, const char *port) {
 
 	Irc server = malloc_w(sizeof(struct irc_type));
@@ -41,13 +45,17 @@ Irc connect_server(const char *address, const char *port) {
 	if (strchr(address, '.') == NULL || atoi(port) > 65535)
 		return NULL;
 
-	strncpy(server->port, port, PORTLEN);
-	strncpy(server->address, address, ADDRLEN);
-	server->ch.channels_set = 0;
-
 	server->sock = sock_connect(address, port);
 	if (server->sock < 0)
 		return NULL;
+
+	curl_global_init(CURL_GLOBAL_ALL); // Initialize curl library
+	signal(SIGCHLD, SIG_IGN); // Make child processes not leave zombies behind when killed
+	main_pid = getpid(); // store our process id to help exit_msg function exit appropriately
+
+	strncpy(server->port, port, PORTLEN);
+	strncpy(server->address, address, ADDRLEN);
+	server->ch.channels_set = 0;
 
 	return server;
 }
@@ -110,7 +118,7 @@ ssize_t parse_line(Irc server) {
 	fputs(line, stdout);
 
 	// Check for server ping request. Example: "PING :wolfe.freenode.net"
-	// If we match PING then change the 2nd char to 'O' and send the message back
+	// If we match PING then change the 2nd char to 'O' and terminate the argument before sending back
 	if (strncmp(line, "PING", 4) == 0) {
 		test_char = strrchr(line, '\r');
 		*test_char = '\0';
@@ -153,11 +161,11 @@ ssize_t parse_line(Irc server) {
 int numeric_reply(Irc server, int reply) {
 
 	switch (reply) {
-		case NICKNAMEINUSE:
+		case NICKNAMEINUSE: // Change our nick
 			strcat(server->nick, "_");
 			set_nick(server, server->nick);
 			break;
-		case ENDOFMOTD:
+		case ENDOFMOTD: // Join all channels registered with set_channel() after receiving MOTD
 			join_channel(server, NULL);
 			break;
 	}
@@ -213,9 +221,9 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 				perror("fork");
 		}
 	}
-	// CTCP requests must be received in private & begin with ascii char 1 (\x01)
-	else if (*pdata.command == '\x01' && pdata.target == pdata.sender) {
-		if (strncmp(pdata.command + 1, "VERSION", 7) == 0) // Skip leading escape char \x01
+	// CTCP requests must be received in private & begin with ascii char 1
+	else if (*pdata.command == 0x01 && pdata.target == pdata.sender) {
+		if (strncmp(pdata.command + 1, "VERSION", 7) == 0) // Skip the leading escape char
 			send_notice(server, pdata.sender, "\x01%s\x01", BOTVERSION);
 	}
 }
@@ -264,7 +272,8 @@ void irc_kick(Irc server, Parsed_data pdata) {
 		return;
 
 	// Rejoin and send a message back to the one who kicked us
-	if (strncmp(victim, server->nick, strlen(server->nick)) == 0) {
+	// We check len + 1 (hit null char) to avoid matching extra chars after our nick
+	if (strncmp(victim, server->nick, strlen(server->nick) + 1) == 0) {
 		sleep(5);
 		send_channel_command(server, pdata.target, NULL);
 		sleep(1);
@@ -299,5 +308,6 @@ void quit_server(Irc server, const char *msg) {
 	if (close(server->sock) < 0)
 		perror("close");
 
+	curl_global_cleanup();
 	free(server);
 }

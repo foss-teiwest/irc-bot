@@ -24,7 +24,7 @@ enum irc_reply {
 	NICKNAMEINUSE = 433
 };
 
-// Fill server details with the one specified and connect to it.
+// Connect to the server specified and initialize curl library
 // Structure returned is allocated on the heap so it needs to be freed with quit_server()
 // Returns NULL on failure
 Irc connect_server(const char *address, const char *port);
@@ -55,13 +55,13 @@ void irc_kick(Irc server, Parsed_data pdata);
 // Handle server numeric replies
 int numeric_reply(Irc Server, int reply);
 
-// Wrappers to send message / notice to target channel / person. Standard printf format accepted. Do not call _send_irc_command directly
+// Wrappers to send message / notice to target channel / person. Standard printf format accepted. Do not call _send_irc_command() directly
 // Example: "send_message(server, pdata.target, "hi %s", pdata->sender);"
 #define send_message(server, target, ...) _send_irc_command(server, "PRIVMSG", target, __VA_ARGS__)
 #define send_notice(server, target, ...)  _send_irc_command(server, "NOTICE", target, __VA_ARGS__)
 void _send_irc_command(Irc server, const char *type, const char *target, ...);
 
-// Close socket and free structure
+// Close socket, cleanup curl library and free resources
 void quit_server(Irc server, const char *msg);
 
 #endif
