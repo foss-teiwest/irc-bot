@@ -35,13 +35,12 @@ char *shorten_url(const char *long_url) {
 
 	CURL *curl;
 	CURLcode code;
-	char *temp, *url_formatted, *short_url = NULL;
+	char *temp, url_formatted[URLLEN], *short_url = NULL;
 	Mem_buffer mem = {NULL, 0};
 	struct curl_slist *headers = NULL;
 
 	// Set the Content-type and url format as required by Google API for the POST request
 	headers = curl_slist_append(headers, "Content-Type: application/json");
-	url_formatted = malloc_w(URLLEN);
 	snprintf(url_formatted, URLLEN, "{\"longUrl\": \"%s\"}", long_url);
 
 	curl = curl_easy_init();
@@ -83,7 +82,6 @@ char *shorten_url(const char *long_url) {
 
 cleanup:
 	free(mem.buffer);
-	free(url_formatted);
 	curl_slist_free_all(headers);
 	curl_easy_cleanup(curl);
 	return short_url;
@@ -124,7 +122,7 @@ Github *fetch_github_commits(const char *repo, int *commits, Mem_buffer *mem) {
 	CURLcode code;
 	Github *commit = NULL;
 	int max_commits, i;
-	char *temp, *temp2, *API_URL = NULL;
+	char *temp, *temp2, API_URL[URLLEN];
 
 	// Save the number of commits requested to a new variable and overwrite the original value,
 	// with the number of commits we actually read. (a repo might have less)
@@ -134,7 +132,7 @@ Github *fetch_github_commits(const char *repo, int *commits, Mem_buffer *mem) {
 	if (curl == NULL)
 		goto cleanup;
 
-	API_URL = malloc_w(URLLEN);
+	// Use per_page field to limit json reply to the amount of commits specified
 	snprintf(API_URL, URLLEN, "https://api.github.com/repos/%s/commits?per_page=%d", repo, max_commits);
 
 #ifdef TEST
@@ -200,7 +198,6 @@ Github *fetch_github_commits(const char *repo, int *commits, Mem_buffer *mem) {
 		(*commits)++;
 	}
 cleanup:
-	free(API_URL);
 	curl_easy_cleanup(curl);
 	return commit;
 }
