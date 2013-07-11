@@ -19,7 +19,8 @@ static const char *quotes[] = {
 	PINK "fail den les tipota",
 	LTGREEN "popo, ti eipes twra\n" LTGREEN "emeina me anoixto to... " RED "programma",
 	ORANGE "Exeis dei file I/O me threads sto linux?",
-	ORANGE "Kai ta Ubuntu kala einai"
+	ORANGE "Kai ta Ubuntu kala einai",
+	LTCYAN "kapote hmoun fanatikos tis micro$oft"
 };
 
 void list(Irc server, Parsed_data pdata) {
