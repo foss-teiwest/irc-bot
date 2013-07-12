@@ -6,7 +6,7 @@ int main(void) {
 
 	Irc freenode;
 
-	freenode = connect_server("wolfe.freenode.net", "6667");
+	freenode = connect_server("chat.freenode.net", "6667");
 	if (freenode == NULL)
 		exit_msg("Irc connection failed");
 
