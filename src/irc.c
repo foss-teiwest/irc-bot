@@ -114,8 +114,11 @@ ssize_t parse_line(Irc server) {
 	ssize_t n;
 
 	// Read raw line from server. Example: ":laxanofido!~laxanofid@snf-23545.vm.okeanos.grnet.gr PRIVMSG #foss-teimes :How YA doing fossbot"
+	// If we don't receive a message within the timer set, exit program (shell script will restart it)
+	alarm(TIMEOUT);
 	n = sock_readline(server->sock, line, IRCLEN);
 	fputs(line, stdout);
+	alarm(0); // Reply within limits, Stop timer
 
 	// Check for server ping request. Example: "PING :wolfe.freenode.net"
 	// If we match PING then change the 2nd char to 'O' and terminate the argument before sending back
