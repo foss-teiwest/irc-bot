@@ -17,6 +17,7 @@ int main(void) {
 	// Keep reading & parsing lines as long the connection is active and act on any registered actions found
 	while (parse_line(freenode) > 0);
 
+	// If we reach here, it means we got disconnected from server. Exit with error (1)
 	quit_server(freenode, "poulos");
-	return 0;
+	return 1;
 }

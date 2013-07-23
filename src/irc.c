@@ -91,7 +91,6 @@ void set_channel(Irc server, const char *channel) {
 	strncpy(server->ch.channel[server->ch.channels_set++], channel, CHANLEN);
 }
 
-
 int join_channel(Irc server, const char *channel) {
 
 	int i;
@@ -118,7 +117,7 @@ ssize_t parse_line(Irc server) {
 	alarm(TIMEOUT);
 	n = sock_readline(server->sock, line, IRCLEN);
 	fputs(line, stdout);
-	alarm(0); // Reply within limits, Stop timer
+	alarm(0); // Stop timer. If we reach here, reply was within limits
 
 	// Check for server ping request. Example: "PING :wolfe.freenode.net"
 	// If we match PING then change the 2nd char to 'O' and terminate the argument before sending back
