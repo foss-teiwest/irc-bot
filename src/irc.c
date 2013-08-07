@@ -65,7 +65,6 @@ void set_nick(Irc server, const char *nick) {
 	assert(nick != NULL && "Error in set_nick");
 	strncpy(server->nick, nick, NICKLEN);
 	send_nick_command(server, server->nick, NULL);
-
 }
 
 void set_user(Irc server, const char *user) {
@@ -101,6 +100,7 @@ int join_channel(Irc server, const char *channel) {
 		return server->ch.channels_set;
 	}
 	send_channel_command(server, channel, NULL);
+
 	return 1;
 }
 

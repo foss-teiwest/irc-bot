@@ -10,7 +10,7 @@
 #define ADDRLEN  40
 #define PORTLEN  5
 #define MAXCHANS 2
-#define TIMEOUT 600
+#define TIMEOUT 360
 
 typedef struct irc_type *Irc;
 typedef struct {

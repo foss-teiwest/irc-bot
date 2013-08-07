@@ -19,5 +19,6 @@ int main(void) {
 
 	// If we reach here, it means we got disconnected from server. Exit with error (1)
 	quit_server(freenode, "poulos");
-	return 1;
+
+	return 0;
 }
