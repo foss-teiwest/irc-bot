@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <curl/curl.h>
+#include <yajl/yajl_tree.h>
 #include "curl.h"
 #include "helper.h"
 
@@ -48,7 +49,7 @@ char *shorten_url(const char *long_url) {
 		goto cleanup;
 
 #ifdef TEST
-	curl_easy_setopt(curl, CURLOPT_URL, "file:///home/free/programming/c/git/irc-bot/test-files/url-shorten.txt");
+	curl_easy_setopt(curl, CURLOPT_URL, TESTDIR "url-shorten.txt");
 #else
 	curl_easy_setopt(curl, CURLOPT_URL, "https://www.googleapis.com/urlshortener/v1/url"); // Set API url
 #endif
@@ -98,7 +99,7 @@ char *fetch_mumble_users(void) {
 		goto cleanup;
 
 #ifdef TEST
-	curl_easy_setopt(curl, CURLOPT_URL, "file:///home/free/programming/c/git/irc-bot/test-files/mumble.txt");
+	curl_easy_setopt(curl, CURLOPT_URL, TESTDIR "mumble.txt");
 #else
 	curl_easy_setopt(curl, CURLOPT_URL, "https://foss.tesyd.teimes.gr/weblist-bot.php"); // Set mumble users list url
 #endif
@@ -116,27 +117,25 @@ cleanup:
 	return mem.buffer;
 }
 
-Github *fetch_github_commits(const char *repo, int *commits, Mem_buffer *mem) {
+Github *fetch_github_commits(const char *repo, int *commit_count, yajl_val root) {
 
 	CURL *curl;
 	CURLcode code;
-	Github *commit = NULL;
-	int max_commits, i;
-	char *temp, *temp2, API_URL[URLLEN];
+	yajl_val val;
+	Mem_buffer mem = {NULL, 0};
+	Github *commits = NULL;
+	char *test, API_URL[URLLEN], errbuf[1024];
+	int i;
 
-	// Save the number of commits requested to a new variable and overwrite the original value,
-	// with the number of commits we actually read. (a repo might have less)
-	max_commits = *commits;
-	*commits = 0;
 	curl = curl_easy_init();
 	if (curl == NULL)
 		goto cleanup;
 
 	// Use per_page field to limit json reply to the amount of commits specified
-	snprintf(API_URL, URLLEN, "https://api.github.com/repos/%s/commits?per_page=%d", repo, max_commits);
+	snprintf(API_URL, URLLEN, "https://api.github.com/repos/%s/commits?per_page=%d", repo, *commit_count);
 
 #ifdef TEST
-	curl_easy_setopt(curl, CURLOPT_URL, "file:///home/free/programming/c/git/irc-bot/test-files/github-commit.txt");
+	curl_easy_setopt(curl, CURLOPT_URL, TESTDIR "github.json");
 #else
 	curl_easy_setopt(curl, CURLOPT_URL, API_URL);
 #endif
@@ -144,62 +143,41 @@ Github *fetch_github_commits(const char *repo, int *commits, Mem_buffer *mem) {
 	curl_easy_setopt(curl, CURLOPT_USERAGENT, "irc-bot"); // Github requires a user-agent
 	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 8L);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_memory);
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, mem);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &mem);
 
 	code = curl_easy_perform(curl);
-	if (code != CURLE_OK || mem->buffer == NULL) {
+	if (code != CURLE_OK || mem.buffer == NULL) {
 		fprintf(stderr, "Error: %s\n", curl_easy_strerror(code));
 		goto cleanup;
 	}
-	commit = malloc_w(max_commits * sizeof(Github));
-	temp = mem->buffer;
+	root = yajl_tree_parse(mem.buffer, errbuf, sizeof(errbuf));
+	if (!root) {
+		fprintf(stderr, "%s\n", errbuf);
+		goto cleanup;
+	}
+	free(mem.buffer);
+	*commit_count = YAJL_GET_ARRAY(root)->len;
+	commits = malloc_w(*commit_count * sizeof(*commits));
 
 	// Find the field we are interested in the json reply, save a reference to it & null terminate
-	for (i = 0; i < max_commits; i++) {
-		temp = strstr(temp + 1, "sha");
-		if (temp == NULL)
-			break;
-		commit[i].sha = temp + 6;
-		commit[i].sha[7] = '\0';
-
-		temp = strstr(commit[i].sha + 8, "name");
-		if (temp == NULL)
-			break;
-		commit[i].author = temp + 7;
-		temp = strchr(commit[i].author, '"');
-		*temp = '\0';
-
-		temp = strstr(temp + 1, "message");
-		if (temp == NULL)
-			break;
-		commit[i].msg = temp + 10;
-		temp = strchr(commit[i].msg, '"');
-		*temp = '\0';
+	for (i = 0; i < *commit_count; i++) {
+		if (!(val  = yajl_tree_get(YAJL_GET_ARRAY(root)->values[i], (const char *[]) { "sha", NULL },                      yajl_t_string))) break;
+		commits[i].sha  = YAJL_GET_STRING(val);
+		if (!(val = yajl_tree_get(YAJL_GET_ARRAY(root)->values[i],  (const char *[]) { "commit", "author", "name", NULL }, yajl_t_string))) break;
+		commits[i].name = YAJL_GET_STRING(val);
+		if (!(val  = yajl_tree_get(YAJL_GET_ARRAY(root)->values[i], (const char *[]) { "commit", "message", NULL },        yajl_t_string))) break;
+		commits[i].msg  = YAJL_GET_STRING(val);
+		if (!(val  = yajl_tree_get(YAJL_GET_ARRAY(root)->values[i], (const char *[]) { "html_url", NULL },                 yajl_t_string))) break;
+		commits[i].url  = YAJL_GET_STRING(val);
 
 		// Cut commit message at newline character if present
-		temp2 = strstr(commit[i].msg, "\\n");
-		if (temp2 != NULL)
-			*temp2 = '\0';
-
-		// Truncate message if too long
-		if (strlen(commit[i].msg) > COMMITLEN) {
-			commit[i].msg[COMMITLEN] = commit[i].msg[COMMITLEN + 1] = commit[i].msg[COMMITLEN + 2] = '.';
-			commit[i].msg[COMMITLEN + 3] = '\0';
-		}
-		// Get long url
-		temp = strstr(temp + 1, "html");
-		if (temp == NULL)
-			break;
-		commit[i].url = temp + 11;
-		temp = strchr(commit[i].url, '"');
-		*temp = '\0';
-
-		// Counter to the number of commits actually processed
-		(*commits)++;
+		test = strchr(commits[i].msg, '\n');
+		if (test != NULL)
+			*test = '\0';
 	}
 cleanup:
 	curl_easy_cleanup(curl);
-	return commit;
+	return commits;
 }
 
 char *get_url_title(const char *url) {
@@ -214,7 +192,7 @@ char *get_url_title(const char *url) {
 		goto cleanup;
 
 #ifdef TEST
-	curl_easy_setopt(curl, CURLOPT_URL, "file:///home/free/programming/c/git/irc-bot/test-files/url-title.txt");
+	curl_easy_setopt(curl, CURLOPT_URL, TESTDIR "url-title.txt");
 #else
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 #endif

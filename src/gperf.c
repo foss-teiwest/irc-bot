@@ -32,7 +32,7 @@
 #line 1 "include/gperf-input.txt"
 
 #include "gperf.h"
-#line 12 "include/gperf-input.txt"
+#line 13 "include/gperf-input.txt"
 struct function_list;
 #include <string.h>
 
@@ -42,6 +42,51 @@ struct function_list;
 #define MIN_HASH_VALUE 3
 #define MAX_HASH_VALUE 21
 /* maximum key range = 19, duplicates = 0 */
+
+#ifndef GPERF_DOWNCASE
+#define GPERF_DOWNCASE 1
+static unsigned char gperf_downcase[256] =
+  {
+      0,   1,   2,   3,   4,   5,   6,   7,   8,   9,  10,  11,  12,  13,  14,
+     15,  16,  17,  18,  19,  20,  21,  22,  23,  24,  25,  26,  27,  28,  29,
+     30,  31,  32,  33,  34,  35,  36,  37,  38,  39,  40,  41,  42,  43,  44,
+     45,  46,  47,  48,  49,  50,  51,  52,  53,  54,  55,  56,  57,  58,  59,
+     60,  61,  62,  63,  64,  97,  98,  99, 100, 101, 102, 103, 104, 105, 106,
+    107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121,
+    122,  91,  92,  93,  94,  95,  96,  97,  98,  99, 100, 101, 102, 103, 104,
+    105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119,
+    120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134,
+    135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149,
+    150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164,
+    165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179,
+    180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194,
+    195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209,
+    210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224,
+    225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239,
+    240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254,
+    255
+  };
+#endif
+
+#ifndef GPERF_CASE_MEMCMP
+#define GPERF_CASE_MEMCMP 1
+static int
+gperf_case_memcmp (register const char *s1, register const char *s2, register unsigned int n)
+{
+  for (; n > 0;)
+    {
+      unsigned char c1 = gperf_downcase[(unsigned char)*s1++];
+      unsigned char c2 = gperf_downcase[(unsigned char)*s2++];
+      if (c1 == c2)
+        {
+          n--;
+          continue;
+        }
+      return (int)c1 - (int)c2;
+    }
+  return 0;
+}
+#endif
 
 #ifdef __GNUC__
 __inline
@@ -61,12 +106,12 @@ hash (register const char *str, register unsigned int len)
       22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
       22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
       22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
+      22, 22, 22, 22, 22, 22, 22, 22, 10, 22,
+       4, 15, 15, 22, 22, 10,  5, 10,  5, 22,
+       0, 22, 22, 22,  0,  0, 22, 22, 22, 22,
       22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
-      22, 22, 22, 22, 22,  9, 22, 22, 15, 22,
-       0, 22, 22, 22, 22, 22, 22, 22, 22, 22,
-      22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
-       5, 22, 15, 10, 10, 22, 22, 22,  5,  5,
-      22, 22,  0, 22, 22, 22,  0,  0, 22, 22,
+      10, 22,  4, 15, 15, 22, 22, 10,  5, 10,
+       5, 22,  0, 22, 22, 22,  0,  0, 22, 22,
       22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
       22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
       22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
@@ -96,32 +141,32 @@ function_lookup (register const char *str, register unsigned int len)
 {
   static const struct function_list wordlist[] =
     {
-#line 21 "include/gperf-input.txt"
-      {"url", url},
-#line 23 "include/gperf-input.txt"
-      {"ping", ping},
-#line 26 "include/gperf-input.txt"
-      {"uptime", uptime},
-#line 14 "include/gperf-input.txt"
-      {"PRIVMSG", irc_privmsg},
-#line 24 "include/gperf-input.txt"
-      {"dns", dns},
-#line 18 "include/gperf-input.txt"
-      {"list", list},
-#line 25 "include/gperf-input.txt"
-      {"traceroute", traceroute},
-#line 20 "include/gperf-input.txt"
-      {"mumble", mumble},
-#line 16 "include/gperf-input.txt"
-      {"KICK", irc_kick},
-#line 17 "include/gperf-input.txt"
-      {"help", list},
 #line 22 "include/gperf-input.txt"
-      {"github", github},
-#line 19 "include/gperf-input.txt"
-      {"fail", bot_fail},
+      {"url", url},
+#line 24 "include/gperf-input.txt"
+      {"ping", ping},
+#line 27 "include/gperf-input.txt"
+      {"uptime", uptime},
 #line 15 "include/gperf-input.txt"
-      {"NOTICE", irc_notice}
+      {"PRIVMSG", irc_privmsg},
+#line 20 "include/gperf-input.txt"
+      {"fail", bot_fail},
+#line 19 "include/gperf-input.txt"
+      {"list", list},
+#line 26 "include/gperf-input.txt"
+      {"traceroute", traceroute},
+#line 16 "include/gperf-input.txt"
+      {"NOTICE", irc_notice},
+#line 25 "include/gperf-input.txt"
+      {"dns", dns},
+#line 17 "include/gperf-input.txt"
+      {"KICK", irc_kick},
+#line 21 "include/gperf-input.txt"
+      {"mumble", mumble},
+#line 18 "include/gperf-input.txt"
+      {"help", list},
+#line 23 "include/gperf-input.txt"
+      {"github", github}
     };
 
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
@@ -163,7 +208,7 @@ function_lookup (register const char *str, register unsigned int len)
                   }
                 break;
               case 5:
-                if (len == 3)
+                if (len == 4)
                   {
                     resword = &wordlist[4];
                     goto compare;
@@ -191,7 +236,7 @@ function_lookup (register const char *str, register unsigned int len)
                   }
                 break;
               case 10:
-                if (len == 4)
+                if (len == 3)
                   {
                     resword = &wordlist[8];
                     goto compare;
@@ -231,7 +276,7 @@ function_lookup (register const char *str, register unsigned int len)
           {
             register const char *s = resword->command;
 
-            if (*str == *s && !memcmp (str + 1, s + 1, len - 1))
+            if ((((unsigned char)*str ^ (unsigned char)*s) & ~32) == 0 && !gperf_case_memcmp (str, s, len))
               return resword;
           }
         }

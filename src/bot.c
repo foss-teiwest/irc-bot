@@ -5,6 +5,7 @@
 #include <sys/wait.h>
 #include <sys/mman.h>
 #include <time.h>
+#include <yajl/yajl_tree.h>
 #include "bot.h"
 #include "irc.h"
 #include "curl.h"
@@ -108,10 +109,10 @@ void mumble(Irc server, Parsed_data pdata) {
 
 void github(Irc server, Parsed_data pdata) {
 
-	Github *commit;
-	Mem_buffer mem = {NULL, 0};
+	Github *commits;
+	yajl_val root = NULL;
 	char **argv, *short_url, repo[REPOLEN + 1] = {0};
-	int argc, i, commits = 1;
+	int argc, i, commit_count = 1;
 
 	argv = extract_params(pdata.message, &argc);
 	if (argc != 1 && argc != 2) {
@@ -126,27 +127,27 @@ void github(Irc server, Parsed_data pdata) {
 
 	// Do not return more than MAXCOMMITS
 	if (argc == 2)
-		commits = get_int(argv[1], MAXCOMMITS);
+		commit_count = get_int(argv[1], MAXCOMMITS);
 
-	commit = fetch_github_commits(repo, &commits, &mem);
-	if (commits == 0)
+	commits = fetch_github_commits(repo, &commit_count, root);
+	if (commit_count == 0)
 		goto cleanup;
 
 	// Print each commit info with it's short url in a seperate colorized line
-	for (i = 0; i < commits; i++) {
-		short_url = shorten_url(commit[i].url);
+	for (i = 0; i < commit_count; i++) {
+		short_url = shorten_url(commits[i].url);
 		send_message(server, pdata.target,
-					PURPLE "[%s]"
-					RESET " %s"
+					PURPLE "[%.7s]"
+					RESET " %.120s"
 					ORANGE " --%s"
 					BLUE " - %s",
-					commit[i].sha, commit[i].msg, commit[i].author, (short_url ? short_url : ""));
+					commits[i].sha, commits[i].msg, commits[i].name, (short_url ? short_url : ""));
 		free(short_url);
 	}
 cleanup:
-	free(commit);
+	yajl_tree_free(root);
+	free(commits);
 	free(argv);
-	free(mem.buffer);
 }
 
 void ping(Irc server, Parsed_data pdata) {

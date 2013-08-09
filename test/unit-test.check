@@ -3,12 +3,14 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <curl/curl.h>
+#include <yajl/yajl_tree.h>
 #include "socket.h"
 #include "irc.h"
 #include "gperf.h"
 #include "helper.h"
 #include "bot.h"
 #include "curl.h"
+
 
 struct channels {
 	int channels_set;
@@ -35,7 +37,7 @@ size_t curl_write_memory(char *data, size_t size, size_t elements, void *membuf)
 
 void open_read(void) {
 
-	server = malloc_w(sizeof(struct irc_type));
+	server = malloc_w(sizeof(*server));
 	server->sock = open("test-files/input.txt", O_RDONLY);
 	if (server->sock < 0)
 		exit_msg("Failed to open file");
@@ -48,7 +50,7 @@ void close_read(void) {
 
 void open_write(void) {
 
-	server = malloc_w(sizeof(struct irc_type));
+	server = malloc_w(sizeof(*server));
 	server->sock = open("test-files/output.txt", O_RDWR);
 	if (server->sock < 0)
 		exit_msg("Failed to open file");
@@ -215,27 +217,27 @@ void close_write(void) {
 
 #test github_commits
 
-	Github *commit;
-	Mem_buffer mem = {NULL, 0};
+	Github *commits;
+	yajl_val root = NULL;
 	int n = 10;
 
-	commit = fetch_github_commits("foss-teimes/irc-bot", &n, &mem);
+	commits = fetch_github_commits("foss-teimes/irc-bot", &n, root);
 
-	ck_assert_str_eq(commit[0].sha, "8761f93");
-	ck_assert_str_eq(commit[0].author, "freestyl3r");
-	ck_assert_str_eq(commit[0].msg, "change a function name that conflicted with test framework. I'm writing random things in order to properly unit test the github commit function with check framework. The message sh...");
-	ck_assert_str_eq(commit[0].url, "https://github.com/foss-teimes/irc-bot/commit/8761f932675c562c0c9b1cef8470534945e896e5");
-	ck_assert_str_eq(commit[1].sha, "c2513cf");
-	ck_assert_str_eq(commit[1].author, "freestyl3r");
-	ck_assert_str_eq(commit[1].msg, "Run bot commands in a new process");
-	ck_assert_str_eq(commit[1].url, "https://github.com/foss-teimes/irc-bot/commit/c2513cf1046400414a267ccd09918afcc174f786");
+	ck_assert_str_eq(commits[0].sha, "de7579c08e35f232af4938dc7dc325b9809d63bf");
+	ck_assert_str_eq(commits[0].name, "Bill Kolokithas");
+	ck_assert_str_eq(commits[0].msg, "small changes to the shell helper script");
+	ck_assert_str_eq(commits[0].url, "https://github.com/foss-teimes/irc-bot/commit/de7579c08e35f232af4938dc7dc325b9809d63bf");
+	ck_assert_str_eq(commits[2].sha, "363e91d5e12701be9001bcf62062fd0a93561082");
+	ck_assert_str_eq(commits[2].name, "Bill Kolokithas");
+	ck_assert_str_eq(commits[2].msg, "restart bot on failed exit");
+	ck_assert_str_eq(commits[2].url, "https://github.com/foss-teimes/irc-bot/commit/363e91d5e12701be9001bcf62062fd0a93561082");
 
-	free(mem.buffer);
+	yajl_tree_free(root);
 
 #test cmd_command
 
 	char buf[IRCLEN];
-	server = malloc_w(sizeof(struct irc_type));
+	server = malloc_w(sizeof(*server));
 	server->sock = open("test-files/cmd_output.txt", O_RDWR | O_CREAT, 0755);
 	if (server->sock < 0)
 		exit_msg("Failed to open file");
@@ -252,7 +254,7 @@ void close_write(void) {
 #test channels_joined
 
 	int i;
-	server = malloc_w(sizeof(struct irc_type));
+	server = malloc_w(sizeof(*server));
 	server->sock = open("test-files/channels.txt", O_RDWR | O_CREAT | O_TRUNC, 0755);
 	if (server->sock < 0)
 		exit_msg("Failed to open file");

@@ -6,7 +6,7 @@ INCLDIR  = include
 TESTDIR  = test
 CC       = gcc
 CFLAGS   = -g -Wall -Wextra -std=gnu99 -pedantic
-LDLIBS   = -lcurl
+LDLIBS   = -lcurl -lyajl
 CPPFLAGS = -D_GNU_SOURCE
 CFLAGS-test := $(CFLAGS)
 
@@ -56,8 +56,8 @@ $(OUTDIR)/%.o: $(SRCDIR)/%.c
 # Run test program and produce coverage stats in html
 test: $(OUTDIR)/$(PROGRAM)-test
 	./$<
-	# lcov --capture --directory $(OUTDIR)/ --output-file $(OUTDIR)/coverage.info >/dev/null
-	# genhtml $(OUTDIR)/coverage.info --output-directory $(OUTDIR)/lcov >/dev/null
+	lcov --capture --directory $(OUTDIR)/ --output-file $(OUTDIR)/coverage.info >/dev/null
+	genhtml $(OUTDIR)/coverage.info --output-directory $(OUTDIR)/lcov >/dev/null
 
 # Build test program
 $(OUTDIR)/$(PROGRAM)-test: $(OBJFILES-TEST)
@@ -69,7 +69,7 @@ $(OUTDIR)/%.o: $(TESTDIR)/%.c
 
 # Generate .c files from the easier to write .check tests
 $(TESTDIR)/%.c: $(TESTDIR)/%.check
-	~/checkmk $< >$@
+	checkmk $< >$@
 
 release: outdir $(OUTDIR)/$(PROGRAM)
 

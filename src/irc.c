@@ -39,7 +39,7 @@ extern pid_t main_pid;
 
 Irc connect_server(const char *address, const char *port) {
 
-	Irc server = malloc_w(sizeof(struct irc_type));
+	Irc server = malloc_w(sizeof(*server));
 
 	// Minimum validity checks
 	if (strchr(address, '.') == NULL || atoi(port) > 65535)

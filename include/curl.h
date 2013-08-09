@@ -2,10 +2,11 @@
 #define CURL_H
 
 #include <sys/types.h>
+#include <yajl/yajl_tree.h>
 
 #define URLLEN 440
-#define COMMITLEN 180
 #define TITLELEN 300
+#define TESTDIR "file:///home/free/programming/c/irc-bot/test-files/"
 
 typedef struct {
 	char *buffer;
@@ -14,7 +15,7 @@ typedef struct {
 
 typedef struct {
 	char *sha;
-	char *author;
+	char *name;
 	char *msg;
 	char *url;
 } Github;
@@ -30,6 +31,6 @@ char *get_url_title(const char *url);
 char *fetch_mumble_users(void);
 
 // Returns an array containing commits. The number of commits actually read, are stored in "commits"
-Github *fetch_github_commits(const char *repo, int *commits, Mem_buffer *mem);
+Github *fetch_github_commits(const char *repo, int *commits, yajl_val root);
 
 #endif
