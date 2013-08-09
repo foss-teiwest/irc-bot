@@ -1,0 +1,2 @@
+JOIN #foss-teimes 
+JOIN #trolltown 

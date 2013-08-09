@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script type="text/javascript">var NREUMQ=NREUMQ||[];NREUMQ.push(["mark","firstbyte",new Date().getTime()]);</script>
+    <meta charset="utf-8" />
+    <title>Arch Linux</title>
+    <link rel="stylesheet" type="text/css" href="https://d11xdyzr0div58.cloudfront.net/static/archweb.0f34a69bcc42.css" media="screen, projection" />
+    <link rel="icon" type="image/x-icon" href="https://d11xdyzr0div58.cloudfront.net/static/favicon.29302f683ff8.ico" />
+    <link rel="shortcut icon" type="image/x-icon" href="https://d11xdyzr0div58.cloudfront.net/static/favicon.29302f683ff8.ico" />
+    <link rel="apple-touch-icon" href="https://d11xdyzr0div58.cloudfront.net/static/logos/apple-touch-icon-57x57.0cd0ab3349e2.png" />
+    <link rel="apple-touch-icon" sizes="72x72" href="https://d11xdyzr0div58.cloudfront.net/static/logos/apple-touch-icon-72x72.e502bac6368f.png" />
+    <link rel="apple-touch-icon" sizes="114x114" href="https://d11xdyzr0div58.cloudfront.net/static/logos/apple-touch-icon-114x114.343cca8f850e.png" />
+    <link rel="apple-touch-icon" sizes="144x144" href="https://d11xdyzr0div58.cloudfront.net/static/logos/apple-touch-icon-144x144.38cf584757c3.png" />
+    <link rel="search" type="application/opensearchdescription+xml" href="/opensearch/packages/" title="Arch Linux Packages" />
+
+<link rel="alternate" type="application/rss+xml" title="Arch Linux News Updates" href="/feeds/news/" />
+<link rel="alternate" type="application/rss+xml" title="Arch Linux Package Updates" href="/feeds/packages/" />
+
+</head>
+<body class="">
+    <div id="archnavbar" class="anb-home">
+        <div id="archnavbarlogo"><h1><a href="/" title="Return to the main page">Arch Linux</a></h1></div>
+        <div id="archnavbarmenu">
+            <ul id="archnavbarlist">
+                <li id="anb-home"><a href="/" title="Arch news, packages, projects and more">Home</a></li>
+                <li id="anb-packages"><a href="/packages/" title="Arch Package Database">Packages</a></li>
+                <li id="anb-forums"><a href="https://bbs.archlinux.org/" title="Community forums">Forums</a></li>
+                <li id="anb-wiki"><a href="https://wiki.archlinux.org/" title="Community documentation">Wiki</a></li>
+                <li id="anb-bugs"><a href="https://bugs.archlinux.org/" title="Report and track bugs">Bugs</a></li>
+                <li id="anb-aur"><a href="https://aur.archlinux.org/" title="Arch Linux User Repository">AUR</a></li>
+                <li id="anb-download"><a href="/download/" title="Get Arch Linux">Download</a></li>
+            </ul>
+        </div>
+    </div>
+    <div id="content">
+        <div id="archdev-navbar">
+
+        </div>
+
+
+            <div id="content-left-wrapper">
+                <div id="content-left">
+
+
+<div id="intro" class="box">
+    <h2>A simple, lightweight distribution</h2>
+
+    <p>You've reached the website for <strong>Arch Linux</strong>, a
+    lightweight and flexible Linux® distribution that tries to Keep It
+    Simple.</p>
+
+    <p>Currently we have official packages optimized for the i686 and
+    x86-64 architectures. We complement our official package sets with a
+    <a href="https://aur.archlinux.org/" title="Arch User Repository (AUR)">
+        community-operated package repository</a> that grows in size and
+    quality each and every day.</p>
+
+    <p>Our strong community is diverse and helpful, and we pride ourselves
+    on the range of skillsets and uses for Arch that stem from it. Please
+    check out our <a href="https://bbs.archlinux.org/" title="Arch Forums">forums</a>
+    and <a href="https://mailman.archlinux.org/mailman/listinfo/"
+        title="Arch Mailing Lists">mailing lists</a>
+    to get your feet wet.  Also glance through our <a href="https://wiki.archlinux.org/"
+        title="Arch Wiki">wiki</a>
+    if you want to learn more about Arch.</p>
+
+    <p class="readmore"><a href="/about/"
+        title="Learn more about Arch Linux">Learn more...</a></p>
+</div>
+
+<div id="news">
+    <h3>
+        <a href="/news/" title="Browse the news archives">Latest News</a>
+        <span class="arrow"></span>
+    </h3>
+
+    <a href="/feeds/news/" title="Arch News RSS Feed"
+        class="rss-icon"><img width="16" height="16" src="https://d11xdyzr0div58.cloudfront.net/static/rss.c5ebdc5318d6.png" alt="RSS Feed" /></a>
+
+
+    <h4>
+        <a href="/news/binaries-move-to-usrbin-requiring-update-intervention/"
+            title="View full article: Binaries move to /usr/bin requiring update intervention">Binaries move to /usr/bin requiring update intervention</a>
+    </h4>
+    <p class="timestamp">2013-06-03</p>
+    <div class="article-content">
+        <p>During your next update, you will get a error message like:</p>
+<pre><code>error: failed to commit transaction (conflicting files)
+filesystem: /bin exists in filesystem
+</code></pre>
+<p>The update merges all binaries into a unified /usr/bin directory. This
+step removes a distinction that has been meaningless for Arch systems
+and simplifies package maintenance for the development team.  See <a href="https://mailman.archlinux.org/pipermail/arch-dev-public/2012-March/022625.html">this post</a> for more explanation of the reasoning behind this change.</p>
+<p>The following instructions will ensure a safe update:</p>
+<p>1) Fix any non-official packages with files in /bin, /sbin or /usr/sbin
+to put those files in /usr/bin.  The list of packages that are not in a
+repo that need to be fixed can be generated using:</p>
+<pre><code>$ pacman -Qqo /bin /sbin /usr/sbin | pacman -Qm -
+</code></pre>
+<p>Also check packages installed from non-official repos using:</p>
+<pre><code>$ paclist &lt;repo&gt; | awk ' { print $1 } ' | pacman -Ql - | grep ' /s\?bin/\| /usr/sbin/'
+</code></pre>
+<p>2) Make sure any packages in IgnorePkg or IgnoreGroup do not have files
+in /bin, /sbin, or /usr/sbin.  Fix them if necessary.</p>
+<p>3) If you have files in /bin, /sbin or /usr/sbin that are unowned by any
+package, you need to move them.  Find a list using:</p>
+<pre><code>$ find /bin /sbin /usr/sbin -exec pacman -Qo -- {} + &gt;/dev/null
+</code></pre>
+<p>4) Ensure all partitions are mounted if using autofs.  They may not
+automount when needed later in this update.</p>
+<p>5) Update your system.</p>
+<p>Before performing this update, you may want to ensure you have a second
+terminal open with root privileges in the unlikely event of an
+emergency, particularly if updating over ssh.</p>
+<pre><code># pacman -Syu --ignore filesystem,bash
+# pacman -S bash
+# pacman -Su
+</code></pre>
+
+    </div>
+
+    <h4>
+        <a href="/news/netctl-is-now-in-core/"
+            title="View full article: netctl is now in [core]">netctl is now in [core]</a>
+    </h4>
+    <p class="timestamp">2013-04-10</p>
+    <div class="article-content">
+        <p>Meet netctl: a profile based networking CLI using systemd.
+In the near future, the old netcfg will be removed from <code>[core]</code>. Anyone
+using it is urged to move to netctl. Migration is a manual process
+during which you might not have access to the Internet, so take care
+and read the man pages (netctl(1), netctl.profile(5) and
+netctl.special(7)).</p>
+<p>The design of netctl is so that systemd enthusiasts will appreciate
+its usage and netcfg users will be familiar with its profile files.
+Shipped with netctl comes a ncurses-based wifi connection assistant
+called wifi-menu.</p>
+<p>As you install netctl ...</p>
+    </div>
+
+    <h4>
+        <a href="/news/mariadb-replaces-mysql-in-repositories/"
+            title="View full article: MariaDB replaces MySQL in repositories">MariaDB replaces MySQL in repositories</a>
+    </h4>
+    <p class="timestamp">2013-03-25</p>
+    <div class="article-content">
+        <p>MariaDB is now officially our default implementation of MySQL. MariaDB is <a href="https://kb.askmonty.org/en/mariadb-vs-mysql-compatibility/">almost</a> a drop in replacement, so an upgrade should be possible with minimum hassle. However, due to remaining compatibility concerns, an automatic replace is not done.</p>
+<p>It is recommended for all users to upgrade. MySQL will be dropped from the repositories to the AUR in a month.</p>
+<p>Users who want to switch will need to install <code>mariadb</code>, <code>libmariadbclient</code> or <code>mariadb-clients</code> and execute <code>mysql_upgrade</code> in order to migrate their systems.</p>
+<p>Migration example:</p>
+<pre><code># systemctl stop mysqld
+# pacman -S mariadb libmariadbclient mariadb-clients
+# systemctl start mysqld
+# mysql_upgrade -p
+</code></pre>
+<p><code>percona-server</code> is another MySQL fork ...</p>
+    </div>
+
+    <h4>
+        <a href="/news/qt4-replaces-qt/"
+            title="View full article: qt4 replaces qt">qt4 replaces qt</a>
+    </h4>
+    <p class="timestamp">2013-03-01</p>
+    <div class="article-content">
+        <p>A new <code>qt4</code> package is in [extra]. This replaces the current <code>qt</code> package.</p>
+<p>All packages depending on <code>qt</code> need to be rebuilt to depend on <code>qt4</code>.  We have done this for all official packages, but you will need to rebuild packages installed from the AUR that depend on <code>qt</code>.</p>
+<p>Qt 5.x is now also available in [extra]. When you install both <code>qt5-base</code> and <code>qt4</code> any Qt tool will refer to the 5.x version. We provide *-qt4 symlinks so you can explicitly force the 4.x version when you need it.</p>
+    </div>
+
+    <h4>
+        <a href="/news/changes-to-lvm/"
+            title="View full article: Changes to LVM">Changes to LVM</a>
+    </h4>
+    <p class="timestamp">2013-02-12</p>
+    <div class="article-content">
+        <p>With <code>lvm2 2.02.98-3</code>, we now utilize <code>lvmetad</code> to activate LVM volumes automatically. This implies the following changes:</p>
+<ul>
+<li>The <code>lvm2</code> initramfs hook now requires the <code>udev</code> hook.</li>
+<li>The <code>use_lvmetad = 1</code> must be set in <code>/etc/lvm/lvm.conf</code>. This is the default now - if you have a <code>lvm.conf.pacnew</code> file, you <strong>must</strong> merge this change.</li>
+<li>You can restrict the volumes that are activated automatically by setting the <code>auto_activation_volume_list</code> in <code>/etc/lvm/lvm.conf</code>. If in doubt, leave this option <strong>commented out</strong>.</li>
+<li>If you need monitoring (needed for snapshots), run <code>systemctl enable lvm-monitoring.service</code>.</li>
+<li>The <code>lvmwait</code> kernel command line ...</li></ul>
+    </div>
+
+    <h3>
+        <a href="/news/"
+            title="Browse the news archives">Older News</a>
+        <span class="arrow"></span>
+    </h3>
+    <dl class="newslist">
+
+        <dt>2013-02-04</dt>
+        <dd>
+            <a href="/news/final-sysvinit-deprecation-warning/"
+                title="View full article: Final sysvinit deprecation warning">Final sysvinit deprecation warning</a>
+        </dd>
+
+
+        <dt>2013-01-26</dt>
+        <dd>
+            <a href="/news/update-filesystem-201301-1-and-glibc-217-2-together/"
+                title="View full article: Update filesystem-2013.01-1 and glibc-2.17-2 together">Update filesystem-2013.01-1 and glibc-2.17-2 together</a>
+        </dd>
+
+
+        <dt>2012-12-01</dt>
+        <dd>
+            <a href="/news/december-time-for-a-new-install-medium/"
+                title="View full article: December: time for a new install medium">December: time for a new install medium</a>
+        </dd>
+
+
+        <dt>2012-11-04</dt>
+        <dd>
+            <a href="/news/end-of-initscripts-support/"
+                title="View full article: End of initscripts support">End of initscripts support</a>
+        </dd>
+
+
+        <dt>2012-11-02</dt>
+        <dd>
+            <a href="/news/november-release-of-install-media-available/"
+                title="View full article: November release of install media available">November release of install media available</a>
+        </dd>
+
+
+        <dt>2012-11-01</dt>
+        <dd>
+            <a href="/news/bug-squashing-day-saturday-17th-november/"
+                title="View full article: Bug Squashing Day: Saturday 17th November">Bug Squashing Day: Saturday 17th November</a>
+        </dd>
+
+
+        <dt>2012-10-30</dt>
+        <dd>
+            <a href="/news/consolekit-replaced-by-logind/"
+                title="View full article: ConsoleKit replaced by logind">ConsoleKit replaced by logind</a>
+        </dd>
+
+
+        <dt>2012-10-13</dt>
+        <dd>
+            <a href="/news/systemd-is-now-the-default-on-new-installations/"
+                title="View full article: systemd is now the default on new installations">systemd is now the default on new installations</a>
+        </dd>
+
+
+        <dt>2012-10-07</dt>
+        <dd>
+            <a href="/news/install-medium-20121006-introduces-systemd/"
+                title="View full article: Install medium 2012.10.06 introduces systemd">Install medium 2012.10.06 introduces systemd</a>
+        </dd>
+
+
+        <dt>2012-09-08</dt>
+        <dd>
+            <a href="/news/new-install-medium-20120907/"
+                title="View full article: New install medium 2012.09.07">New install medium 2012.09.07</a>
+        </dd>
+    </dl>
+
+</div>
+
+
+                </div>
+            </div>
+            <div id="content-right">
+
+
+<div id="pkgsearch" class="widget">
+    <form id="pkgsearch-form" method="get" action="/packages/">
+        <fieldset>
+            <label for="pkgsearch-field">Package Search:</label>
+            <input id="pkgsearch-field" type="text" name="q" size="18" maxlength="200" />
+        </fieldset>
+    </form>
+</div>
+
+<div id="pkg-updates" class="widget box">
+    <h3>Recent Updates <span class="more">(<a href="/packages/?sort=-last_update"
+            title="Browse all of the latest packages">more</a>)</span></h3>
+
+    <a href="/feeds/packages/" title="Arch Package Updates RSS Feed"
+        class="rss-icon"><img width="16" height="16" src="https://d11xdyzr0div58.cloudfront.net/static/rss.c5ebdc5318d6.png" alt="RSS Feed" /></a>
+
+    <table>
+
+        <tr>
+            <td class="pkg-name"><span class="testing">webkitgtk 2.0.2-2</span></td>
+            <td class="pkg-arch">
+                <a href="/packages/testing/i686/webkitgtk/"
+                    title="Details for webkitgtk [testing]">i686</a>/<a href="/packages/testing/x86_64/webkitgtk/"
+                    title="Details for webkitgtk [testing]">x86_64</a>
+            </td>
+        </tr>
+
+        <tr>
+            <td class="pkg-name"><span class="testing">harfbuzz 0.9.18-1</span></td>
+            <td class="pkg-arch">
+                <a href="/packages/testing/i686/harfbuzz/"
+                    title="Details for harfbuzz [testing]">i686</a>/<a href="/packages/testing/x86_64/harfbuzz/"
+                    title="Details for harfbuzz [testing]">x86_64</a>
+            </td>
+        </tr>
+
+        <tr>
+            <td class="pkg-name"><span class="testing">dosfstools 3.0.18-1</span></td>
+            <td class="pkg-arch">
+                <a href="/packages/testing/i686/dosfstools/"
+                    title="Details for dosfstools [testing]">i686</a>/<a href="/packages/testing/x86_64/dosfstools/"
+                    title="Details for dosfstools [testing]">x86_64</a>
+            </td>
+        </tr>
+
+        <tr>
+            <td class="pkg-name"><span class="community">cgminer 3.2.1-1</span></td>
+            <td class="pkg-arch">
+                <a href="/packages/community/i686/cgminer/"
+                    title="Details for cgminer [community]">i686</a>/<a href="/packages/community/x86_64/cgminer/"
+                    title="Details for cgminer [community]">x86_64</a>
+            </td>
+        </tr>
+
+        <tr>
+            <td class="pkg-name"><span class="extra">php 5.4.16-1</span></td>
+            <td class="pkg-arch">
+                <a href="/packages/extra/i686/php/"
+                    title="Details for php [extra]">i686</a>/<a href="/packages/extra/x86_64/php/"
+                    title="Details for php [extra]">x86_64</a>
+            </td>
+        </tr>
+
+        <tr>
+            <td class="pkg-name"><span class="testing">openvpn 2.3.2-1</span></td>
+            <td class="pkg-arch">
+                <a href="/packages/testing/i686/openvpn/"
+                    title="Details for openvpn [testing]">i686</a>/<a href="/packages/testing/x86_64/openvpn/"
+                    title="Details for openvpn [testing]">x86_64</a>
+            </td>
+        </tr>
+
+        <tr>
+            <td class="pkg-name"><span class="multilib-testing testing">lib32-acl 2.2.52-1</span></td>
+            <td class="pkg-arch">
+                <a href="/packages/multilib-testing/x86_64/lib32-acl/"
+                    title="Details for lib32-acl [multilib-testing]">x86_64</a>
+            </td>
+        </tr>
+
+        <tr>
+            <td class="pkg-name"><span class="multilib-testing testing">lib32-attr 2.4.47-1</span></td>
+            <td class="pkg-arch">
+                <a href="/packages/multilib-testing/x86_64/lib32-attr/"
+                    title="Details for lib32-attr [multilib-testing]">x86_64</a>
+            </td>
+        </tr>
+
+        <tr>
+            <td class="pkg-name"><span class="extra">networkmanager 0.9.8.0-6</span></td>
+            <td class="pkg-arch">
+                <a href="/packages/extra/i686/networkmanager/"
+                    title="Details for networkmanager [extra]">i686</a>/<a href="/packages/extra/x86_64/networkmanager/"
+                    title="Details for networkmanager [extra]">x86_64</a>
+            </td>
+        </tr>
+
+        <tr>
+            <td class="pkg-name"><span class="testing">networkmanager 0.9.8.0-7</span></td>
+            <td class="pkg-arch">
+                <a href="/packages/testing/i686/networkmanager/"
+                    title="Details for networkmanager [testing]">i686</a>/<a href="/packages/testing/x86_64/networkmanager/"
+                    title="Details for networkmanager [testing]">x86_64</a>
+            </td>
+        </tr>
+
+        <tr>
+            <td class="pkg-name"><span class="community">xmobar 0.18-1</span></td>
+            <td class="pkg-arch">
+                <a href="/packages/community/i686/xmobar/"
+                    title="Details for xmobar [community]">i686</a>/<a href="/packages/community/x86_64/xmobar/"
+                    title="Details for xmobar [community]">x86_64</a>
+            </td>
+        </tr>
+
+        <tr>
+            <td class="pkg-name"><span class="testing">ppp 2.4.5-7</span></td>
+            <td class="pkg-arch">
+                <a href="/packages/testing/i686/ppp/"
+                    title="Details for ppp [testing]">i686</a>/<a href="/packages/testing/x86_64/ppp/"
+                    title="Details for ppp [testing]">x86_64</a>
+            </td>
+        </tr>
+
+        <tr>
+            <td class="pkg-name"><span class="extra">ifplugd 0.28-14</span></td>
+            <td class="pkg-arch">
+                <a href="/packages/extra/i686/ifplugd/"
+                    title="Details for ifplugd [extra]">i686</a>/<a href="/packages/extra/x86_64/ifplugd/"
+                    title="Details for ifplugd [extra]">x86_64</a>
+            </td>
+        </tr>
+
+        <tr>
+            <td class="pkg-name"><span class="testing">acl 2.2.52-1</span></td>
+            <td class="pkg-arch">
+                <a href="/packages/testing/i686/acl/"
+                    title="Details for acl [testing]">i686</a>/<a href="/packages/testing/x86_64/acl/"
+                    title="Details for acl [testing]">x86_64</a>
+            </td>
+        </tr>
+
+        <tr>
+            <td class="pkg-name"><span class="extra">bftpd 4.0-1</span></td>
+            <td class="pkg-arch">
+                <a href="/packages/extra/i686/bftpd/"
+                    title="Details for bftpd [extra]">i686</a>/<a href="/packages/extra/x86_64/bftpd/"
+                    title="Details for bftpd [extra]">x86_64</a>
+            </td>
+        </tr>
+
+    </table>
+</div>
+
+
+
+<div id="nav-sidebar" class="widget">
+    <h4>Documentation</h4>
+
+    <ul>
+        <li><a href="https://wiki.archlinux.org/"
+            title="Community documentation">Wiki</a></li>
+        <li><a href="https://wiki.archlinux.org/index.php/Official_Arch_Linux_Install_Guide"
+            title="Official installation guide">Official Installation Guide</a></li>
+        <li><a href="https://wiki.archlinux.org/index.php/Beginners'_Guide"
+            title="A good place to start for beginners">Unofficial Beginners' Guide</a></li>
+    </ul>
+
+    <h4>Community</h4>
+
+    <ul>
+        <li><a href="https://mailman.archlinux.org/mailman/listinfo/"
+            title="Community and developer mailing lists">Mailing Lists</a></li>
+        <li><a href="https://wiki.archlinux.org/index.php/IRC_Channels"
+            title="Official and regional IRC communities">IRC Channels</a></li>
+        <li><a href="https://planet.archlinux.org/"
+            title="Arch in the blogosphere">Planet Arch</a></li>
+        <li><a href="https://wiki.archlinux.org/index.php/International_Communities"
+            title="Arch communities in your native language">International Communities</a></li>
+    </ul>
+
+    <h4>Support</h4>
+
+    <ul>
+        <li><a href="/donate/" title="Help support Arch Linux">Donate</a></li>
+        <li><a href="http://schwag.archlinux.ca/"
+            title="USB keys, jewellery, case badges">Arch Schwag</a></li>
+        <li><a href="http://www.zazzle.com/archlinux*"
+            title="T-shirts, mugs, mouse pads, hoodies, posters, skateboards, shoes, etc.">Products via Zazzle</a></li>
+        <li><a href="http://www.freewear.org/?page=list_items&amp;org=Archlinux"
+            title="T-shirts">T-shirts via Freewear</a></li>
+    </ul>
+
+    <h4>Tools</h4>
+
+    <ul>
+        <li><a href="/mirrorlist/"
+            title="Get a custom mirrorlist from our database">Mirrorlist Updater</a></li>
+        <li><a href="/mirrors/"
+            title="See a listing of all available mirrors">Mirror List</a></li>
+        <li><a href="/mirrors/status/"
+            title="Check the status of all known mirrors">Mirror Status</a></li>
+        <li><a href="/packages/differences/"
+            title="See differences in packages between available architectures">Differences Reports</a></li>
+    </ul>
+
+    <h4>Development</h4>
+
+    <ul>
+        <li><a href="https://projects.archlinux.org/"
+            title="Official Arch projects (git)">Projects in Git</a></li>
+        <li><a href="/svn/"
+            title="View SVN entries for packages">SVN Repositories</a></li>
+        <li><a href="https://wiki.archlinux.org/index.php/DeveloperWiki"
+            title="Developer Wiki articles">Developer Wiki</a></li>
+        <li><a href="/groups/"
+            title="View the available package groups">Package Groups</a></li>
+        <li><a href="/todo/"
+            title="Developer Todo Lists">Todo Lists</a></li>
+        <li><a href="/visualize/"
+            title="View visualizations">Visualizations</a></li>
+    </ul>
+
+    <h4>More Resources</h4>
+
+    <ul>
+        <li><a href="/master-keys/"
+            title="Package/Database signing master keys">Signing Master Keys</a></li>
+        <li><a href="https://wiki.archlinux.org/index.php/Arch_Linux_Press_Review"
+            title="Arch Linux in the media">Press Coverage</a></li>
+        <li><a href="/art/" title="Arch logos and other artwork for promotional use">Logos &amp; Artwork</a></li>
+        <li><a href="/news/" title="News Archives">News Archives</a></li>
+        <li><a href="/feeds/" title="Various RSS Feeds">RSS Feeds</a></li>
+        <li><a href="/developers/" title="Active developers">Developer Profiles</a></li>
+        <li><a href="/trustedusers/" title="Active Trusted Users (TUs)">Trusted User Profiles</a></li>
+        <li><a href="/fellows/" title="Retired Developers">Fellows Profiles</a></li>
+    </ul>
+
+</div>
+
+<div id="home-donate-button" class="widget">
+    <a href="https://co.clickandpledge.com/Default.aspx?WID=47294">
+        <img width="210" height="34" src="https://d11xdyzr0div58.cloudfront.net/static/click_and_pledge.f9247ed9b292.png" alt="Donate via Click&amp;Pledge to Arch Linux" title="Donate via Click&amp;Pledge to Arch Linux"/>
+    </a>
+</div>
+
+<div id="arch-sponsors" class="widget">
+    <a href="http://www.velocitynetwork.net/?hosting_by=ArchLinux" title="Velocity Network">
+        <img width="252" height="58" src="https://d11xdyzr0div58.cloudfront.net/static/vnet_button.72acbbbef264.png" alt="Velocity Network - It's about time" />
+    </a>
+    <a href="http://www.airvm.com/ArchLinux" title="AirVM.com - Your Green Technology Partner">
+        <img width="252" height="58" src="https://d11xdyzr0div58.cloudfront.net/static/airvm_button.cd4d6f79fde7.png" alt="AirVM.com - Your Green Technology Partner" />
+    </a>
+</div>
+
+
+            </div>
+
+        <div id="footer">
+            <p>Copyright &copy; 2002-2013 <a href="mailto:jvinet@zeroflux.org"
+                title="Contact Judd Vinet">Judd Vinet</a> and <a href="mailto:aaron@archlinux.org"
+                title="Contact Aaron Griffin">Aaron Griffin</a>.</p>
+
+            <p>The Arch Linux name and logo are recognized
+            <a href="https://wiki.archlinux.org/index.php/DeveloperWiki:TrademarkPolicy"
+                title="Arch Linux Trademark Policy">trademarks</a>. Some rights reserved.</p>
+
+            <p>The registered trademark Linux® is used pursuant to a sublicense from LMI,
+            the exclusive licensee of Linus Torvalds, owner of the mark on a world-wide basis.</p>
+        </div>
+    </div>
+
+<div id="konami" style="display:none;"></div>
+
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+<script type="text/javascript">
+function setupTypeahead() {
+    $('#pkgsearch-field').typeahead({
+        source: function(query, callback) {
+            $.getJSON('/opensearch/packages/suggest', {q: query}, function(data) {
+                callback(data[1]);
+            });
+        },
+        matcher: function(item) { return true; },
+        sorter: function(items) { return items; },
+        menu: '<ul class="pkgsearch-typeahead"></ul>',
+        items: 10
+    }).attr('autocomplete', 'off');
+}
+function setupKonami() {
+    var konami = new Konami(function() {
+        $('#konami').html('<img src="https://d11xdyzr0div58.cloudfront.net/static/vector_tux.864e6cdcc23e.png" alt=""/>');
+        setTimeout(function() {
+            $('#konami').fadeIn(500);
+        }, 500);
+        $('#konami').click(function() {
+            $('#konami').fadeOut(500);
+        });
+    });
+}
+$(document).ready(function() {
+    $.ajax({ url: "https://d11xdyzr0div58.cloudfront.net/static/bootstrap-typeahead.min.1aacd3d7f4db.js", cache: true, dataType: "script", success: setupTypeahead });
+    $.ajax({ url: "https://d11xdyzr0div58.cloudfront.net/static/konami.min.e165c814457d.js", cache: true, dataType: "script", success: setupKonami });
+});
+</script>
+
+<script type="text/javascript">if(!NREUMQ.f){NREUMQ.f=function(){NREUMQ.push(["load",new Date().getTime()]);var e=document.createElement("script");e.type="text/javascript";e.src=(("http:"===document.location.protocol)?"http:":"https:")+"//"+"d1ros97qkrwjf5.cloudfront.net/42/eum/rum.js";document.body.appendChild(e);if(NREUMQ.a)NREUMQ.a();};NREUMQ.a=window.onload;window.onload=NREUMQ.f;};NREUMQ.push(["nrfj","beacon-3.newrelic.com","a83c67553d","1707230","MlZQbUVSXUJTAUVRXAscdExZUEdYXQweSEYHX1taGUVaVEURC1FdAVZK",2,294,new Date().getTime(),"","","","",""]);</script></body>
+</html>

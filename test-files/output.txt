@@ -1,0 +1,26 @@
+roflNICK trololol 
+USER trololol 0 * :trololol 
+NICK _ 
+QUIT  :bye
+e.net
+NICK _
+QUIT :bye
+dentify nicepass
+NICK _
+QUIT :bye
+T :bye
+hett.freenode.net
+QUIT :
+ONG :pratchett.freenode.net
+QUIT :
+room :sup troll?
+QUIT :
+ :7 Online clients: Chubby ZED gkino Erevos freestyler charkost tomkap
+QUIT :
+de.net
+PONG :pratchett.freenode.net
+PONG :pratchett.freenode.net
+PONG :pratchett.freenode.net
+PONG :pratchett.freenode.net
+PRIVMSG nickserv :identify nicepass
+QUIT :bye
