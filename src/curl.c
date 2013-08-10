@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include <curl/curl.h>
 #include <yajl/yajl_tree.h>
 #include "curl.h"
@@ -186,6 +187,7 @@ char *get_url_title(const char *url) {
 	CURLcode code;
 	Mem_buffer mem = {NULL, 0};
 	char *temp, *url_title = NULL;
+	bool iso = false;
 
 	curl = curl_easy_init();
 	if (curl == NULL)
@@ -206,6 +208,11 @@ char *get_url_title(const char *url) {
 		fprintf(stderr, "Error: %s\n", curl_easy_strerror(code));
 		goto cleanup;
 	}
+	// Search http response in order to determine text encoding
+	temp = strcasestr(mem.buffer, "iso-8859-7");
+	if (temp != NULL)
+		iso = true;
+
 	temp = strcasestr(mem.buffer, "<title");
 	if (temp == NULL)
 		goto cleanup;
@@ -223,8 +230,12 @@ char *get_url_title(const char *url) {
 		if (*temp == '\n')
 			*temp = ' ';
 
+	// If title string uses ISO 8859-7 encoding then convert it to UTF-8
 	// Return value must be freed to avoid memory leak
-	url_title = strndup(url_title, TITLELEN);
+	if(iso == true)
+		url_title = (char *) iso8859_7_to_utf8((unsigned char *) url_title);
+	else
+		url_title = strndup(url_title, TITLELEN);
 
 cleanup:
 	free(mem.buffer);

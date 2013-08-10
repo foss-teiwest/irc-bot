@@ -9,6 +9,7 @@
 #define CONFPATH "config.json"
 
 struct bot_options {
+	int test;
 
 };
 
@@ -39,5 +40,9 @@ int get_int(const char *num, int max);
 void print_cmd_output(Irc server, const char *dest, const char *cmd);
 
 void parse_config(void);
+
+// Convert string's encoding from ISO 8859-7 to UTF-8
+// Return value must be freed to avoid memory leak
+unsigned char *iso8859_7_to_utf8(unsigned char *iso);
 
 #endif
