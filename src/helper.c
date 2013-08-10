@@ -168,31 +168,32 @@ void parse_config(void) {
 	yajl_tree_free(root);
 }
 
-unsigned char *iso8859_7_to_utf8(unsigned char *iso) {
+char *iso8859_7_to_utf8(char *iso) {
 
-	unsigned char *utf;
+	unsigned char *uiso, *utf;
 	unsigned int i = 0, y = 0;
 
-	utf = malloc(strlen((char *) iso) * 2);
+	uiso = (unsigned char *) iso;
+	utf = malloc(strlen(iso) * 2);
 
-	while (iso[i] != '\0') {
-		if (iso[i] > 0xa0) {
-			if (iso[i] < 0xf0) {
+	while (uiso[i] != '\0') {
+		if (uiso[i] > 0xa0) {
+			if (uiso[i] < 0xf0) {
 				utf[y] = 0xce;
-				utf[y + 1] = iso[i] - 48;
+				utf[y + 1] = uiso[i] - 48;
 			}
 			else {
 				utf[y] = 0xcf;
-				utf[y + 1] = iso[i] - 112;
+				utf[y + 1] = uiso[i] - 112;
 			}
 			y += 2;
 		}
 		else {
-			utf[y] = iso[i];
+			utf[y] = uiso[i];
 			y++;
 		}
 		i++;
 	}
 	utf[y] = '\0';
-	return utf;
+	return (char *) utf;
 }

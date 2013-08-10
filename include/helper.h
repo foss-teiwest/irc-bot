@@ -43,6 +43,6 @@ void parse_config(void);
 
 // Convert string's encoding from ISO 8859-7 to UTF-8
 // Return value must be freed to avoid memory leak
-unsigned char *iso8859_7_to_utf8(unsigned char *iso);
+char *iso8859_7_to_utf8(char *iso);
 
 #endif
