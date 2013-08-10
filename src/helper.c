@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdarg.h>
+#include <sys/stat.h>
+#include <yajl/yajl_tree.h>
 #include "helper.h"
 #include "irc.h"
 
@@ -111,4 +113,57 @@ void print_cmd_output(Irc server, const char *dest, const char *cmd) {
 		}
 	}
 	pclose(prog);
+}
+
+static size_t read_file(char **buf, const char *filename) {
+
+	FILE *file;
+	struct stat st;
+	size_t n = 0;
+
+	file = fopen(filename, "r");
+	if (!file) {
+		fprintf(stderr, "fopen error: ");
+		return 0;
+	}
+
+	if (fstat(fileno(file), &st) == -1) {
+		fprintf(stderr, "fstat fail: ");
+		goto cleanup;
+	}
+
+	if (st.st_size == 0 || st.st_size > CONFSIZE) {
+		fprintf(stderr, "File too small/big: ");
+		goto cleanup;
+	}
+
+	*buf = malloc_w(st.st_size + 1);
+	n = fread(*buf, sizeof(char), st.st_size, file);
+	if (n != (unsigned) st.st_size) {
+		fprintf(stderr, "fread error: ");
+		fclose(file);
+		return 0;
+	}
+	*buf[st.st_size] = '\0';
+
+cleanup:
+	fclose(file);
+	return n;
+}
+
+void parse_config(void) {
+
+	char errbuf[1024], *buf;
+	yajl_val root, val;
+
+	if (read_file(&buf, CONFPATH) == 0)
+		exit_msg(CONFPATH);
+
+	root = yajl_tree_parse(buf, errbuf, sizeof(errbuf));
+	if (root == NULL)
+		exit_msg("%s", errbuf);
+	free(buf);
+
+
+	yajl_tree_free(root);
 }

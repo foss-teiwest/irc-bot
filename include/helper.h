@@ -5,7 +5,12 @@
 
 #define STARTSIZE 5
 #define LINELEN 300
-#define BOTVERSION "freestyler's irc-bot"
+#define CONFSIZE 4096
+#define CONFPATH "config.json"
+
+struct bot_options {
+
+};
 
 // Returns array size. Warning: must ONLY be used for local arrays (same scope) allocated in stack
 #define SIZE(x) (sizeof(x) / sizeof(x[0]))
@@ -32,5 +37,7 @@ int get_int(const char *num, int max);
 
 // Run the program (and it's arguments) specified in cmd and print the result in dest
 void print_cmd_output(Irc server, const char *dest, const char *cmd);
+
+void parse_config(void);
 
 #endif

@@ -3,6 +3,7 @@
 
 #include <sys/types.h>
 
+#define BOTVERSION "freestyler's irc-bot"
 #define IRCLEN   512
 #define NICKLEN  20
 #define USERLEN  15
