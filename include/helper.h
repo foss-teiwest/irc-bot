@@ -33,4 +33,8 @@ int get_int(const char *num, int max);
 // Run the program (and it's arguments) specified in cmd and print the result in dest
 void print_cmd_output(Irc server, const char *dest, const char *cmd);
 
+// Convert string's encoding from ISO 8859-7 to UTF-8
+// Return value must be freed to avoid memory leak
+unsigned char *iso8859_7_to_utf8(unsigned char *iso);
+
 #endif

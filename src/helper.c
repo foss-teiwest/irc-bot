@@ -112,3 +112,32 @@ void print_cmd_output(Irc server, const char *dest, const char *cmd) {
 	}
 	pclose(prog);
 }
+
+unsigned char *iso8859_7_to_utf8(unsigned char *iso) {
+
+	unsigned char *utf;
+	unsigned int i = 0, y = 0;
+
+	utf = malloc(strlen((const char *)iso) * 2);
+
+	while(iso[i] != '\0'){
+		if(iso[i] > 0xa0 ){
+			if(iso[i] < 0xf0){
+				utf[y] = 0xce;
+				utf[y + 1] = iso[i] - 48;
+			}
+			else{
+				utf[y] = 0xcf;
+				utf[y + 1] = iso[i] - 112;
+			}
+			y += 2;
+		}
+		else{
+			utf[y] = iso[i];
+			y++;
+		}
+		i++;
+	}
+	utf[y] = '\0';
+	return utf;
+}
