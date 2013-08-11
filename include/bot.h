@@ -3,10 +3,10 @@
 
 #include "irc.h"
 
-#define CMDLEN 200
-#define MAXCOMMITS 10
+#define MAXCOMMITS   10
 #define MAXPINGCOUNT 10
-#define REPOLEN 60
+#define REPOLEN      60
+#define CMDLEN       200
 #define DEFAULT_USER_REPO "foss-teimes"
 
 // Irc color codes

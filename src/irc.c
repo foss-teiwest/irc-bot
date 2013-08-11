@@ -35,7 +35,7 @@ struct irc_type {
 	struct channels ch;
 };
 
-extern pid_t main_pid;
+pid_t main_pid;
 
 Irc connect_server(const char *address, const char *port) {
 

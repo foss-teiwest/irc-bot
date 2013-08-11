@@ -1,15 +1,16 @@
 #ifndef HELPER_H
 #define HELPER_H
 
+#include "stdbool.h"
 #include "irc.h"
 
 #define STARTSIZE 5
-#define LINELEN 300
-#define CONFSIZE 4096
+#define LINELEN   300
+#define CONFSIZE  4096
 #define CONFPATH "config.json"
 
-struct bot_options {
-	int test;
+struct config_options {
+	bool verbose;
 
 };
 

@@ -3,7 +3,7 @@
 
 #include <sys/types.h>
 
-#define IRCLEN  512
+#define IRCLEN 512
 
 // Returns a valid socket descriptor or -1 if it fails
 int sock_connect(const char *address, const char *port);

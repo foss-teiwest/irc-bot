@@ -8,7 +8,7 @@
 #include "helper.h"
 #include "irc.h"
 
-pid_t main_pid;
+extern pid_t main_pid;
 
 void exit_msg(const char *format, ...) {
 
@@ -95,9 +95,13 @@ int get_int(const char *num, int max) {
 
 void print_cmd_output(Irc server, const char *dest, const char *cmd) {
 
-	char line[LINELEN];
 	FILE *prog;
+	char line[LINELEN];
 	int len;
+
+	// Do not allow any of the following characters in cmd to avoid shell exploit
+	if (strpbrk(cmd, ";|&$`\\") != NULL)
+		return;
 
 	// Open the program with arguments specified
 	prog = popen(cmd, "r");
@@ -174,7 +178,7 @@ char *iso8859_7_to_utf8(char *iso) {
 	unsigned int i = 0, y = 0;
 
 	uiso = (unsigned char *) iso;
-	utf = malloc(strlen(iso) * 2);
+	utf = malloc_w(strlen(iso) * 2);
 
 	while (uiso[i] != '\0') {
 		if (uiso[i] > 0xa0) {
