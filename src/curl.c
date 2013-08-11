@@ -209,8 +209,8 @@ char *get_url_title(const char *url) {
 		goto cleanup;
 	}
 	// Search http response in order to determine text encoding
-	temp = strcasestr(mem.buffer, "iso-8859-7");
-	if (temp != NULL)
+	if (strcasestr(mem.buffer, "charset='iso-8859-7'") != NULL || strcasestr(mem.buffer, "charset=\"iso-8859-7\"") != NULL 
+		|| strcasestr(mem.buffer, "charset=iso-8859-7") != NULL)
 		iso = true;
 
 	temp = strcasestr(mem.buffer, "<title");
