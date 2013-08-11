@@ -6,7 +6,6 @@
 
 #define URLLEN   440
 #define TITLELEN 300
-#define TESTDIR "file:///home/free/programming/c/irc-bot/test-files/"
 
 typedef struct {
 	char *buffer;

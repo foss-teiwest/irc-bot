@@ -121,7 +121,7 @@ void github(Irc server, Parsed_data pdata) {
 	}
 	// If user is not supplied, substitute with a default one
 	if (strchr(argv[0], '/') == NULL)
-		snprintf(repo, CMDLEN, "%s/%s", DEFAULT_USER_REPO, argv[0]);
+		snprintf(repo, CMDLEN, "%s/%s", cfg.github_repo, argv[0]);
 	else
 		strncat(repo, argv[0], REPOLEN);
 

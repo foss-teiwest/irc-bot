@@ -11,19 +11,16 @@
 #include "bot.h"
 #include "curl.h"
 
-
-struct channels {
-	int channels_set;
-	char channel[MAXCHANS][CHANLEN];
-};
-
 struct irc_type {
 	int sock;
 	char address[ADDRLEN];
 	char port[PORTLEN];
 	char nick[NICKLEN];
 	char user[USERLEN];
-	struct channels ch;
+	struct {
+		int channels_set;
+		char channels[MAXCHANS][CHANLEN];
+	} ch;
 };
 
 Irc server;
@@ -134,8 +131,8 @@ void close_write(void) {
 
 #test new_chan_match
 
-	set_channel(server, "#trololol");
-	ck_assert_str_eq(server->ch.channel[0], "#trololol");
+	set_channels(server, (char *[]) { "#trololol" }, 1);
+	ck_assert_str_eq(server->ch.channels[0], "#trololol");
 
 #test privemsg
 
@@ -259,11 +256,9 @@ void close_write(void) {
 	if (server->sock < 0)
 		exit_msg("Failed to open file");
 
-	set_channel(server, "#foss-teimes");
-	set_channel(server, "#trolltown");
-	set_channel(server, "#noobs");
+	set_channels(server, (char *[]) { "#foss-teimes", "#trolltown", "#noobs" }, 3);
 	i = join_channel(server, NULL);
-	ck_assert_int_eq(i, 2);
+	ck_assert_int_eq(i, 3);
 	lseek(server->sock, 0, SEEK_SET);
 
 	sock_readline(server->sock, test_buffer, IRCLEN);

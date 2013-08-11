@@ -1,7 +1,7 @@
 #ifndef HELPER_H
 #define HELPER_H
 
-#include "stdbool.h"
+#include <stdbool.h>
 #include "irc.h"
 
 #define STARTSIZE 5
@@ -10,9 +10,22 @@
 #define CONFPATH "config.json"
 
 struct config_options {
+	char *server;
+	char *port;
+	char *nick;
+	char *nick_pwd;
+	char *user;
+	struct {
+		int channels_set;
+		char *channels[MAXCHANS];
+	} ch;
+	char *github_repo;
+	char *bot_version;
+	char *test_dir;
 	bool verbose;
-
 };
+
+extern struct config_options cfg;
 
 // Returns array size. Warning: must ONLY be used for local arrays (same scope) allocated in stack
 #define SIZE(x) (sizeof(x) / sizeof(x[0]))

@@ -6,13 +6,15 @@ int main(void) {
 
 	Irc freenode;
 
-	freenode = connect_server("chat.freenode.net", "6667");
+	parse_config();
+
+	freenode = connect_server(cfg.server, cfg.port);
 	if (freenode == NULL)
 		exit_msg("Irc connection failed");
 
-	set_nick(freenode, "fossbot");
-	set_user(freenode, "bot");
-	set_channel(freenode, "#foss-teimes");
+	set_nick(freenode, cfg.nick);
+	set_user(freenode, cfg.user);
+	set_channels(freenode, cfg.ch.channels, cfg.ch.channels_set);
 
 	// Keep reading & parsing lines as long the connection is active and act on any registered actions found
 	while (parse_line(freenode) > 0);

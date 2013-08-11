@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <signal.h>
 #include <curl/curl.h>
+#include <yajl/yajl_tree.h>
 #include "socket.h"
 #include "irc.h"
 #include "gperf.h"
@@ -21,21 +22,20 @@
 #define send_ping_command(server, target, ...)    _send_irc_command(server, "PONG", target, __VA_ARGS__)
 #define send_quit_command(server, target, ...)    _send_irc_command(server, "QUIT", target, __VA_ARGS__)
 
-struct channels {
-	int channels_set;
-	char channel[MAXCHANS][CHANLEN];
-};
-
 struct irc_type {
 	int sock;
 	char address[ADDRLEN];
 	char port[PORTLEN];
 	char nick[NICKLEN];
 	char user[USERLEN];
-	struct channels ch;
+	struct {
+		int channels_set;
+		char channels[MAXCHANS][CHANLEN];
+	} ch;
 };
 
 pid_t main_pid;
+extern yajl_val yajl_root;
 
 Irc connect_server(const char *address, const char *port) {
 
@@ -78,16 +78,16 @@ void set_user(Irc server, const char *user) {
 	send_user_command(server, user_with_flags, NULL);
 }
 
-void set_channel(Irc server, const char *channel) {
+void set_channels(Irc server, char *channels[], int channels_set) {
 
-	assert(channel != NULL && "Error in set_channel");
-	assert(channel[0] == '#' && "Missing # in channel");
+	int i;
 
-	if (server->ch.channels_set == MAXCHANS) {
-		fprintf(stderr, "Channel limit reached\n");
-		return;
+	for (i = 0; i < channels_set; i++) {
+		puts(channels[i]);
+		assert(channels[i] != NULL   && "Error in set_channel");
+		assert(channels[i][0] == '#' && "Missing # in channel");
+		strncpy(server->ch.channels[server->ch.channels_set++], channels[i], CHANLEN);
 	}
-	strncpy(server->ch.channel[server->ch.channels_set++], channel, CHANLEN);
 }
 
 int join_channel(Irc server, const char *channel) {
@@ -96,7 +96,7 @@ int join_channel(Irc server, const char *channel) {
 
 	if (channel == NULL) {
 		for (i = 0; i < server->ch.channels_set; i++)
-			send_channel_command(server, server->ch.channel[i], NULL);
+			send_channel_command(server, server->ch.channels[i], NULL);
 		return server->ch.channels_set;
 	}
 	send_channel_command(server, channel, NULL);
@@ -118,7 +118,7 @@ ssize_t parse_line(Irc server) {
 	n = sock_readline(server->sock, line, IRCLEN);
 	alarm(0); // Stop timer. If we reach here, reply was within limits
 
-	// if (cfg.verbose)
+	if (cfg.verbose)
 		fputs(line, stdout);
 
 	// Check for server ping request. Example: "PING :wolfe.freenode.net"
@@ -228,13 +228,11 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 	// CTCP requests must be received in private & begin with ascii char 1
 	else if (*pdata.command == '\x01' && pdata.target == pdata.sender) {
 		if (strncmp(pdata.command + 1, "VERSION", 7) == 0) // Skip the leading escape char
-			send_notice(server, pdata.sender, "\x01%s\x01", BOTVERSION);
+			send_notice(server, pdata.sender, "\x01%s\x01", cfg.bot_version);
 	}
 }
 
 void irc_notice(Irc server, Parsed_data pdata) {
-
-	char nick_pwd[NICKLEN];
 
 	// notice destination
 	pdata.target = strtok(pdata.message, " ");
@@ -250,9 +248,10 @@ void irc_notice(Irc server, Parsed_data pdata) {
 	pdata.message++;
 
 	if (strncmp(pdata.message, "This nickname is registered", 27) == 0) {
-		printf("Enter nick identify password: ");
-		if (scanf("%19s", nick_pwd) != EOF) // Don't identify if password is not given
-			send_message(server, "nickserv", "identify %s", nick_pwd);
+		cfg.verbose = false;
+		send_message(server, "nickserv", "identify %s", cfg.nick_pwd);
+		memset(cfg.nick_pwd, 0, strlen(cfg.nick_pwd));
+		cfg.verbose = true;
 	}
 }
 
@@ -298,7 +297,7 @@ void _send_irc_command(Irc server, const char *type, const char *target, ...) {
 	if (sock_write(server->sock, irc_msg, strlen(irc_msg)) < 0)
 		exit_msg("Failed to send message");
 
-	// if (cfg.verbose)
+	if (cfg.verbose)
 		fputs(irc_msg, stdout);
 
 	va_end(args);
@@ -313,5 +312,6 @@ void quit_server(Irc server, const char *msg) {
 		perror("close");
 
 	curl_global_cleanup();
+	yajl_tree_free(yajl_root);
 	free(server);
 }

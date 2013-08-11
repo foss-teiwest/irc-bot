@@ -3,14 +3,13 @@
 
 #include <sys/types.h>
 
-#define BOTVERSION "freestyler's irc-bot"
 #define IRCLEN   512
 #define NICKLEN  20
 #define USERLEN  15
 #define CHANLEN  40
 #define ADDRLEN  40
 #define PORTLEN  5
-#define MAXCHANS 2
+#define MAXCHANS 8
 #define TIMEOUT  360
 
 typedef struct irc_type *Irc;
@@ -34,7 +33,7 @@ Irc connect_server(const char *address, const char *port);
 // User can only be set during server connection so it should only be called once
 void set_nick(Irc server, const char *nick);
 void set_user(Irc server, const char *user);
-void set_channel(Irc server, const char *channel);
+void set_channels(Irc server, char *channels[], int channels_set);
 
 // If channel argument is NULL then join all channels registered with set_channel()
 int join_channel(Irc server, const char *channel);

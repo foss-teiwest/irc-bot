@@ -50,7 +50,7 @@ char *shorten_url(const char *long_url) {
 		goto cleanup;
 
 #ifdef TEST
-	curl_easy_setopt(curl, CURLOPT_URL, TESTDIR "url-shorten.txt");
+	curl_easy_setopt(curl, CURLOPT_URL, cfg.test_dir "url-shorten.txt");
 #else
 	curl_easy_setopt(curl, CURLOPT_URL, "https://www.googleapis.com/urlshortener/v1/url"); // Set API url
 #endif
@@ -100,7 +100,7 @@ char *fetch_mumble_users(void) {
 		goto cleanup;
 
 #ifdef TEST
-	curl_easy_setopt(curl, CURLOPT_URL, TESTDIR "mumble.txt");
+	curl_easy_setopt(curl, CURLOPT_URL, cfg.test_dir "mumble.txt");
 #else
 	curl_easy_setopt(curl, CURLOPT_URL, "https://foss.tesyd.teimes.gr/weblist-bot.php"); // Set mumble users list url
 #endif
@@ -136,7 +136,7 @@ Github *fetch_github_commits(const char *repo, int *commit_count, yajl_val root)
 	snprintf(API_URL, URLLEN, "https://api.github.com/repos/%s/commits?per_page=%d", repo, *commit_count);
 
 #ifdef TEST
-	curl_easy_setopt(curl, CURLOPT_URL, TESTDIR "github.json");
+	curl_easy_setopt(curl, CURLOPT_URL, cfg.test_dir "github.json");
 #else
 	curl_easy_setopt(curl, CURLOPT_URL, API_URL);
 #endif
@@ -162,13 +162,13 @@ Github *fetch_github_commits(const char *repo, int *commit_count, yajl_val root)
 
 	// Find the field we are interested in the json reply, save a reference to it & null terminate
 	for (i = 0; i < *commit_count; i++) {
-		if (!(val  = yajl_tree_get(YAJL_GET_ARRAY(root)->values[i], (const char *[]) { "sha", NULL },                      yajl_t_string))) break;
+		if ((val = yajl_tree_get(YAJL_GET_ARRAY(root)->values[i], (const char *[]) { "sha", NULL },                      yajl_t_string)) == NULL) break;
 		commits[i].sha  = YAJL_GET_STRING(val);
-		if (!(val = yajl_tree_get(YAJL_GET_ARRAY(root)->values[i],  (const char *[]) { "commit", "author", "name", NULL }, yajl_t_string))) break;
+		if ((val = yajl_tree_get(YAJL_GET_ARRAY(root)->values[i], (const char *[]) { "commit", "author", "name", NULL }, yajl_t_string)) == NULL) break;
 		commits[i].name = YAJL_GET_STRING(val);
-		if (!(val  = yajl_tree_get(YAJL_GET_ARRAY(root)->values[i], (const char *[]) { "commit", "message", NULL },        yajl_t_string))) break;
+		if ((val = yajl_tree_get(YAJL_GET_ARRAY(root)->values[i], (const char *[]) { "commit", "message", NULL },        yajl_t_string)) == NULL) break;
 		commits[i].msg  = YAJL_GET_STRING(val);
-		if (!(val  = yajl_tree_get(YAJL_GET_ARRAY(root)->values[i], (const char *[]) { "html_url", NULL },                 yajl_t_string))) break;
+		if ((val = yajl_tree_get(YAJL_GET_ARRAY(root)->values[i], (const char *[]) { "html_url", NULL },                 yajl_t_string)) == NULL) break;
 		commits[i].url  = YAJL_GET_STRING(val);
 
 		// Cut commit message at newline character if present
@@ -195,7 +195,7 @@ char *get_url_title(const char *url) {
 		goto cleanup;
 
 #ifdef TEST
-	curl_easy_setopt(curl, CURLOPT_URL, TESTDIR "url-title.txt");
+	curl_easy_setopt(curl, CURLOPT_URL, cfg.test_dir "url-title.txt");
 #else
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 #endif
