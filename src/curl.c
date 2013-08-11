@@ -214,7 +214,7 @@ char *get_url_title(const char *url) {
 	temp = strcasestr(mem.buffer, "iso-8859-7");
 	if (temp != NULL) {
 		len = sizeof("charset");
-		if (!strncmp(temp - len, "charset", len - 1) || !strncmp(temp - len - 1, "charset", len - 1))
+		if (!strncasecmp(temp - len, "charset", len - 1) || !strncasecmp(temp - len - 1, "charset", len - 1))
 			iso = true;
 	}
 
