@@ -188,6 +188,7 @@ char *get_url_title(const char *url) {
 	Mem_buffer mem = {NULL, 0};
 	char *temp, *url_title = NULL;
 	bool iso = false;
+	int len;
 
 	curl = curl_easy_init();
 	if (curl == NULL)
@@ -208,10 +209,14 @@ char *get_url_title(const char *url) {
 		fprintf(stderr, "Error: %s\n", curl_easy_strerror(code));
 		goto cleanup;
 	}
+
 	// Search http response in order to determine text encoding
-	if (strcasestr(mem.buffer, "charset='iso-8859-7'") != NULL || strcasestr(mem.buffer, "charset=\"iso-8859-7\"") != NULL 
-		|| strcasestr(mem.buffer, "charset=iso-8859-7") != NULL)
-		iso = true;
+	temp = strcasestr(mem.buffer, "iso-8859-7");
+	if (temp != NULL) {
+		len = sizeof("charset");
+		if (!strncmp(temp - len, "charset", len - 1) || !strncmp(temp - len - 1, "charset", len - 1))
+			iso = true;
+	}
 
 	temp = strcasestr(mem.buffer, "<title");
 	if (temp == NULL)

@@ -116,8 +116,10 @@ ssize_t parse_line(Irc server) {
 	// If we don't receive a message within the timer set, exit program (shell script will restart it)
 	alarm(TIMEOUT);
 	n = sock_readline(server->sock, line, IRCLEN);
-	fputs(line, stdout);
 	alarm(0); // Stop timer. If we reach here, reply was within limits
+
+	// if (cfg.verbose)
+		fputs(line, stdout);
 
 	// Check for server ping request. Example: "PING :wolfe.freenode.net"
 	// If we match PING then change the 2nd char to 'O' and terminate the argument before sending back
@@ -285,7 +287,6 @@ void irc_kick(Irc server, Parsed_data pdata) {
 
 void _send_irc_command(Irc server, const char *type, const char *target, ...) {
 
-	ssize_t n;
 	va_list args;
 	char msg[IRCLEN - CHANLEN], irc_msg[IRCLEN];
 
@@ -294,10 +295,11 @@ void _send_irc_command(Irc server, const char *type, const char *target, ...) {
 	snprintf(irc_msg, IRCLEN, "%s %s %s%s\r\n", type, target, (*msg ? ":" : ""), msg);
 
 	// Send message & print it on stdout
-	n = sock_write(server->sock, irc_msg, strlen(irc_msg));
-	fputs(irc_msg, stdout);
-	if (n < 0)
+	if (sock_write(server->sock, irc_msg, strlen(irc_msg)) < 0)
 		exit_msg("Failed to send message");
+
+	// if (cfg.verbose)
+		fputs(irc_msg, stdout);
 
 	va_end(args);
 }
