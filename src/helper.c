@@ -95,18 +95,40 @@ int get_int(const char *num, int max) {
 		return converted_num;
 }
 
-void print_cmd_output(Irc server, const char *dest, const char *cmd) {
+void print_cmd_output(Irc server, const char *dest, const char *cmd, char *args[]) {
 
 	FILE *prog;
 	char line[LINELEN];
-	int len;
+	size_t len;
+	int fd[2];
 
-	// Do not allow any of the following characters in cmd to avoid shell exploit
-	if (strpbrk(cmd, ";|&$`<>^\\") != NULL)
+	if (pipe(fd) < 0) {
+		perror("pipe");
 		return;
+	}
 
-	// Open the program with arguments specified
-	prog = popen(cmd, "r");
+	switch (fork()) {
+	case -1:
+		perror("fork");
+		return;
+	case 0:
+		close(fd[0]); // Close reading end of the socket
+
+		// Re-open stdout to point to the writting end of our socket
+		if (dup2(fd[1], STDOUT_FILENO) != STDOUT_FILENO) {
+			perror("dup2");
+			return;
+		}
+		close(fd[1]); // We don't need this anymore
+
+		execvp(cmd, args);
+		perror("exec failed"); // Exec functions return only on error
+		return;
+	}
+	close(fd[1]); // Close writting end
+
+	// Open socket as FILE stream since we need to print in lines anyway
+	prog = fdopen(fd[0], "r");
 	if (prog == NULL)
 		return;
 
@@ -118,7 +140,7 @@ void print_cmd_output(Irc server, const char *dest, const char *cmd) {
 			send_message(server, dest, "%s", line); // The %s is needed to avoid interpeting format specifiers in output
 		}
 	}
-	pclose(prog);
+	fclose(prog);
 }
 
 static size_t read_file(char **buf, const char *filename) {
@@ -181,14 +203,12 @@ void parse_config(void) {
 	if ((val   = yajl_tree_get(yajl_root, (const char *[]) { "user", NULL },     yajl_t_string)) == NULL) exit_msg("user: missing / wrong type");
 	cfg.user   = YAJL_GET_STRING(val);
 
-	if ((val        = yajl_tree_get(yajl_root, (const char *[]) { "github_repo", NULL }, yajl_t_string)) == NULL) exit_msg("github_repo: missing / wrong type");
-	cfg.github_repo = YAJL_GET_STRING(val);
-	if ((val        = yajl_tree_get(yajl_root, (const char *[]) { "bot_version", NULL }, yajl_t_string)) == NULL) exit_msg("bot_version: missing / wrong type");
-	cfg.bot_version = YAJL_GET_STRING(val);
-	if ((val        = yajl_tree_get(yajl_root, (const char *[]) { "test_dir", NULL },    yajl_t_string)) == NULL) exit_msg("test_dir: missing / wrong type");
-	cfg.test_dir    = YAJL_GET_STRING(val);
 	if ((val        = yajl_tree_get(yajl_root, (const char *[]) { "nick_pwd", NULL },    yajl_t_string)) == NULL) exit_msg("nick_pwd: missing / wrong type");
 	cfg.nick_pwd    = YAJL_GET_STRING(val);
+	if ((val        = yajl_tree_get(yajl_root, (const char *[]) { "bot_version", NULL }, yajl_t_string)) == NULL) exit_msg("bot_version: missing / wrong type");
+	cfg.bot_version = YAJL_GET_STRING(val);
+	if ((val        = yajl_tree_get(yajl_root, (const char *[]) { "github_repo", NULL }, yajl_t_string)) == NULL) exit_msg("github_repo: missing / wrong type");
+	cfg.github_repo = YAJL_GET_STRING(val);
 
 	if ((val  = yajl_tree_get(yajl_root, (const char *[]) { "verbose", NULL }, yajl_t_any)) == NULL) exit_msg("verbose: missing");
 	if (val->type != yajl_t_true && val->type != yajl_t_false) exit_msg("verbose: wrong type");

@@ -50,7 +50,7 @@ char *shorten_url(const char *long_url) {
 		goto cleanup;
 
 #ifdef TEST
-	curl_easy_setopt(curl, CURLOPT_URL, cfg.test_dir "url-shorten.txt");
+	curl_easy_setopt(curl, CURLOPT_URL, TESTDIR "url-shorten.txt");
 #else
 	curl_easy_setopt(curl, CURLOPT_URL, "https://www.googleapis.com/urlshortener/v1/url"); // Set API url
 #endif
@@ -100,7 +100,7 @@ char *fetch_mumble_users(void) {
 		goto cleanup;
 
 #ifdef TEST
-	curl_easy_setopt(curl, CURLOPT_URL, cfg.test_dir "mumble.txt");
+	curl_easy_setopt(curl, CURLOPT_URL, TESTDIR "mumble.txt");
 #else
 	curl_easy_setopt(curl, CURLOPT_URL, "https://foss.tesyd.teimes.gr/weblist-bot.php"); // Set mumble users list url
 #endif
@@ -136,7 +136,7 @@ Github *fetch_github_commits(const char *repo, int *commit_count, yajl_val root)
 	snprintf(API_URL, URLLEN, "https://api.github.com/repos/%s/commits?per_page=%d", repo, *commit_count);
 
 #ifdef TEST
-	curl_easy_setopt(curl, CURLOPT_URL, cfg.test_dir "github.json");
+	curl_easy_setopt(curl, CURLOPT_URL, TESTDIR "github.json");
 #else
 	curl_easy_setopt(curl, CURLOPT_URL, API_URL);
 #endif
@@ -195,7 +195,7 @@ char *get_url_title(const char *url) {
 		goto cleanup;
 
 #ifdef TEST
-	curl_easy_setopt(curl, CURLOPT_URL, cfg.test_dir "url-title.txt");
+	curl_easy_setopt(curl, CURLOPT_URL, TESTDIR "url-title.txt");
 #else
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 #endif

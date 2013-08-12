@@ -152,7 +152,7 @@ function_lookup (register const char *str, register unsigned int len)
 #line 20 "include/gperf-input.txt"
       {"fail", bot_fail},
 #line 19 "include/gperf-input.txt"
-      {"list", list},
+      {"list", help},
 #line 26 "include/gperf-input.txt"
       {"traceroute", traceroute},
 #line 16 "include/gperf-input.txt"
@@ -164,7 +164,7 @@ function_lookup (register const char *str, register unsigned int len)
 #line 21 "include/gperf-input.txt"
       {"mumble", mumble},
 #line 18 "include/gperf-input.txt"
-      {"help", list},
+      {"help", help},
 #line 23 "include/gperf-input.txt"
       {"github", github}
     };

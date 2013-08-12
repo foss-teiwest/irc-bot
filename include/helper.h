@@ -19,9 +19,8 @@ struct config_options {
 		int channels_set;
 		char *channels[MAXCHANS];
 	} ch;
-	char *github_repo;
 	char *bot_version;
-	char *test_dir;
+	char *github_repo;
 	bool verbose;
 };
 
@@ -51,8 +50,9 @@ char **extract_params(char *msg, int *argc);
 int get_int(const char *num, int max);
 
 // Run the program (and it's arguments) specified in cmd and print the result in dest
-void print_cmd_output(Irc server, const char *dest, const char *cmd);
+void print_cmd_output(Irc server, const char *dest, const char *cmd, char *args[]);
 
+// Parse json config and set values read to the cfg global struct
 void parse_config(void);
 
 // Convert string's encoding from ISO 8859-7 to UTF-8

@@ -11,6 +11,7 @@
 #include "bot.h"
 #include "curl.h"
 
+
 struct irc_type {
 	int sock;
 	char address[ADDRLEN];
@@ -239,7 +240,7 @@ void close_write(void) {
 	if (server->sock < 0)
 		exit_msg("Failed to open file");
 
-	print_cmd_output(server, "#troll", "echo rofl");
+	print_cmd_output(server, "#troll", "echo", (char *[]) { "echo, rofl" });
 	lseek(server->sock, 0, SEEK_SET);
 	read(server->sock, buf, IRCLEN);
 	buf[strlen(buf) - 2] = '\0';

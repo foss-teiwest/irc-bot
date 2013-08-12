@@ -4,17 +4,14 @@
 	"nick": "fossbot",
 	"nick_pwd": "xxxxxxxx",
 	"user": "bot",
-	"channels": [ "#foss-teimes", "#fossbot" ],
+	"channels": [ "#foss-teimes" ],
 
-	// Set to false to mute all messages
+	// Set to false to only show errors
 	"verbose": true,
-
-	// Default repo to substitute when not provided
-	"github_repo": "foss-teimes",
 
 	// String to reply on ctcp version
 	"bot_version": "foss-tesyd bot",
 
-	// Where to find the test input files (only for running tests)
-	"test_dir": "file:///home/free/programming/c/irc-bot/test-files/"
+	// Default repo to substitute when not provided for the github command
+	"github_repo": "foss-teimes"
 }

@@ -5,8 +5,7 @@
 
 #define MAXCOMMITS   10
 #define MAXPINGCOUNT 10
-#define REPOLEN      60
-#define CMDLEN       200
+#define REPOLEN      80
 
 // Irc color codes
 #define RESET   "\x03"
@@ -44,7 +43,7 @@ void mumble(Irc server, Parsed_data pdata);
 void bot_fail(Irc server, Parsed_data pdata);
 
 // Print available commands
-void list(Irc server, Parsed_data pdata);
+void help(Irc server, Parsed_data pdata);
 
 // Print latest repo commits
 void github(Irc server, Parsed_data pdata);

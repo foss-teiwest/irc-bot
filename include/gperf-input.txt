@@ -15,8 +15,8 @@ struct function_list;
 "PRIVMSG", irc_privmsg
 "NOTICE", irc_notice
 "KICK", irc_kick
-"help", list
-"list", list
+"help", help
+"list", help
 "fail", bot_fail
 "mumble", mumble
 "url", url
