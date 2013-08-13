@@ -203,18 +203,20 @@ void parse_config(void) {
 	if ((val   = yajl_tree_get(yajl_root, (const char *[]) { "user", NULL },     yajl_t_string)) == NULL) exit_msg("user: missing / wrong type");
 	cfg.user   = YAJL_GET_STRING(val);
 
-	if ((val        = yajl_tree_get(yajl_root, (const char *[]) { "nick_pwd", NULL },    yajl_t_string)) == NULL) exit_msg("nick_pwd: missing / wrong type");
+	if ((val        = yajl_tree_get(yajl_root, (const char *[]) { "nick_pwd", NULL },     yajl_t_string)) == NULL) exit_msg("nick_pwd: missing / wrong type");
 	cfg.nick_pwd    = YAJL_GET_STRING(val);
-	if ((val        = yajl_tree_get(yajl_root, (const char *[]) { "bot_version", NULL }, yajl_t_string)) == NULL) exit_msg("bot_version: missing / wrong type");
+	if ((val        = yajl_tree_get(yajl_root, (const char *[]) { "bot_version", NULL },  yajl_t_string)) == NULL) exit_msg("bot_version: missing / wrong type");
 	cfg.bot_version = YAJL_GET_STRING(val);
-	if ((val        = yajl_tree_get(yajl_root, (const char *[]) { "github_repo", NULL }, yajl_t_string)) == NULL) exit_msg("github_repo: missing / wrong type");
+	if ((val        = yajl_tree_get(yajl_root, (const char *[]) { "github_repo", NULL },  yajl_t_string)) == NULL) exit_msg("github_repo: missing / wrong type");
 	cfg.github_repo = YAJL_GET_STRING(val);
+	if ((val        = yajl_tree_get(yajl_root, (const char *[]) { "quit_message", NULL }, yajl_t_string)) == NULL) exit_msg("quit_message: missing / wrong type");
+	cfg.quit_msg    = YAJL_GET_STRING(val);
 
 	if ((val  = yajl_tree_get(yajl_root, (const char *[]) { "verbose", NULL }, yajl_t_any)) == NULL) exit_msg("verbose: missing");
 	if (val->type != yajl_t_true && val->type != yajl_t_false) exit_msg("verbose: wrong type");
 	cfg.verbose = YAJL_IS_TRUE(val);
 
-	if ((array = yajl_tree_get(yajl_root, (const char *[]) { "channels", NULL }, yajl_t_array)) == NULL)  exit_msg("channels: missing / wrong type");
+	if ((array = yajl_tree_get(yajl_root, (const char *[]) { "channels", NULL }, yajl_t_array)) == NULL) exit_msg("channels: missing / wrong type");
 	cfg.ch.channels_set = YAJL_GET_ARRAY(array)->len;
 
 	if (cfg.ch.channels_set > MAXCHANS) {
@@ -224,6 +226,14 @@ void parse_config(void) {
 	for (i = 0; i < cfg.ch.channels_set; i++) {
 		val = YAJL_GET_ARRAY(array)->values[i];
 		cfg.ch.channels[i] = YAJL_GET_STRING(val);
+	}
+
+	if ((array = yajl_tree_get(yajl_root, (const char *[]) { "fail_quotes", NULL }, yajl_t_array)) == NULL) exit_msg("fail_quotes: missing / wrong type");
+	cfg.q.quote_count = YAJL_GET_ARRAY(array)->len;
+
+	for (i = 0; i < cfg.q.quote_count; i++) {
+		val = YAJL_GET_ARRAY(array)->values[i];
+		cfg.q.quotes[i] = YAJL_GET_STRING(val);
 	}
 }
 

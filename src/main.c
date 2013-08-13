@@ -20,7 +20,7 @@ int main(void) {
 	while (parse_line(freenode) > 0);
 
 	// If we reach here, it means we got disconnected from server. Exit with error (1)
-	quit_server(freenode, "poulos");
+	quit_server(freenode, cfg.quit_msg);
 
 	return 0;
 }

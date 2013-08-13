@@ -11,18 +11,6 @@
 #include "curl.h"
 #include "helper.h"
 
-// Quotes are seperated by commas. Multiline quote sentences must be seperated by the newline character (\n)
-// Newline char is optional if the sentence is the last OR the only one from a quote
-// If a color is provided to a quote starting with a number, a space must be added to avoid messing with the escape sequence
-static const char *quotes[] = {
-	TEAL "I mpala einai strogili\n" TEAL "to gipedo einai paralilogramo\n" TEAL "11 autoi, 11 emeis sinolo 23\n" TEAL "kai tha boun kai 3 allages apo kathe omada sinolo 29!",
-	LTCYAN "fail indeed",
-	PINK "fail den les tipota",
-	LTGREEN "popo, ti eipes twra\n" LTGREEN "emeina me anoixto to... " RED "programma",
-	ORANGE "Exeis dei file I/O me threads sto linux?",
-	ORANGE "Kai ta Ubuntu kala einai",
-	LTCYAN "kapote hmoun fanatikos tis micro$oft"
-};
 
 void help(Irc server, Parsed_data pdata) {
 
@@ -31,18 +19,21 @@ void help(Irc server, Parsed_data pdata) {
 
 void bot_fail(Irc server, Parsed_data pdata) {
 
-	int r;
+	int r, clr_r;
 	size_t len, maxlen, sum = 0;
+	char quote[QUOTELEN];
 
 	// Make sure the seed is different even if we call the command twice in a second
 	srand(time(NULL) + getpid());
-	r = rand() % SIZE(quotes);
-	maxlen = strlen(quotes[r]);
+	r  = rand() % cfg.q.quote_count;
+	clr_r = rand() % COLORCOUNT;
+	maxlen = strlen(cfg.q.quotes[r]);
 
 	// Pick a random entry from the read-only quotes array and print it.
 	// We use indexes and lengths since we can't make changes to the array
-	while (sum < maxlen && (len = strcspn(quotes[r] + sum, "\n")) > 0) {
-		send_message(server, pdata.target, "%.*s", (int) len, quotes[r] + sum);
+	while (sum < maxlen && (len = strcspn(cfg.q.quotes[r] + sum, "\n")) > 0) {
+		snprintf(quote, QUOTELEN, COLOR "%d%.*s", clr_r, (int) len, cfg.q.quotes[r] + sum);
+		send_message(server, pdata.target, "%s", quote);
 		sum += ++len;
 		sleep(1);
 	}
@@ -170,7 +161,7 @@ void ping(Irc server, Parsed_data pdata) {
 		goto cleanup;
 
 	if (argc == 2)
-		count = get_int(argv[1], MAXPINGCOUNT);
+		count = get_int(argv[1], MAXPINGS);
 
 	sprintf(count_str, "%d", count);
 	print_cmd_output(server, pdata.target, cmd, (char *[]) { cmd, "-c", count_str, argv[0], NULL });

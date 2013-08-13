@@ -5,6 +5,7 @@
 #include "irc.h"
 
 #define STARTSIZE 5
+#define MAXQUOTES 20
 #define LINELEN   300
 #define CONFSIZE  4096
 #define CONFPATH "config.json"
@@ -21,6 +22,11 @@ struct config_options {
 	} ch;
 	char *bot_version;
 	char *github_repo;
+	char *quit_msg;
+	struct {
+		int quote_count;
+		char *quotes[MAXQUOTES];
+	} q;
 	bool verbose;
 };
 
