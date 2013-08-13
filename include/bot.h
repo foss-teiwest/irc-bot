@@ -6,7 +6,7 @@
 #define MAXCOMMITS 10
 #define MAXPINGS   10
 #define REPOLEN    80
-#define QUOTELEN   80
+#define QUOTELEN   150
 
 // Irc color codes
 #define COLOR   RESET

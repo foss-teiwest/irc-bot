@@ -23,10 +23,13 @@ void bot_fail(Irc server, Parsed_data pdata) {
 	size_t len, maxlen, sum = 0;
 	char quote[QUOTELEN];
 
+	if (cfg.q.quote_count == 0)
+		return;
+
 	// Make sure the seed is different even if we call the command twice in a second
 	srand(time(NULL) + getpid());
-	r  = rand() % cfg.q.quote_count;
-	clr_r = rand() % COLORCOUNT;
+	r      = rand() % cfg.q.quote_count;
+	clr_r  = rand() % COLORCOUNT;
 	maxlen = strlen(cfg.q.quotes[r]);
 
 	// Pick a random entry from the read-only quotes array and print it.
