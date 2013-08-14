@@ -53,7 +53,7 @@ char **extract_params(char *msg, int *argc);
 int get_int(const char *num, int max);
 
 // Run the program (and it's arguments) specified in cmd and print the result in dest
-void print_cmd_output(Irc server, const char *dest, const char *cmd, char *args[]);
+void print_cmd_output(Irc server, const char *dest, char *cmd_args[]);
 
 // Parse json config and set values read to the cfg global struct
 void parse_config(void);

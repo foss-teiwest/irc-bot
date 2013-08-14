@@ -102,7 +102,7 @@ int join_channel(Irc server, const char *channel) {
 	return 1;
 }
 
-ssize_t parse_line(Irc server) {
+ssize_t parse_irc_line(Irc server) {
 
 	char *test_char, line[IRCLEN + 1];
 	Parsed_data pdata;

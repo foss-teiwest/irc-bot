@@ -39,7 +39,7 @@ void set_channels(Irc server, char *channels[], int channels_set);
 int join_channel(Irc server, const char *channel);
 
 // Read line from server, split it into Parsed_data structure elements and launch the function associated with IRC commands
-ssize_t parse_line(Irc server);
+ssize_t parse_irc_line(Irc server);
 
 // Parse channel / private messages and launch the function that matches the BOT command (must begin with '!') or CTCP request.
 // Info available in pdata: nick, command, message (the rest message after command, including target)

@@ -167,7 +167,7 @@ void ping(Irc server, Parsed_data pdata) {
 		count = get_int(argv[1], MAXPINGS);
 
 	sprintf(count_str, "%d", count);
-	print_cmd_output(server, pdata.target, cmd, (char *[]) { cmd, "-c", count_str, argv[0], NULL });
+	print_cmd_output(server, pdata.target, (char *[]) { cmd, "-c", count_str, argv[0], NULL });
 
 cleanup:
 	free(argv);
@@ -193,7 +193,7 @@ void traceroute(Irc server, Parsed_data pdata) {
 		send_message(server, pdata.target, "Printing results privately to %s", pdata.sender);
 
 	// Limit max hops to 18
-	print_cmd_output(server, pdata.sender, cmd, (char *[]) { cmd, "-m 18", argv[0], NULL });
+	print_cmd_output(server, pdata.sender, (char *[]) { cmd, "-m 18", argv[0], NULL });
 
 cleanup:
 	free(argv);
@@ -211,7 +211,7 @@ void dns(Irc server, Parsed_data pdata) {
 	if (strchr(argv[0], '.') == NULL)
 		goto cleanup;
 
-	print_cmd_output(server, pdata.target, "nslookup", (char *[]) { "nslookup", argv[0], NULL });
+	print_cmd_output(server, pdata.target, (char *[]) { "nslookup", argv[0], NULL });
 
 cleanup:
 	free(argv);
@@ -219,5 +219,5 @@ cleanup:
 
 void uptime(Irc server, Parsed_data pdata) {
 
-	print_cmd_output(server, pdata.target, "uptime", (char *[]) { "uptime", NULL });
+	print_cmd_output(server, pdata.target, (char *[]) { "uptime", NULL });
 }

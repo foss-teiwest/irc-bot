@@ -95,7 +95,7 @@ int get_int(const char *num, int max) {
 		return converted_num;
 }
 
-void print_cmd_output(Irc server, const char *dest, const char *cmd, char *args[]) {
+void print_cmd_output(Irc server, const char *dest, char *cmd_args[]) {
 
 	FILE *prog;
 	char line[LINELEN];
@@ -121,7 +121,7 @@ void print_cmd_output(Irc server, const char *dest, const char *cmd, char *args[
 		}
 		close(fd[1]); // We don't need this anymore
 
-		execvp(cmd, args);
+		execvp(cmd_args[0], cmd_args);
 		perror("exec failed"); // Exec functions return only on error
 		return;
 	}
