@@ -32,9 +32,6 @@ struct config_options {
 
 extern struct config_options cfg;
 
-// Returns array size. Warning: must ONLY be used for local arrays (same scope) allocated in stack
-#define SIZE(x) (sizeof(x) / sizeof(x[0]))
-
 // Allocate memory and print the caller function on failure (before exiting)
 #define malloc_w(x) _malloc_w((x), __func__)
 void *_malloc_w(size_t size, const char *caller);

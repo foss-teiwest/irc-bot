@@ -280,7 +280,6 @@ void irc_kick(Irc server, Parsed_data pdata) {
 	if (strncmp(victim, server->nick, strlen(server->nick) + 1) == 0) {
 		sleep(5);
 		send_channel_command(server, pdata.target, NULL);
-		sleep(1);
 		send_message(server, pdata.target, "%s magkas...", pdata.sender);
 	}
 }
