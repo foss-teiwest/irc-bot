@@ -3,6 +3,7 @@
 
 #include "irc.h"
 #include "bot.h"
+#include "mpd.h"
 
 typedef void (*func_ptr)(Irc, Parsed_data);
 typedef const struct function_list {

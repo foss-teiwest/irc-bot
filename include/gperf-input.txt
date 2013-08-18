@@ -25,3 +25,8 @@ struct function_list;
 "dns", dns
 "traceroute", traceroute
 "uptime", uptime
+"play", play
+"playlist", playlist
+"history", history
+"current", current
+"next", next
