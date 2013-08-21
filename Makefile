@@ -41,6 +41,8 @@ OBJFILES-TEST  = $(addprefix $(OUTDIR)/, $(TMPFILES-TEST))
 OBJFILES-TEST += $(OBJFILES)
 OBJFILES-TEST := $(filter-out %/main.o %.check, $(OBJFILES-TEST))
 
+all: $(OUTDIR)/$(PROGRAM) $(OUTDIR)/json_value
+
 # Build main program
 $(OUTDIR)/$(PROGRAM): $(OBJFILES)
 	$(CC) $(LDFLAGS) $^ -o $@ $(LDLIBS)
@@ -52,6 +54,9 @@ $(SRCDIR)/gperf.c: $(INCLDIR)/gperf-input.txt
 # Generic rule to build all source files needed for main
 $(OUTDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) -I$(INCLDIR) -c $< -o $@
+
+$(OUTDIR)/json_value: scripts/json_value.c
+	gcc -s -march=native -O2 -pipe -Wall -Wextra -std=gnu99 -pedantic $< -o $@ -lyajl
 
 # Run test program and produce coverage stats in html
 test: $(OUTDIR)/$(PROGRAM)-test

@@ -18,7 +18,7 @@ void play(Irc server, Parsed_data pdata) {
 	if (strchr(argv[0], '.') == NULL)
 		goto cleanup;
 
-	print_cmd_output(server, pdata.target, (char *[]) { SCRIPTDIR "youtube2mp3.sh", argv[0], cfg.mpd_database, NULL });
+	print_cmd_output(server, pdata.target, (char *[]) { SCRIPTDIR "youtube2mp3.sh", cfg.mpd_database, argv[0], NULL });
 
 cleanup:
 	free(argv);
@@ -44,5 +44,5 @@ void current(Irc server, Parsed_data pdata) {
 
 void next(Irc server, Parsed_data pdata) {
 
-	print_cmd_output_unsafe(server, pdata.target, "mpc -q next");
+	print_cmd_output_unsafe(server, pdata.target, "mpc -q next && mpc current |" REMOVE_EXTENSION);
 }
