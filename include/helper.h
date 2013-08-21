@@ -55,6 +55,8 @@ int get_int(const char *num, int max);
 
 // Run the program (and it's arguments) specified in cmd and print the result in dest
 void print_cmd_output(Irc server, const char *dest, char *cmd_args[]);
+
+// Do not pass user input here. Commands are interpeted by the shell so it is prone to exploits
 void print_cmd_output_unsafe(Irc server, const char *dest, const char *cmd);
 
 // Parse json config and set values read to the cfg global struct

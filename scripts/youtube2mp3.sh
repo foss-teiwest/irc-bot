@@ -3,7 +3,7 @@
 DIR=$1
 URL=$2
 
-~/bin/youtube-dl              \
+~/bin/youtube-dl        \
 -q                      \
 --skip-download         \
 --playlist-end 1        \
@@ -35,7 +35,7 @@ if [ "$DURATION" -gt 480 ]; then
 	exit
 fi
 
-~/bin/youtube-dl              \
+~/bin/youtube-dl        \
 -q                      \
 --playlist-end 1        \
 --max-filesize 100M     \
