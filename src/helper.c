@@ -216,13 +216,13 @@ void parse_config(void) {
 
 	free(buf);
 
-	if ((val   = yajl_tree_get(yajl_root, (const char *[]) { "server", NULL },   yajl_t_string)) == NULL) exit_msg("server: missing / wrong type");
+	if ((val   = yajl_tree_get(yajl_root, (const char *[]) { "server", NULL }, yajl_t_string)) == NULL) exit_msg("server: missing / wrong type");
 	cfg.server = YAJL_GET_STRING(val);
-	if ((val   = yajl_tree_get(yajl_root, (const char *[]) { "port", NULL },     yajl_t_number)) == NULL) exit_msg("port: missing / wrong type");
+	if ((val   = yajl_tree_get(yajl_root, (const char *[]) { "port", NULL },   yajl_t_number)) == NULL) exit_msg("port: missing / wrong type");
 	cfg.port   = YAJL_GET_NUMBER(val);
-	if ((val   = yajl_tree_get(yajl_root, (const char *[]) { "nick", NULL },     yajl_t_string)) == NULL) exit_msg("nick: missing / wrong type");
+	if ((val   = yajl_tree_get(yajl_root, (const char *[]) { "nick", NULL },   yajl_t_string)) == NULL) exit_msg("nick: missing / wrong type");
 	cfg.nick   = YAJL_GET_STRING(val);
-	if ((val   = yajl_tree_get(yajl_root, (const char *[]) { "user", NULL },     yajl_t_string)) == NULL) exit_msg("user: missing / wrong type");
+	if ((val   = yajl_tree_get(yajl_root, (const char *[]) { "user", NULL },   yajl_t_string)) == NULL) exit_msg("user: missing / wrong type");
 	cfg.user   = YAJL_GET_STRING(val);
 
 	if ((val         = yajl_tree_get(yajl_root, (const char *[]) { "nick_pwd", NULL },     yajl_t_string)) == NULL) exit_msg("nick_pwd: missing / wrong type");

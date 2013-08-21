@@ -14,7 +14,7 @@
 
 void help(Irc server, Parsed_data pdata) {
 
-	send_message(server, pdata.target, "list / help, url, mumble, fail, github, ping, traceroute, dns, uptime");
+	send_message(server, pdata.target, "%s", "list / help, url, mumble, fail, github, ping, traceroute, dns, uptime");
 }
 
 void bot_fail(Irc server, Parsed_data pdata) {
@@ -96,7 +96,7 @@ void mumble(Irc server, Parsed_data pdata) {
 
 	user_list = fetch_mumble_users();
 	if (user_list != NULL) {
-		send_message(server, pdata.target, user_list);
+		send_message(server, pdata.target, "%s", user_list);
 		free(user_list);
 	}
 }

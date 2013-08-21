@@ -13,13 +13,12 @@
 #include "gperf.h"
 #include "helper.h"
 
-// Wrapper functions. If VA_ARGS is NULL then ':' will be ommited. Do not call _send_irc_command() directly
-// Example: "send_nick_command(server, "newnick_", NULL);" will produce "NICK newnick_"
-#define send_nick_command(server, target, ...)    _send_irc_command(server, "NICK", target, __VA_ARGS__)
-#define send_user_command(server, target, ...)    _send_irc_command(server, "USER", target, __VA_ARGS__)
-#define send_channel_command(server, target, ...) _send_irc_command(server, "JOIN", target, __VA_ARGS__)
-#define send_ping_command(server, target, ...)    _send_irc_command(server, "PONG", target, __VA_ARGS__)
-#define send_quit_command(server, target, ...)    _send_irc_command(server, "QUIT", target, __VA_ARGS__)
+// Wrapper functions. If VA_ARGS is NULL (last 2 args) then ':' will be ommited. Do not call _send_irc_command() directly
+#define send_nick_command(server, target)    _send_irc_command(server, "NICK", target, NULL, NULL)
+#define send_user_command(server, target)    _send_irc_command(server, "USER", target, NULL, NULL)
+#define send_channel_command(server, target) _send_irc_command(server, "JOIN", target, NULL, NULL)
+#define send_ping_command(server, target)    _send_irc_command(server, "PONG", target, NULL, NULL)
+#define send_quit_command(server, target)    _send_irc_command(server, "QUIT", "", target, NULL)
 
 struct irc_type {
 	int sock;
@@ -63,7 +62,7 @@ void set_nick(Irc server, const char *nick) {
 
 	assert(nick != NULL && "Error in set_nick");
 	strncpy(server->nick, nick, NICKLEN);
-	send_nick_command(server, server->nick, NULL);
+	send_nick_command(server, server->nick);
 }
 
 void set_user(Irc server, const char *user) {
@@ -74,7 +73,7 @@ void set_user(Irc server, const char *user) {
 	strncpy(server->user, user, USERLEN);
 
 	snprintf(user_with_flags, USERLEN * 2 + 6, "%s 0 * :%s", server->user, server->user);
-	send_user_command(server, user_with_flags, NULL);
+	send_user_command(server, user_with_flags);
 }
 
 void set_channels(Irc server, char *channels[], int channels_set) {
@@ -94,10 +93,10 @@ int join_channel(Irc server, const char *channel) {
 
 	if (channel == NULL) {
 		for (i = 0; i < server->ch.channels_set; i++)
-			send_channel_command(server, server->ch.channels[i], NULL);
+			send_channel_command(server, server->ch.channels[i]);
 		return server->ch.channels_set;
 	}
-	send_channel_command(server, channel, NULL);
+	send_channel_command(server, channel);
 
 	return 1;
 }
@@ -124,7 +123,7 @@ ssize_t parse_irc_line(Irc server) {
 	if (strncmp(line, "PING", 4) == 0) {
 		test_char = strrchr(line, '\r');
 		*test_char = '\0';
-		send_ping_command(server, "", line + 6);
+		send_ping_command(server, line + 5);
 		return n;
 	}
 	// Store the sender of the message / server command without the leading ':'.
@@ -279,19 +278,22 @@ void irc_kick(Irc server, Parsed_data pdata) {
 	// We check len + 1 (hit null char) to avoid matching extra chars after our nick
 	if (strncmp(victim, server->nick, strlen(server->nick) + 1) == 0) {
 		sleep(5);
-		send_channel_command(server, pdata.target, NULL);
+		send_channel_command(server, pdata.target);
 		send_message(server, pdata.target, "%s magkas...", pdata.sender);
 	}
 }
 
-void _send_irc_command(Irc server, const char *type, const char *target, ...) {
+void _send_irc_command(Irc server, const char *type, const char *target, const char *format, ...) {
 
 	va_list args;
 	char msg[IRCLEN - CHANLEN], irc_msg[IRCLEN];
 
-	va_start(args, target);
-	vsnprintf(msg, IRCLEN - CHANLEN, va_arg(args, char *), args);
-	snprintf(irc_msg, IRCLEN, "%s %s %s%s\r\n", type, target, (*msg ? ":" : ""), msg);
+	va_start(args, format);
+	vsnprintf(msg, IRCLEN - CHANLEN, format, args);
+	if (*msg)
+		snprintf(irc_msg, IRCLEN, "%s %s :%s\r\n", type, target, msg);
+	else
+		snprintf(irc_msg, IRCLEN, "%s %s\r\n", type, target);
 
 	// Send message & print it on stdout
 	if (sock_write(server->sock, irc_msg, strlen(irc_msg)) < 0)
@@ -306,7 +308,7 @@ void _send_irc_command(Irc server, const char *type, const char *target, ...) {
 void quit_server(Irc server, const char *msg) {
 
 	assert(msg != NULL && "Error in quit_server");
-	send_quit_command(server, "", msg);
+	send_quit_command(server, msg);
 
 	if (close(server->sock) < 0)
 		perror("close");
