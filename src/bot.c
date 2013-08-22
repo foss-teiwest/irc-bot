@@ -219,5 +219,5 @@ cleanup:
 
 void uptime(Irc server, Parsed_data pdata) {
 
-	print_cmd_output(server, pdata.target, (char *[]) { "uptime", NULL });
+	print_cmd_output_unsafe(server, pdata.target, "uptime");
 }

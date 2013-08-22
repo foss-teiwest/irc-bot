@@ -9,11 +9,11 @@ URL=$2
 --playlist-end 1        \
 --write-info-json       \
 --max-quality 22 "$URL" \
--o "song"
+-o "$DIR/song"
 
-TITLE=`   cat song.info.json | bin/json_value fulltitle`
-DURATION=`cat song.info.json | bin/json_value duration`
-rm "song".info.json
+TITLE=`   cat $DIR/song.info.json | bin/json_value fulltitle`
+DURATION=`cat $DIR/song.info.json | bin/json_value duration`
+rm "$DIR/song".info.json
 
 print_song() {
 	QUEUESIZE=`mpc playlist | wc -l`
