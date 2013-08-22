@@ -10,10 +10,17 @@ LDLIBS   = -lcurl -lyajl
 CPPFLAGS = -D_GNU_SOURCE
 CFLAGS-test := $(CFLAGS)
 
+# Detect CPU architecture
+ifeq "$(shell uname -m)" "x86_64"
+	ARCH = x86-64
+else
+	ARCH = i686
+endif
+
 # Disable assertions, enable compiler optimizations and strip binary for "release" rule
 ifeq "$(MAKECMDGOALS)" "release"
 	CPPFLAGS += -DNDEBUG
-	CFLAGS   += -march=native -O2 -pipe
+	CFLAGS   += -march=$(ARCH) -mtune=generic -O2 -pipe
 	CFLAGS   := $(filter-out -g, $(CFLAGS))
 	LDFLAGS  = -s
 endif
@@ -56,7 +63,7 @@ $(OUTDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) -I$(INCLDIR) -c $< -o $@
 
 $(OUTDIR)/json_value: scripts/json_value.c
-	gcc -s -march=native -O2 -pipe -Wall -Wextra -std=gnu99 -pedantic $< -o $@ -lyajl
+	gcc $(LDFLAGS) -march=$(ARCH) -mtune=generic -O2 -pipe $(CFLAGS) $< -o $@ -lyajl
 
 # Run test program and produce coverage stats in html
 test: $(OUTDIR)/$(PROGRAM)-test
