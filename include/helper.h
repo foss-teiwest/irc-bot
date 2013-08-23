@@ -7,6 +7,7 @@
 #define STARTSIZE 5
 #define MAXQUOTES 20
 #define LINELEN   300
+#define HOMELEN   80
 #define CONFSIZE  4096
 #define CONFPATH "config.json"
 

@@ -203,7 +203,7 @@ cleanup:
 
 void parse_config(void) {
 
-	char errbuf[1024], *buf = NULL;
+	char errbuf[1024], *buf = NULL, *home;
 	yajl_val val, array;
 	int i;
 
@@ -214,7 +214,7 @@ void parse_config(void) {
 	if (yajl_root == NULL)
 		exit_msg("%s", errbuf);
 
-	free(buf);
+	free(buf); // We don't need this anymore
 
 	if ((val   = yajl_tree_get(yajl_root, (const char *[]) { "server", NULL }, yajl_t_string)) == NULL) exit_msg("server: missing / wrong type");
 	cfg.server = YAJL_GET_STRING(val);
@@ -235,6 +235,12 @@ void parse_config(void) {
 	cfg.quit_msg     = YAJL_GET_STRING(val);
 	if ((val         = yajl_tree_get(yajl_root, (const char *[]) { "mpd_database", NULL }, yajl_t_string)) == NULL) exit_msg("mpd_database: missing / wrong type");
 	cfg.mpd_database = YAJL_GET_STRING(val);
+
+	if (cfg.mpd_database[0] == '~') {
+		home = malloc_w(HOMELEN);
+		snprintf(home, HOMELEN, "%s%s", getenv("HOME"), cfg.mpd_database + 1);
+		cfg.mpd_database = home;
+	}
 
 	if ((val  = yajl_tree_get(yajl_root, (const char *[]) { "verbose", NULL }, yajl_t_any)) == NULL) exit_msg("verbose: missing");
 	if (val->type != yajl_t_true && val->type != yajl_t_false) exit_msg("verbose: wrong type");
