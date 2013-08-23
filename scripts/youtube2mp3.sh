@@ -8,18 +8,18 @@ URL=`echo $2 | grep -o "^[^&]*"`
 --skip-download         \
 --write-info-json       \
 --max-quality 22 "$URL" \
--o $DIR/song
+-o "$DIR"/song
 
-TITLE=`cat $DIR/song.info.json | bin/json_value fulltitle`
-DURATION=`cat $DIR/song.info.json | bin/json_value duration`
-rm $DIR/song.info.json
+TITLE=`cat "$DIR"/song.info.json | bin/json_value fulltitle`
+DURATION=`cat "$DIR"/song.info.json | bin/json_value duration`
+rm "$DIR"/song.info.json
 
 print_song() {
 	QUEUESIZE=`mpc playlist | wc -l`
 	echo "♪ $TITLE ♪ queued after `expr $QUEUESIZE - 1` song(s)..."
 }
 
-if [ -f $DIR/"$TITLE".mp3 ]; then
+if [ -f "$DIR"/"$TITLE".mp3 ]; then
 	mpc add "$TITLE".mp3 && mpc -q play
 	if [ $? -eq 0 ]; then
 		print_song
@@ -41,7 +41,7 @@ fi
 --audio-format mp3      \
 --audio-quality 192k    \
 --max-quality 22 "$URL" \
--o $DIR/"$TITLE"."%(ext)s"
+-o "$DIR"/"$TITLE"."%(ext)s"
 
 mpc -q update --wait && mpc add "$TITLE".mp3 && mpc -q play
 if [ $? -eq 0 ]; then
