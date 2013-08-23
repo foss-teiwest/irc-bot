@@ -10,7 +10,7 @@ URL=`echo $2 | grep -o "^[^&]*"`
 --max-quality 22 "$URL" \
 -o $DIR/song
 
-TITLE=`   cat $DIR/song.info.json | bin/json_value fulltitle`
+TITLE=`cat $DIR/song.info.json | bin/json_value fulltitle`
 DURATION=`cat $DIR/song.info.json | bin/json_value duration`
 rm $DIR/song.info.json
 

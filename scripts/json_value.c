@@ -3,7 +3,7 @@
 
 int main(int argc, char *argv[]) {
 
-	char buf[4096], errbuf[1024], *result;
+	char buf[8192], errbuf[1024], *result;
 	yajl_val root, val;
 	size_t n;
 
