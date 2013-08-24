@@ -9,7 +9,6 @@
 #define LINELEN   300
 #define HOMELEN   80
 #define CONFSIZE  4096
-#define CONFPATH "config.json"
 
 struct config_options {
 	char *server;
@@ -61,7 +60,7 @@ void print_cmd_output(Irc server, const char *dest, char *cmd_args[]);
 void print_cmd_output_unsafe(Irc server, const char *dest, const char *cmd);
 
 // Parse json config and set values read to the cfg global struct
-void parse_config(void);
+void parse_config(const char *path);
 
 // Convert string's encoding from ISO 8859-7 to UTF-8
 // Return value must be freed to avoid memory leak

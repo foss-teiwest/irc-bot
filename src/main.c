@@ -2,11 +2,17 @@
 #include "irc.h"
 #include "helper.h"
 
-int main(void) {
+int main(int argc, char *argv[]) {
 
 	Irc freenode;
 
-	parse_config();
+	if (argc > 2) {
+		fprintf(stderr, "Usage: %s [path/to.config]\n", argv[0]);
+		return 1;
+	} else if (argc == 2)
+		parse_config(argv[1]);
+	else
+		parse_config("config.json");
 
 	freenode = connect_server(cfg.server, cfg.port);
 	if (freenode == NULL)

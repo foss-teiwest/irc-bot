@@ -201,14 +201,14 @@ cleanup:
 	return n;
 }
 
-void parse_config(void) {
+void parse_config(const char *path) {
 
 	char errbuf[1024], *buf = NULL, *home;
 	yajl_val val, array;
 	int i;
 
-	if (read_file(&buf, CONFPATH) == 0)
-		exit_msg(CONFPATH);
+	if (read_file(&buf, path) == 0)
+		exit_msg(path);
 
 	yajl_root = yajl_tree_parse(buf, errbuf, sizeof(errbuf));
 	if (yajl_root == NULL)
