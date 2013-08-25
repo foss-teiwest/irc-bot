@@ -16,6 +16,7 @@ DURATION=`cat "$DIR"/song.info.json | bin/json_value duration`
 rm "$DIR"/song.info.json
 
 print_song() {
+	touch "$DIR"/"$TITLE".mp3
 	QUEUESIZE=`mpc playlist | wc -l`
 	echo "♪ $TITLE ♪ queued after `expr $QUEUESIZE - 1` song(s)..."
 }

@@ -63,10 +63,8 @@ ssize_t sock_write(int sock, const char *buf, size_t len) {
 
 	while (n_left > 0) {
 		n_sent = write(sock, buf_marker, n_left);
-		if (n_sent < 0 && errno == EINTR) { // Interrupted by signal, retry
-			n_sent = 0;
-			continue;
-		}
+		if (n_sent < 0 && errno == EAGAIN)
+			return -2;
 		else if (n_sent < 0) {
 			perror("write");
 			return -1;
@@ -86,10 +84,8 @@ ssize_t sock_write(int sock, const char *buf, size_t len) {
 	// Stores the character in byte. Returns -1 for fail, 0 if connection is closed or 1 for success
 	while (bytes_read <= 0) {
 		bytes_read = read(sock, buffer, IRCLEN);
-		if (bytes_read < 0 && errno == EINTR) { // Interrupted by signal, retry
-			bytes_read = 0;
-			continue;
-		}
+		if (bytes_read < 0 && errno == EAGAIN)
+			return -2;
 		else if (bytes_read < 0) {
 			perror("read");
 			return -1;
@@ -114,7 +110,7 @@ ssize_t sock_readline(int sock, char *line_buf, size_t len) {
 	while (n_read++ <= len) {
 		n = sock_readbyte(sock, &byte);
 		if (n < 0)
-			return -1;
+			return n;
 		else if (n == 0) { // Connection closed, return bytes read so far
 			*line_buf = '\0';
 			return n_read - 1;

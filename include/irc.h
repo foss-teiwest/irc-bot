@@ -25,6 +25,9 @@ enum irc_reply {
 	NICKNAMEINUSE = 433
 };
 
+// Returns socket from Irc struct
+int get_socket(Irc server);
+
 // Connect to the server specified and initialize curl library
 // Structure returned is allocated on the heap so it needs to be freed with quit_server()
 // Returns NULL on failure

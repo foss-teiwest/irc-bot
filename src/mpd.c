@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "irc.h"
 #include "helper.h"
 #include "mpd.h"
 
@@ -26,7 +25,7 @@ cleanup:
 
 void playlist(Irc server, Parsed_data pdata) {
 
-	print_cmd_output_unsafe(server, pdata.target, "mpc playlist |" REMOVE_EXTENSION);
+	print_cmd_output_unsafe(server, pdata.target, "mpc playlist | head |" REMOVE_EXTENSION);
 }
 
 void history(Irc server, Parsed_data pdata) {

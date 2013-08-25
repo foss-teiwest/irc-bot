@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include <stdarg.h>
-#include <sys/types.h>
 #include <assert.h>
 #include <signal.h>
 #include <curl/curl.h>
@@ -35,6 +35,11 @@ struct irc_type {
 pid_t main_pid;
 extern yajl_val yajl_root;
 
+int get_socket(Irc server) {
+
+	return server->sock;
+}
+
 Irc connect_server(const char *address, const char *port) {
 
 	Irc server = malloc_w(sizeof(*server));
@@ -47,6 +52,7 @@ Irc connect_server(const char *address, const char *port) {
 	if (server->sock < 0)
 		return NULL;
 
+	fcntl(server->sock, F_SETFL, O_NONBLOCK); // Set socket to non-blocking mode
 	curl_global_init(CURL_GLOBAL_ALL); // Initialize curl library
 	signal(SIGCHLD, SIG_IGN); // Make child processes not leave zombies behind when killed
 	main_pid = getpid(); // store our process id to help exit_msg function exit appropriately
@@ -110,10 +116,9 @@ ssize_t parse_irc_line(Irc server) {
 	ssize_t n;
 
 	// Read raw line from server. Example: ":laxanofido!~laxanofid@snf-23545.vm.okeanos.grnet.gr PRIVMSG #foss-teimes :How YA doing fossbot"
-	// If we don't receive a message within the timer set, exit program (shell script will restart it)
-	alarm(TIMEOUT);
 	n = sock_readline(server->sock, line, IRCLEN);
-	alarm(0); // Stop timer. If we reach here, reply was within limits
+	if (n <= 0)
+		return n;
 
 	if (cfg.verbose)
 		fputs(line, stdout);
@@ -296,7 +301,7 @@ void _send_irc_command(Irc server, const char *type, const char *target, const c
 		snprintf(irc_msg, IRCLEN, "%s %s\r\n", type, target);
 
 	// Send message & print it on stdout
-	if (sock_write(server->sock, irc_msg, strlen(irc_msg)) < 0)
+	if (sock_write(server->sock, irc_msg, strlen(irc_msg)) == -1)
 		exit_msg("Failed to send message");
 
 	if (cfg.verbose)

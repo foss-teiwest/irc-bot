@@ -1,11 +1,13 @@
 {
-	"server": "chat.freenode.net",
+	"server": "chat.freenode.com",
 	"port": 6667,
 	"nick": "fossbot",
 	"nick_pwd": "xxxxxxxx",
 	"user": "bot",
-	"channels": [ "#foss-teimes" ],
 	"quit_message": "segfault",
+
+	// Comma seperated list of channels
+	"channels": [ "#foss-teimes" ],
 
 	// Set to false to only show errors
 	"verbose": true,

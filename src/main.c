@@ -1,13 +1,17 @@
 #include <stdio.h>
+#include <poll.h>
 #include "irc.h"
 #include "helper.h"
 
 int main(int argc, char *argv[]) {
 
 	Irc freenode;
+	struct pollfd pfd;
+	int ready;
 
+	// Accept config path as an optional argument
 	if (argc > 2) {
-		fprintf(stderr, "Usage: %s [path/to.config]\n", argv[0]);
+		fprintf(stderr, "Usage: %s [path_to_config]\n", argv[0]);
 		return 1;
 	} else if (argc == 2)
 		parse_config(argv[1]);
@@ -22,11 +26,26 @@ int main(int argc, char *argv[]) {
 	set_user(freenode, cfg.user);
 	set_channels(freenode, cfg.ch.channels, cfg.ch.channels_set);
 
-	// Keep reading & parsing lines as long the connection is active and act on any registered actions found
-	while (parse_irc_line(freenode) > 0);
+	pfd.fd = get_socket(freenode);
+	pfd.events = POLLIN;
 
+	while ((ready = poll(&pfd, 2, TIMEOUT)) > 0) {
+		if (pfd.revents & POLLIN) {
+			while (true) { // Keep reading & parsing lines as long the connection is active and act on any registered actions found
+				if (parse_irc_line(freenode) == 0)
+					goto cleanup;
+			}
+		}
+	}
 	// If we reach here, it means we got disconnected from server. Exit with error (1)
-	quit_server(freenode, cfg.quit_msg);
+	if (ready == 0) {
+		fprintf(stderr, "%d seconds passed without getting a message, exiting...\n", TIMEOUT);
+		goto cleanup;
+	}
+	if (ready == -1)
+		perror("poll");
 
-	return 0;
+cleanup:
+	quit_server(freenode, cfg.quit_msg);
+	return 1;
 }

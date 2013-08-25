@@ -214,17 +214,17 @@ void parse_config(const char *path) {
 	if (yajl_root == NULL)
 		exit_msg("%s", errbuf);
 
-	free(buf); // We don't need this anymore
+	// Free original buffer since we have a duplicate in yajl_root now
+	free(buf);
 
-	if ((val   = yajl_tree_get(yajl_root, (const char *[]) { "server", NULL }, yajl_t_string)) == NULL) exit_msg("server: missing / wrong type");
-	cfg.server = YAJL_GET_STRING(val);
-	if ((val   = yajl_tree_get(yajl_root, (const char *[]) { "port", NULL },   yajl_t_number)) == NULL) exit_msg("port: missing / wrong type");
-	cfg.port   = YAJL_GET_NUMBER(val);
-	if ((val   = yajl_tree_get(yajl_root, (const char *[]) { "nick", NULL },   yajl_t_string)) == NULL) exit_msg("nick: missing / wrong type");
-	cfg.nick   = YAJL_GET_STRING(val);
-	if ((val   = yajl_tree_get(yajl_root, (const char *[]) { "user", NULL },   yajl_t_string)) == NULL) exit_msg("user: missing / wrong type");
-	cfg.user   = YAJL_GET_STRING(val);
-
+	if ((val         = yajl_tree_get(yajl_root, (const char *[]) { "server", NULL },       yajl_t_string)) == NULL) exit_msg("server: missing / wrong type");
+	cfg.server       = YAJL_GET_STRING(val);
+	if ((val         = yajl_tree_get(yajl_root, (const char *[]) { "port", NULL },         yajl_t_number)) == NULL) exit_msg("port: missing / wrong type");
+	cfg.port         = YAJL_GET_NUMBER(val);
+	if ((val         = yajl_tree_get(yajl_root, (const char *[]) { "nick", NULL },         yajl_t_string)) == NULL) exit_msg("nick: missing / wrong type");
+	cfg.nick         = YAJL_GET_STRING(val);
+	if ((val         = yajl_tree_get(yajl_root, (const char *[]) { "user", NULL },         yajl_t_string)) == NULL) exit_msg("user: missing / wrong type");
+	cfg.user         = YAJL_GET_STRING(val);
 	if ((val         = yajl_tree_get(yajl_root, (const char *[]) { "nick_pwd", NULL },     yajl_t_string)) == NULL) exit_msg("nick_pwd: missing / wrong type");
 	cfg.nick_pwd     = YAJL_GET_STRING(val);
 	if ((val         = yajl_tree_get(yajl_root, (const char *[]) { "bot_version", NULL },  yajl_t_string)) == NULL) exit_msg("bot_version: missing / wrong type");
@@ -236,16 +236,19 @@ void parse_config(const char *path) {
 	if ((val         = yajl_tree_get(yajl_root, (const char *[]) { "mpd_database", NULL }, yajl_t_string)) == NULL) exit_msg("mpd_database: missing / wrong type");
 	cfg.mpd_database = YAJL_GET_STRING(val);
 
+	// Expand tilde '~' by reading the HOME enviroment variable
 	if (cfg.mpd_database[0] == '~') {
 		home = malloc_w(HOMELEN);
 		snprintf(home, HOMELEN, "%s%s", getenv("HOME"), cfg.mpd_database + 1);
 		cfg.mpd_database = home;
 	}
 
+	// Only accept true or false value
 	if ((val  = yajl_tree_get(yajl_root, (const char *[]) { "verbose", NULL }, yajl_t_any)) == NULL) exit_msg("verbose: missing");
 	if (val->type != yajl_t_true && val->type != yajl_t_false) exit_msg("verbose: wrong type");
 	cfg.verbose = YAJL_IS_TRUE(val);
 
+	// Get the array of channels
 	if ((array = yajl_tree_get(yajl_root, (const char *[]) { "channels", NULL }, yajl_t_array)) == NULL) exit_msg("channels: missing / wrong type");
 	cfg.ch.channels_set = YAJL_GET_ARRAY(array)->len;
 
