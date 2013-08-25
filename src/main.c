@@ -7,6 +7,7 @@ int main(int argc, char *argv[]) {
 
 	Irc freenode;
 	struct pollfd pfd;
+	ssize_t n;
 	int ready;
 
 	// Accept config path as an optional argument
@@ -29,12 +30,12 @@ int main(int argc, char *argv[]) {
 	pfd.fd = get_socket(freenode);
 	pfd.events = POLLIN;
 
-	while ((ready = poll(&pfd, 2, TIMEOUT)) > 0) {
+	while ((ready = poll(&pfd, 1, TIMEOUT)) > 0) {
+		// Keep reading & parsing lines as long the connection is active and act on any registered actions found
 		if (pfd.revents & POLLIN) {
-			while (true) { // Keep reading & parsing lines as long the connection is active and act on any registered actions found
-				if (parse_irc_line(freenode) == 0)
-					goto cleanup;
-			}
+			while ((n = parse_irc_line(freenode)) > 0);
+			if (n != -2)
+				goto cleanup;
 		}
 	}
 	// If we reach here, it means we got disconnected from server. Exit with error (1)

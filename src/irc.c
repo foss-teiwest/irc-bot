@@ -55,6 +55,7 @@ Irc connect_server(const char *address, const char *port) {
 	fcntl(server->sock, F_SETFL, O_NONBLOCK); // Set socket to non-blocking mode
 	curl_global_init(CURL_GLOBAL_ALL); // Initialize curl library
 	signal(SIGCHLD, SIG_IGN); // Make child processes not leave zombies behind when killed
+	signal(SIGPIPE, SIG_IGN); // Handle writing on closed sockets on our own
 	main_pid = getpid(); // store our process id to help exit_msg function exit appropriately
 
 	strncpy(server->port, port, PORTLEN);

@@ -56,7 +56,7 @@ $(OUTDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) -I$(INCLDIR) -c $< -o $@
 
 $(OUTDIR)/json_value: scripts/json_value.c
-	gcc $(LDFLAGS) $(CFLAGS) $< -o $@ -lyajl
+	$(CC) $(LDFLAGS) $(CFLAGS) $< -o $@ -lyajl
 
 # Run test program and produce coverage stats in html
 test: $(OUTDIR)/$(PROGRAM)-test

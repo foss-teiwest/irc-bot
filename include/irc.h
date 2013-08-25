@@ -10,7 +10,9 @@
 #define ADDRLEN  40
 #define PORTLEN  5
 #define MAXCHANS 8
-#define TIMEOUT  360
+
+// Timeout in milliseconds for the poll function
+#define TIMEOUT  360000
 
 typedef struct irc_type *Irc;
 typedef struct {
