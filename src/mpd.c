@@ -32,7 +32,7 @@ void history(Irc server, Parsed_data pdata) {
 
 	char cmd[CMDLEN];
 
-	snprintf(cmd, CMDLEN, "ls -t1 %s | head |" REMOVE_EXTENSION, cfg.mpd_database);
+	snprintf(cmd, CMDLEN, "ls -t1 %s | head | tac |" REMOVE_EXTENSION, cfg.mpd_database);
 	print_cmd_output_unsafe(server, pdata.target, cmd);
 }
 
