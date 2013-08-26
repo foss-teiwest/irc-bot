@@ -11,7 +11,7 @@
 #include "bot.h"
 #include "curl.h"
 
-
+pid_t main_pid = 500;
 struct irc_type {
 	int sock;
 	char address[ADDRLEN];
@@ -22,6 +22,7 @@ struct irc_type {
 		int channels_set;
 		char channels[MAXCHANS][CHANLEN];
 	} ch;
+	bool isConnected;
 };
 
 Irc server;
@@ -29,7 +30,6 @@ char test_buffer[IRCLEN + 1];
 int sock, status;
 Parsed_data pdata;
 
-int join_channels(Irc server);
 ssize_t sock_readbyte(int sock, char *byte);
 size_t curl_write_memory(char *data, size_t size, size_t elements, void *membuf);
 
@@ -132,7 +132,7 @@ void close_write(void) {
 
 #test new_chan_match
 
-	set_channels(server, (char *[]) { "#trololol" }, 1);
+	join_channel(server, "#trololol");
 	ck_assert_str_eq(server->ch.channels[0], "#trololol");
 
 #test privemsg
@@ -257,7 +257,10 @@ void close_write(void) {
 	if (server->sock < 0)
 		exit_msg("Failed to open file");
 
-	set_channels(server, (char *[]) { "#foss-teimes", "#trolltown", "#noobs" }, 3);
+	server->isConnected = true;
+	join_channel(server, "#foss-teimes");
+	join_channel(server, "#trolltown");
+	join_channel(server, "#noobs");
 	i = join_channel(server, NULL);
 	ck_assert_int_eq(i, 3);
 	lseek(server->sock, 0, SEEK_SET);
@@ -265,7 +268,7 @@ void close_write(void) {
 	sock_readline(server->sock, test_buffer, IRCLEN);
 	test_buffer[strlen(test_buffer) - 2] = '\0';
 
-	ck_assert_str_eq(test_buffer, "JOIN #foss-teimes ");
+	ck_assert_str_eq(test_buffer, "JOIN #foss-teimes");
 
 	free(server);
 	close(server->sock);

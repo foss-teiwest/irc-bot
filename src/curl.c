@@ -235,7 +235,7 @@ char *get_url_title(const char *url) {
 
 	// If title string uses ISO 8859-7 encoding then convert it to UTF-8
 	// Return value must be freed to avoid memory leak
-	if(iso == true)
+	if (iso)
 		url_title = iso8859_7_to_utf8(url_title);
 	else
 		url_title = strndup(url_title, TITLELEN);

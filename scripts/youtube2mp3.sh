@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# Thomas Kapoulas <tomkap@pebkac.gr>
 
 DIR=$1
 URL=`echo $2 | grep -o "^[^&]*"`

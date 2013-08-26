@@ -5,9 +5,6 @@
 #include <fcntl.h>
 #include <stdarg.h>
 #include <assert.h>
-#include <signal.h>
-#include <curl/curl.h>
-#include <yajl/yajl_tree.h>
 #include "socket.h"
 #include "irc.h"
 #include "gperf.h"
@@ -30,15 +27,8 @@ struct irc_type {
 		int channels_set;
 		char channels[MAXCHANS][CHANLEN];
 	} ch;
+	bool isConnected;
 };
-
-pid_t main_pid;
-extern yajl_val yajl_root;
-
-int get_socket(Irc server) {
-
-	return server->sock;
-}
 
 Irc connect_server(const char *address, const char *port) {
 
@@ -53,16 +43,17 @@ Irc connect_server(const char *address, const char *port) {
 		return NULL;
 
 	fcntl(server->sock, F_SETFL, O_NONBLOCK); // Set socket to non-blocking mode
-	curl_global_init(CURL_GLOBAL_ALL); // Initialize curl library
-	signal(SIGCHLD, SIG_IGN); // Make child processes not leave zombies behind when killed
-	signal(SIGPIPE, SIG_IGN); // Handle writing on closed sockets on our own
-	main_pid = getpid(); // store our process id to help exit_msg function exit appropriately
-
-	strncpy(server->port, port, PORTLEN);
 	strncpy(server->address, address, ADDRLEN);
+	strncpy(server->port, port, PORTLEN);
 	server->ch.channels_set = 0;
+	server->isConnected = false;
 
 	return server;
+}
+
+int get_socket(Irc server) {
+
+	return server->sock;
 }
 
 void set_nick(Irc server, const char *nick) {
@@ -83,29 +74,27 @@ void set_user(Irc server, const char *user) {
 	send_user_command(server, user_with_flags);
 }
 
-void set_channels(Irc server, char *channels[], int channels_set) {
-
-	int i;
-
-	for (i = 0; i < channels_set; i++) {
-		assert(channels[i] != NULL   && "Error in set_channel");
-		assert(channels[i][0] == '#' && "Missing # in channel");
-		strncpy(server->ch.channels[server->ch.channels_set++], channels[i], CHANLEN);
-	}
-}
-
 int join_channel(Irc server, const char *channel) {
 
-	int i;
+	int i = 0;
 
-	if (channel == NULL) {
-		for (i = 0; i < server->ch.channels_set; i++)
-			send_channel_command(server, server->ch.channels[i]);
-		return server->ch.channels_set;
+	if (channel != NULL) {
+		assert(channel[0] == '#' && "Missing # in channel");
+		if (server->ch.channels_set == MAXCHANS) {
+			fprintf(stderr, "Channel limit reached (%d)\n", MAXCHANS);
+			return -1;
+		}
+		strncpy(server->ch.channels[server->ch.channels_set++], channel, CHANLEN);
+		if (server->isConnected)
+			send_channel_command(server, server->ch.channels[server->ch.channels_set - 1]);
+		return 1;
 	}
-	send_channel_command(server, channel);
 
-	return 1;
+	if (server->isConnected)
+		for (; i < server->ch.channels_set; i++)
+			send_channel_command(server, server->ch.channels[i]);
+
+	return i;
 }
 
 ssize_t parse_irc_line(Irc server) {
@@ -172,7 +161,8 @@ int numeric_reply(Irc server, int reply) {
 		strcat(server->nick, "_");
 		set_nick(server, server->nick);
 		break;
-	case ENDOFMOTD: // Join all channels registered with set_channel() after receiving MOTD
+	case ENDOFMOTD: // Join all channels set before
+		server->isConnected = true;
 		join_channel(server, NULL);
 		break;
 	}
@@ -264,6 +254,7 @@ void irc_notice(Irc server, Parsed_data pdata) {
 void irc_kick(Irc server, Parsed_data pdata) {
 
 	char *test_char, *victim;
+	int i;
 
 	// Discard hostname from nickname
 	test_char = strchr(pdata.sender, '!');
@@ -283,8 +274,16 @@ void irc_kick(Irc server, Parsed_data pdata) {
 	// Rejoin and send a message back to the one who kicked us
 	// We check len + 1 (hit null char) to avoid matching extra chars after our nick
 	if (strncmp(victim, server->nick, strlen(server->nick) + 1) == 0) {
-		sleep(5);
-		send_channel_command(server, pdata.target);
+		sleep(6);
+
+		// Find the channel we got kicked on and remove it from our list
+		// TODO verify if we actually rejoined the channel
+		for (i = 0; i < server->ch.channels_set; i++)
+			if (strcmp(pdata.target, server->ch.channels[i]) == 0)
+				break;
+
+		strncpy(server->ch.channels[i], server->ch.channels[--server->ch.channels_set], CHANLEN);
+		join_channel(server, pdata.target);
 		send_message(server, pdata.target, "%s magkas...", pdata.sender);
 	}
 }
@@ -319,7 +318,5 @@ void quit_server(Irc server, const char *msg) {
 	if (close(server->sock) < 0)
 		perror("close");
 
-	curl_global_cleanup();
-	yajl_tree_free(yajl_root);
 	free(server);
 }

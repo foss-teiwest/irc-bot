@@ -1,7 +1,8 @@
-roflNICK trololol 
-USER trololol 0 * :trololol 
-NICK _ 
+roflNICK trololol
+USER trololol 0 * :trololol
+NICK _
 QUIT  :bye
+e
 e.net
 NICK _
 QUIT :bye

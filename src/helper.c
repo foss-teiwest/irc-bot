@@ -9,12 +9,11 @@
 #include "helper.h"
 
 extern pid_t main_pid;
-yajl_val yajl_root;
 struct config_options cfg;
 
 void exit_msg(const char *format, ...) {
 
-	char buf[128];
+	char buf[EXIT_MSGLEN];
 	va_list args;
 
 	va_start(args, format);
@@ -95,7 +94,7 @@ int get_int(const char *num, int max) {
 		return converted_num;
 }
 
-void print_cmd_output(Irc server, const char *dest, char *cmd_args[]) {
+void print_cmd_output(Irc server, const char *target, char *cmd_args[]) {
 
 	FILE *prog;
 	char line[LINELEN];
@@ -137,13 +136,13 @@ void print_cmd_output(Irc server, const char *dest, char *cmd_args[]) {
 		len = strlen(line) - 1;
 		if (len > 1) { // Only print if line is not empty
 			line[len] = '\0'; // Remove last newline char (\n) since we add it inside send_message()
-			send_message(server, dest, "%s", line); // The %s is needed to avoid interpeting format specifiers in output
+			send_message(server, target, "%s", line); // The %s is needed to avoid interpeting format specifiers in output
 		}
 	}
 	fclose(prog);
 }
 
-void print_cmd_output_unsafe(Irc server, const char *dest, const char *cmd) {
+void print_cmd_output_unsafe(Irc server, const char *target, const char *cmd) {
 
 	FILE *prog;
 	char line[LINELEN];
@@ -159,7 +158,7 @@ void print_cmd_output_unsafe(Irc server, const char *dest, const char *cmd) {
 		len = strlen(line) - 1;
 		if (len > 1) { // Only print if line is not empty
 			line[len] = '\0'; // Remove last newline char (\n) since we add it inside send_message()
-			send_message(server, dest, "%s", line); // The %s is needed to avoid interpeting format specifiers in output
+			send_message(server, target, "%s", line); // The %s is needed to avoid interpeting format specifiers in output
 		}
 	}
 	pclose(prog);
@@ -201,39 +200,39 @@ cleanup:
 	return n;
 }
 
-void parse_config(const char *path) {
+void parse_config(yajl_val root, const char *config_file) {
 
 	char errbuf[1024], *buf = NULL, *home;
 	yajl_val val, array;
 	int i;
 
-	if (read_file(&buf, path) == 0)
-		exit_msg(path);
+	if (read_file(&buf, config_file) == 0)
+		exit_msg(config_file);
 
-	yajl_root = yajl_tree_parse(buf, errbuf, sizeof(errbuf));
-	if (yajl_root == NULL)
+	root = yajl_tree_parse(buf, errbuf, sizeof(errbuf));
+	if (root == NULL)
 		exit_msg("%s", errbuf);
 
-	// Free original buffer since we have a duplicate in yajl_root now
+	// Free original buffer since we have a duplicate in root now
 	free(buf);
 
-	if ((val         = yajl_tree_get(yajl_root, (const char *[]) { "server", NULL },       yajl_t_string)) == NULL) exit_msg("server: missing / wrong type");
+	if ((val         = yajl_tree_get(root, (const char *[]) { "server", NULL },       yajl_t_string)) == NULL) exit_msg("server: missing / wrong type");
 	cfg.server       = YAJL_GET_STRING(val);
-	if ((val         = yajl_tree_get(yajl_root, (const char *[]) { "port", NULL },         yajl_t_number)) == NULL) exit_msg("port: missing / wrong type");
+	if ((val         = yajl_tree_get(root, (const char *[]) { "port", NULL },         yajl_t_number)) == NULL) exit_msg("port: missing / wrong type");
 	cfg.port         = YAJL_GET_NUMBER(val);
-	if ((val         = yajl_tree_get(yajl_root, (const char *[]) { "nick", NULL },         yajl_t_string)) == NULL) exit_msg("nick: missing / wrong type");
+	if ((val         = yajl_tree_get(root, (const char *[]) { "nick", NULL },         yajl_t_string)) == NULL) exit_msg("nick: missing / wrong type");
 	cfg.nick         = YAJL_GET_STRING(val);
-	if ((val         = yajl_tree_get(yajl_root, (const char *[]) { "user", NULL },         yajl_t_string)) == NULL) exit_msg("user: missing / wrong type");
+	if ((val         = yajl_tree_get(root, (const char *[]) { "user", NULL },         yajl_t_string)) == NULL) exit_msg("user: missing / wrong type");
 	cfg.user         = YAJL_GET_STRING(val);
-	if ((val         = yajl_tree_get(yajl_root, (const char *[]) { "nick_pwd", NULL },     yajl_t_string)) == NULL) exit_msg("nick_pwd: missing / wrong type");
+	if ((val         = yajl_tree_get(root, (const char *[]) { "nick_pwd", NULL },     yajl_t_string)) == NULL) exit_msg("nick_pwd: missing / wrong type");
 	cfg.nick_pwd     = YAJL_GET_STRING(val);
-	if ((val         = yajl_tree_get(yajl_root, (const char *[]) { "bot_version", NULL },  yajl_t_string)) == NULL) exit_msg("bot_version: missing / wrong type");
+	if ((val         = yajl_tree_get(root, (const char *[]) { "bot_version", NULL },  yajl_t_string)) == NULL) exit_msg("bot_version: missing / wrong type");
 	cfg.bot_version  = YAJL_GET_STRING(val);
-	if ((val         = yajl_tree_get(yajl_root, (const char *[]) { "github_repo", NULL },  yajl_t_string)) == NULL) exit_msg("github_repo: missing / wrong type");
+	if ((val         = yajl_tree_get(root, (const char *[]) { "github_repo", NULL },  yajl_t_string)) == NULL) exit_msg("github_repo: missing / wrong type");
 	cfg.github_repo  = YAJL_GET_STRING(val);
-	if ((val         = yajl_tree_get(yajl_root, (const char *[]) { "quit_message", NULL }, yajl_t_string)) == NULL) exit_msg("quit_message: missing / wrong type");
+	if ((val         = yajl_tree_get(root, (const char *[]) { "quit_message", NULL }, yajl_t_string)) == NULL) exit_msg("quit_message: missing / wrong type");
 	cfg.quit_msg     = YAJL_GET_STRING(val);
-	if ((val         = yajl_tree_get(yajl_root, (const char *[]) { "mpd_database", NULL }, yajl_t_string)) == NULL) exit_msg("mpd_database: missing / wrong type");
+	if ((val         = yajl_tree_get(root, (const char *[]) { "mpd_database", NULL }, yajl_t_string)) == NULL) exit_msg("mpd_database: missing / wrong type");
 	cfg.mpd_database = YAJL_GET_STRING(val);
 
 	// Expand tilde '~' by reading the HOME enviroment variable
@@ -244,12 +243,12 @@ void parse_config(const char *path) {
 	}
 
 	// Only accept true or false value
-	if ((val  = yajl_tree_get(yajl_root, (const char *[]) { "verbose", NULL }, yajl_t_any)) == NULL) exit_msg("verbose: missing");
+	if ((val  = yajl_tree_get(root, (const char *[]) { "verbose", NULL }, yajl_t_any)) == NULL) exit_msg("verbose: missing");
 	if (val->type != yajl_t_true && val->type != yajl_t_false) exit_msg("verbose: wrong type");
 	cfg.verbose = YAJL_IS_TRUE(val);
 
 	// Get the array of channels
-	if ((array = yajl_tree_get(yajl_root, (const char *[]) { "channels", NULL }, yajl_t_array)) == NULL) exit_msg("channels: missing / wrong type");
+	if ((array = yajl_tree_get(root, (const char *[]) { "channels", NULL }, yajl_t_array)) == NULL) exit_msg("channels: missing / wrong type");
 	cfg.ch.channels_set = YAJL_GET_ARRAY(array)->len;
 
 	if (cfg.ch.channels_set > MAXCHANS) {
@@ -261,7 +260,7 @@ void parse_config(const char *path) {
 		cfg.ch.channels[i] = YAJL_GET_STRING(val);
 	}
 
-	if ((array = yajl_tree_get(yajl_root, (const char *[]) { "fail_quotes", NULL }, yajl_t_array)) == NULL) exit_msg("fail_quotes: missing / wrong type");
+	if ((array = yajl_tree_get(root, (const char *[]) { "fail_quotes", NULL }, yajl_t_array)) == NULL) exit_msg("fail_quotes: missing / wrong type");
 	cfg.q.quote_count = YAJL_GET_ARRAY(array)->len;
 
 	for (i = 0; i < cfg.q.quote_count; i++) {

@@ -82,6 +82,10 @@ release: outdir $(OUTDIR)/$(PROGRAM) $(OUTDIR)/json_value
 outdir:
 	mkdir -p $(OUTDIR)
 
+doc:
+	doxygen Doxyfile
+	mv bin/doxygen ~/public_html/irc-bot
+
 clean:
 	rm -r $(OUTDIR)/*
 

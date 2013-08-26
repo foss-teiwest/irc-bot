@@ -4,9 +4,14 @@
 #include <sys/types.h>
 #include <yajl/yajl_tree.h>
 
+/**
+ * @file curl.h
+ * Contains functions that use CURL directly
+ */
+
 #define URLLEN   440
 #define TITLELEN 300
-#define TESTDIR "file:///home/free/programming/c/irc-bot/test-files/"
+#define TESTDIR "file:///home/free/programming/c/irc-bot/test-files/" //!< Run network tests from file instead of actually connecting to a service
 
 typedef struct {
 	char *buffer;
@@ -20,17 +25,35 @@ typedef struct {
 	char *url;
 } Github;
 
-// Send long_url to a shortener service and return the short version or NULL on failure
-// Returned string must be freed when no longer needed
+/**
+ * Send long_url to google's shortener service and request a short version
+ * @warning  Returned string must be freed when no longer needed
+ *
+ * @returns  short version or NULL on failure
+ */
 char *shorten_url(const char *long_url);
 
-// Returns url title
+/**
+ * Get url's html and search for the title tag. Conversion from iso8859_7_to_utf8 will be used if needed
+ * @warning  Returned string must be freed when no longer needed
+ *
+ * @returns  site's title or NULL on failure
+ */
 char *get_url_title(const char *url);
 
-// Returns mumble user list
+/** Returns mumble user list */
 char *fetch_mumble_users(void);
 
-// Returns an array containing commits. The number of commits actually read, are stored in "commits"
+/**
+ * Interact with Github's api to get commit information
+ * Returned struct must be freed when no longer needed
+ * @warning Github struct's member are pointing to yajl_val root. Only free root when commit info is no longer needed
+ *
+ * @param repo     The repo to query in author/repo format
+ * @param commits  The number of commits to return
+ * @param root     yajl handle to store the json reply
+ * @returns        An array of commits and maybe NULL on failure. commits will be updated with the actual number returned or 0 for error
+ */
 Github *fetch_github_commits(const char *repo, int *commits, yajl_val root);
 
 #endif

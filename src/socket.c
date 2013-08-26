@@ -81,7 +81,7 @@ ssize_t sock_write(int sock, const char *buf, size_t len) {
 	static ssize_t sock_readbyte(int sock, char *byte)
 #endif
 {
-	// Stores the character in byte. Returns -1 for fail, 0 if connection is closed or 1 for success
+	// Stores the character in byte. Returns 1 on success, -1 on error, -2 if the operation would block and 0 if connection is closed
 	while (bytes_read <= 0) {
 		bytes_read = read(sock, buffer, IRCLEN);
 		if (bytes_read < 0 && errno == EAGAIN)
