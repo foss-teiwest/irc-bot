@@ -95,16 +95,16 @@ int numeric_reply(Irc Server, int reply);
 /**
  * Wrappers for sending message / notice to target
  * Example: "send_message(server, pdata.target, "hi %s", pdata->sender);"
- * @warning  Do not call _send_irc_command() directly
+ * @warning  Do not call _irc_command() directly
  *
  * @param target  channel / person to send message
  * @param format  Standard printf format accepted
  */
-#define send_message(server, target, format, ...) _send_irc_command(server, "PRIVMSG", target, format, __VA_ARGS__)
-#define  send_notice(server, target, format, ...) _send_irc_command(server, "NOTICE",  target, format, __VA_ARGS__)
+#define send_message(server, target, format, ...) _irc_command(server, "PRIVMSG", target, format, __VA_ARGS__)
+#define  send_notice(server, target, format, ...) _irc_command(server, "NOTICE",  target, format, __VA_ARGS__)
 //@}
 
-void _send_irc_command(Irc server, const char *type, const char *target, const char *format, ...);
+void _irc_command(Irc server, const char *type, const char *target, const char *format, ...);
 
 /** Close socket and free resources */
 void quit_server(Irc server, const char *msg);

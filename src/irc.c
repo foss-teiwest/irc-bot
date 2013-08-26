@@ -10,12 +10,12 @@
 #include "gperf.h"
 #include "helper.h"
 
-// Wrapper functions. If VA_ARGS is NULL (last 2 args) then ':' will be ommited. Do not call _send_irc_command() directly
-#define send_nick_command(server, target)    _send_irc_command(server, "NICK", target, NULL, NULL)
-#define send_user_command(server, target)    _send_irc_command(server, "USER", target, NULL, NULL)
-#define send_channel_command(server, target) _send_irc_command(server, "JOIN", target, NULL, NULL)
-#define send_ping_command(server, target)    _send_irc_command(server, "PONG", target, NULL, NULL)
-#define send_quit_command(server, target)    _send_irc_command(server, "QUIT", "", target, NULL)
+// Wrapper functions. If VA_ARGS is NULL (last 2 args) then ':' will be ommited. Do not call _irc_command() directly
+#define irc_nick_command(server, target)    _irc_command(server, "NICK", target, NULL, NULL)
+#define irc_user_command(server, target)    _irc_command(server, "USER", target, NULL, NULL)
+#define irc_channel_command(server, target) _irc_command(server, "JOIN", target, NULL, NULL)
+#define irc_ping_command(server, target)    _irc_command(server, "PONG", target, NULL, NULL)
+#define irc_quit_command(server, target)    _irc_command(server, "QUIT", "", target, NULL)
 
 struct irc_type {
 	int sock;
@@ -60,7 +60,7 @@ void set_nick(Irc server, const char *nick) {
 
 	assert(nick != NULL && "Error in set_nick");
 	strncpy(server->nick, nick, NICKLEN);
-	send_nick_command(server, server->nick);
+	irc_nick_command(server, server->nick);
 }
 
 void set_user(Irc server, const char *user) {
@@ -71,7 +71,7 @@ void set_user(Irc server, const char *user) {
 	strncpy(server->user, user, USERLEN);
 
 	snprintf(user_with_flags, USERLEN * 2 + 6, "%s 0 * :%s", server->user, server->user);
-	send_user_command(server, user_with_flags);
+	irc_user_command(server, user_with_flags);
 }
 
 int join_channel(Irc server, const char *channel) {
@@ -86,13 +86,13 @@ int join_channel(Irc server, const char *channel) {
 		}
 		strncpy(server->ch.channels[server->ch.channels_set++], channel, CHANLEN);
 		if (server->isConnected)
-			send_channel_command(server, server->ch.channels[server->ch.channels_set - 1]);
+			irc_channel_command(server, server->ch.channels[server->ch.channels_set - 1]);
 		return 1;
 	}
 
 	if (server->isConnected)
 		for (; i < server->ch.channels_set; i++)
-			send_channel_command(server, server->ch.channels[i]);
+			irc_channel_command(server, server->ch.channels[i]);
 
 	return i;
 }
@@ -118,7 +118,7 @@ ssize_t parse_irc_line(Irc server) {
 	if (strncmp(line, "PING", 4) == 0) {
 		test_char = strrchr(line, '\r');
 		*test_char = '\0';
-		send_ping_command(server, line + 5);
+		irc_ping_command(server, line + 5);
 		return n;
 	}
 	// Store the sender of the message / server command without the leading ':'.
@@ -288,7 +288,7 @@ void irc_kick(Irc server, Parsed_data pdata) {
 	}
 }
 
-void _send_irc_command(Irc server, const char *type, const char *target, const char *format, ...) {
+void _irc_command(Irc server, const char *type, const char *target, const char *format, ...) {
 
 	va_list args;
 	char msg[IRCLEN - CHANLEN], irc_msg[IRCLEN];
@@ -313,7 +313,7 @@ void _send_irc_command(Irc server, const char *type, const char *target, const c
 void quit_server(Irc server, const char *msg) {
 
 	assert(msg != NULL && "Error in quit_server");
-	send_quit_command(server, msg);
+	irc_quit_command(server, msg);
 
 	if (close(server->sock) < 0)
 		perror("close");

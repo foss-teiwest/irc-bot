@@ -8,10 +8,10 @@
 #include "socket.h"
 #include "helper.h"
 
+
 static int bytes_read;
 static char buffer[IRCLEN];
 static char *buf_ptr;
-
 
 int sock_connect(const char *address, const char *port) {
 
