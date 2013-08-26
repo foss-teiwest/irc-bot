@@ -19,3 +19,5 @@ takes an optional argument with the path of config file
 Dependencies: curl, yajl
 
 If you want to add bot commands, gperf is needed as well
+
+Doxygen documentation https://foss.tesyd.teimes.gr/~freestyler/irc-bot/

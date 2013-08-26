@@ -84,7 +84,7 @@ outdir:
 
 doc:
 	doxygen Doxyfile
-	mv bin/doxygen ~/public_html/irc-bot
+	rsync -avz --delete bin/doxygen/ freestyler@foss.tesyd.teimes.gr:public_html/irc-bot
 
 clean:
 	rm -r $(OUTDIR)/*
