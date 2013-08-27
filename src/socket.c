@@ -12,6 +12,7 @@
 static int bytes_read;
 static char buffer[IRCLEN];
 static char *buf_ptr;
+static ptrdiff_t offset;
 
 int sock_connect(const char *address, const char *port) {
 
@@ -83,7 +84,8 @@ ssize_t sock_write(int sock, const char *buf, size_t len) {
 {
 	// Stores the character in byte. Returns 1 on success, -1 on error, -2 if the operation would block and 0 if connection is closed
 	while (bytes_read <= 0) {
-		bytes_read = read(sock, buffer, IRCLEN);
+		bytes_read = read(sock, buffer + offset, IRCLEN - offset);
+		bytes_read += offset;
 		if (bytes_read < 0 && errno == EAGAIN)
 			return -2;
 		else if (bytes_read < 0) {
@@ -105,12 +107,18 @@ ssize_t sock_readline(int sock, char *line_buf, size_t len) {
 
 	size_t n_read = 0;
 	ssize_t n;
-	char byte;
+	char byte, *start = line_buf;
 
 	while (n_read++ <= len) {
 		n = sock_readbyte(sock, &byte);
-		if (n < 0)
-			return n;
+		if (n == -2) {
+			offset = line_buf - start;
+			if (offset)
+				memmove(buffer, start, offset);
+			return -2;
+		}
+		else if (n == -1)
+			return -1;
 		else if (n == 0) { // Connection closed, return bytes read so far
 			*line_buf = '\0';
 			return n_read - 1;
@@ -120,6 +128,7 @@ ssize_t sock_readline(int sock, char *line_buf, size_t len) {
 			break; // Message complete, we found irc protocol terminators
 	}
 	*line_buf = '\0';
+	offset = 0;
 
 	return n_read;
 }

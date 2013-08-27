@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
 	}
 	// If we reach here, it means we got disconnected from server. Exit with error (1)
 	if (ready == 0) {
-		fprintf(stderr, "%d seconds passed without getting a message, exiting...\n", TIMEOUT);
+		fprintf(stderr, "%d minutes passed without getting a message, exiting...\n", TIMEOUT / 1000 / 60);
 		goto cleanup;
 	}
 	if (ready == -1)

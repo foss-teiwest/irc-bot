@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+TIMELIMIT=550
 DIR=$1
 URL=`echo $2 | grep -o "^[^&]*"`
 
@@ -30,8 +31,8 @@ if [ -f "$DIR"/"$TITLE".mp3 ]; then
 	exit
 fi
 
-if [ "$DURATION" -gt 480 ]; then
-	echo "Song longer than 8 mins, skipping..."
+if [ "$DURATION" -gt $TIMELIMIT ]; then
+	echo "Song longer than `expr $TIMELIMIT / 60`:`expr $TIMELIMIT % 60` mins, skipping..."
 	exit
 fi
 
