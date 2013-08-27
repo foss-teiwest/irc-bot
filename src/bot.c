@@ -24,19 +24,19 @@ void bot_fail(Irc server, Parsed_data pdata) {
 	size_t len, maxlen, sum = 0;
 	char quote[QUOTELEN];
 
-	if (cfg.q.quote_count == 0)
+	if (cfg.quote_count == 0)
 		return;
 
 	// Make sure the seed is different even if we call the command twice in a second
 	srand(time(NULL) + getpid());
-	r      = rand() % cfg.q.quote_count;
+	r      = rand() % cfg.quote_count;
 	clr_r  = rand() % COLORCOUNT;
-	maxlen = strlen(cfg.q.quotes[r]);
+	maxlen = strlen(cfg.quotes[r]);
 
 	// Pick a random entry from the read-only quotes array and print it.
 	// We use indexes and lengths since we can't make changes to the array
-	while (sum < maxlen && (len = strcspn(cfg.q.quotes[r] + sum, "\n")) > 0) {
-		snprintf(quote, QUOTELEN, COLOR "%d%.*s", clr_r, (int) len, cfg.q.quotes[r] + sum);
+	while (sum < maxlen && (len = strcspn(cfg.quotes[r] + sum, "\n")) > 0) {
+		snprintf(quote, QUOTELEN, COLOR "%d%.*s", clr_r, (int) len, cfg.quotes[r] + sum);
 		send_message(server, pdata.target, "%s", quote);
 		sum += ++len;
 		sleep(1);

@@ -36,8 +36,8 @@ int main(int argc, char *argv[]) {
 
 	set_nick(freenode, cfg.nick);
 	set_user(freenode, cfg.user);
-	for (i = 0; i < cfg.ch.channels_set; i++)
-		join_channel(freenode, cfg.ch.channels[i]);
+	for (i = 0; i < cfg.channels_set; i++)
+		join_channel(freenode, cfg.channels[i]);
 
 	pfd.fd = get_socket(freenode);
 	pfd.events = POLLIN;

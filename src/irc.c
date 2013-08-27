@@ -19,20 +19,20 @@
 
 struct irc_type {
 	int sock;
+	char line[IRCLEN + 1];
+	size_t line_offset;
 	char address[ADDRLEN];
 	char port[PORTLEN];
 	char nick[NICKLEN];
 	char user[USERLEN];
-	struct {
-		int channels_set;
-		char channels[MAXCHANS][CHANLEN];
-	} ch;
+	char channels[MAXCHANS][CHANLEN];
+	int channels_set;
 	bool isConnected;
 };
 
 Irc connect_server(const char *address, const char *port) {
 
-	Irc server = malloc_w(sizeof(*server));
+	Irc server = calloc_w(sizeof(*server));
 
 	// Minimum validity checks
 	if (strchr(address, '.') == NULL || atoi(port) > 65535)
@@ -45,8 +45,6 @@ Irc connect_server(const char *address, const char *port) {
 	fcntl(server->sock, F_SETFL, O_NONBLOCK); // Set socket to non-blocking mode
 	strncpy(server->address, address, ADDRLEN);
 	strncpy(server->port, port, PORTLEN);
-	server->ch.channels_set = 0;
-	server->isConnected = false;
 
 	return server;
 }
@@ -80,50 +78,53 @@ int join_channel(Irc server, const char *channel) {
 
 	if (channel != NULL) {
 		assert(channel[0] == '#' && "Missing # in channel");
-		if (server->ch.channels_set == MAXCHANS) {
+		if (server->channels_set == MAXCHANS) {
 			fprintf(stderr, "Channel limit reached (%d)\n", MAXCHANS);
 			return -1;
 		}
-		strncpy(server->ch.channels[server->ch.channels_set++], channel, CHANLEN);
+		strncpy(server->channels[server->channels_set++], channel, CHANLEN);
 		if (server->isConnected)
-			irc_channel_command(server, server->ch.channels[server->ch.channels_set - 1]);
+			irc_channel_command(server, server->channels[server->channels_set - 1]);
 		return 1;
 	}
 
 	if (server->isConnected)
-		for (; i < server->ch.channels_set; i++)
-			irc_channel_command(server, server->ch.channels[i]);
+		for (; i < server->channels_set; i++)
+			irc_channel_command(server, server->channels[i]);
 
 	return i;
 }
 
 ssize_t parse_irc_line(Irc server) {
 
-	char *test_char, line[IRCLEN + 1];
+	char *test_char;
 	Parsed_data pdata;
 	Function_list flist;
 	int reply;
 	ssize_t n;
 
 	// Read raw line from server. Example: ":laxanofido!~laxanofid@snf-23545.vm.okeanos.grnet.gr PRIVMSG #foss-teimes :How YA doing fossbot"
-	n = sock_readline(server->sock, line, IRCLEN);
-	if (n <= 0)
+	n = sock_readline(server->sock, server->line + server->line_offset, IRCLEN - server->line_offset);
+	if (n <= 0) {
+		server->line_offset = strlen(server->line);
 		return n;
+	}
+	server->line_offset = 0;
 
 	if (cfg.verbose)
-		fputs(line, stdout);
+		fputs(server->line, stdout);
 
 	// Check for server ping request. Example: "PING :wolfe.freenode.net"
 	// If we match PING then change the 2nd char to 'O' and terminate the argument before sending back
-	if (strncmp(line, "PING", 4) == 0) {
-		test_char = strrchr(line, '\r');
+	if (strncmp(server->line, "PING", 4) == 0) {
+		test_char = strrchr(server->line, '\r');
 		*test_char = '\0';
-		irc_ping_command(server, line + 5);
+		irc_ping_command(server, server->line + 5);
 		return n;
 	}
 	// Store the sender of the message / server command without the leading ':'.
 	// Examples: "laxanofido!~laxanofid@snf-23545.vm.okeanos.grnet.gr", "wolfe.freenode.net"
-	pdata.sender = strtok(line + 1, " ");
+	pdata.sender = strtok(server->line + 1, " ");
 	if (pdata.sender == NULL)
 		return n;
 
@@ -278,11 +279,11 @@ void irc_kick(Irc server, Parsed_data pdata) {
 
 		// Find the channel we got kicked on and remove it from our list
 		// TODO verify if we actually rejoined the channel
-		for (i = 0; i < server->ch.channels_set; i++)
-			if (strcmp(pdata.target, server->ch.channels[i]) == 0)
+		for (i = 0; i < server->channels_set; i++)
+			if (strcmp(pdata.target, server->channels[i]) == 0)
 				break;
 
-		strncpy(server->ch.channels[i], server->ch.channels[--server->ch.channels_set], CHANLEN);
+		strncpy(server->channels[i], server->channels[--server->channels_set], CHANLEN);
 		join_channel(server, pdata.target);
 		send_message(server, pdata.target, "%s magkas...", pdata.sender);
 	}
@@ -291,10 +292,10 @@ void irc_kick(Irc server, Parsed_data pdata) {
 void _irc_command(Irc server, const char *type, const char *target, const char *format, ...) {
 
 	va_list args;
-	char msg[IRCLEN - CHANLEN], irc_msg[IRCLEN];
+	char msg[IRCLEN - 50], irc_msg[IRCLEN];
 
 	va_start(args, format);
-	vsnprintf(msg, IRCLEN - CHANLEN, format, args);
+	vsnprintf(msg, IRCLEN - 50, format, args);
 	if (*msg)
 		snprintf(irc_msg, IRCLEN, "%s %s :%s\r\n", type, target, msg);
 	else

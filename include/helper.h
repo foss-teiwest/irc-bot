@@ -24,30 +24,28 @@ struct config_options {
 	char *nick;
 	char *nick_pwd;
 	char *user;
-	struct {
-		int channels_set;
-		char *channels[MAXCHANS];
-	} ch;
+	char *channels[MAXCHANS];
+	int channels_set;
 	char *bot_version;
 	char *github_repo;
 	char *quit_msg;
 	char *mpd_database;
-	struct {
-		int quote_count;
-		char *quotes[MAXQUOTES];
-	} q;
+	char *quotes[MAXQUOTES];
+	int quote_count;
 	bool verbose;
 };
 
 extern struct config_options cfg; //!< global struct with config's values
 
 //@{
-/** Allocate memory and print the caller function on failure (before exiting). Will always return a valid pointer */
+/** Wrappers for allocating memory. Print the caller function on failure and exit. Will always return a valid pointer */
 #define malloc_w(x) _malloc_w((x), __func__)
+#define calloc_w(x) _calloc_w((x), __func__)
 #define realloc_w(x, y) _realloc_w((x), (y), __func__)
 //@}
 
 void *_malloc_w(size_t size, const char *caller);
+void *_calloc_w(size_t size, const char *caller);
 void *_realloc_w(void *buf, size_t size, const char *caller);
 
 /** Takes a format specifier with a variable number of arguments. Prints message and exits with failure

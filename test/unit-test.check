@@ -11,20 +11,20 @@
 #include "bot.h"
 #include "curl.h"
 
-pid_t main_pid = 500;
 struct irc_type {
 	int sock;
+	char line[IRCLEN + 1];
+	size_t line_offset;
 	char address[ADDRLEN];
 	char port[PORTLEN];
 	char nick[NICKLEN];
 	char user[USERLEN];
-	struct {
-		int channels_set;
-		char channels[MAXCHANS][CHANLEN];
-	} ch;
+	char channels[MAXCHANS][CHANLEN];
+	int channels_set;
 	bool isConnected;
 };
 
+pid_t main_pid = 500;
 Irc server;
 char test_buffer[IRCLEN + 1];
 int sock, status;
@@ -132,8 +132,9 @@ void close_write(void) {
 
 #test new_chan_match
 
+	server->channels_set = 0;
 	join_channel(server, "#trololol");
-	ck_assert_str_eq(server->ch.channels[0], "#trololol");
+	ck_assert_str_eq(server->channels[0], "#trololol");
 
 #test privemsg
 
@@ -221,14 +222,14 @@ void close_write(void) {
 
 	commits = fetch_github_commits("foss-teimes/irc-bot", &n, root);
 
-	ck_assert_str_eq(commits[0].sha, "de7579c08e35f232af4938dc7dc325b9809d63bf");
+	ck_assert_str_eq(commits[0].sha,  "de7579c08e35f232af4938dc7dc325b9809d63bf");
 	ck_assert_str_eq(commits[0].name, "Bill Kolokithas");
-	ck_assert_str_eq(commits[0].msg, "small changes to the shell helper script");
-	ck_assert_str_eq(commits[0].url, "https://github.com/foss-teimes/irc-bot/commit/de7579c08e35f232af4938dc7dc325b9809d63bf");
-	ck_assert_str_eq(commits[2].sha, "363e91d5e12701be9001bcf62062fd0a93561082");
+	ck_assert_str_eq(commits[0].msg,  "small changes to the shell helper script");
+	ck_assert_str_eq(commits[0].url,  "https://github.com/foss-teimes/irc-bot/commit/de7579c08e35f232af4938dc7dc325b9809d63bf");
+	ck_assert_str_eq(commits[2].sha,  "363e91d5e12701be9001bcf62062fd0a93561082");
 	ck_assert_str_eq(commits[2].name, "Bill Kolokithas");
-	ck_assert_str_eq(commits[2].msg, "restart bot on failed exit");
-	ck_assert_str_eq(commits[2].url, "https://github.com/foss-teimes/irc-bot/commit/363e91d5e12701be9001bcf62062fd0a93561082");
+	ck_assert_str_eq(commits[2].msg,  "restart bot on failed exit");
+	ck_assert_str_eq(commits[2].url,  "https://github.com/foss-teimes/irc-bot/commit/363e91d5e12701be9001bcf62062fd0a93561082");
 
 	yajl_tree_free(root);
 

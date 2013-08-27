@@ -38,6 +38,17 @@ void *_malloc_w(size_t size, const char *caller) {
 	return buffer;
 }
 
+void *_calloc_w(size_t size, const char *caller) {
+
+	void *buffer;
+
+	buffer = calloc(1, size);
+	if (buffer == NULL)
+		exit_msg("Error: calloc failed in %s", caller);
+
+	return buffer;
+}
+
 void *_realloc_w(void *buf, size_t size, const char *caller) {
 
 	void *buffer;
@@ -249,23 +260,23 @@ void parse_config(yajl_val root, const char *config_file) {
 
 	// Get the array of channels
 	if ((array = yajl_tree_get(root, (const char *[]) { "channels", NULL }, yajl_t_array)) == NULL) exit_msg("channels: missing / wrong type");
-	cfg.ch.channels_set = YAJL_GET_ARRAY(array)->len;
+	cfg.channels_set = YAJL_GET_ARRAY(array)->len;
 
-	if (cfg.ch.channels_set > MAXCHANS) {
-		cfg.ch.channels_set = MAXCHANS;
+	if (cfg.channels_set > MAXCHANS) {
+		cfg.channels_set = MAXCHANS;
 		fprintf(stderr, "Channel limit reached (%d). Ignoring rest\n", MAXCHANS);
 	}
-	for (i = 0; i < cfg.ch.channels_set; i++) {
+	for (i = 0; i < cfg.channels_set; i++) {
 		val = YAJL_GET_ARRAY(array)->values[i];
-		cfg.ch.channels[i] = YAJL_GET_STRING(val);
+		cfg.channels[i] = YAJL_GET_STRING(val);
 	}
 
 	if ((array = yajl_tree_get(root, (const char *[]) { "fail_quotes", NULL }, yajl_t_array)) == NULL) exit_msg("fail_quotes: missing / wrong type");
-	cfg.q.quote_count = YAJL_GET_ARRAY(array)->len;
+	cfg.quote_count = YAJL_GET_ARRAY(array)->len;
 
-	for (i = 0; i < cfg.q.quote_count; i++) {
+	for (i = 0; i < cfg.quote_count; i++) {
 		val = YAJL_GET_ARRAY(array)->values[i];
-		cfg.q.quotes[i] = YAJL_GET_STRING(val);
+		cfg.quotes[i] = YAJL_GET_STRING(val);
 	}
 }
 
