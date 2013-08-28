@@ -91,7 +91,7 @@ ssize_t sock_readline(int sock, char *line_buf, size_t len) {
 
 	size_t n_read = 0;
 	ssize_t n;
-	char byte;
+	char byte = '\0';
 
 	// If n == 0, connection is closed. Return bytes read so far
 	while (n_read++ <= len) {

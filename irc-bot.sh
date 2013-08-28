@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
+REALPATH=`readlink -f $0`
+SCRIPTPATH=`dirname $REALPATH`
+
 while true; do
-	bin/irc-bot $1
+	$SCRIPTPATH/bin/irc-bot $1
 	sleep 5
 done

@@ -14,8 +14,7 @@ int main(int argc, char *argv[]) {
 	n = fread(buf, sizeof(char), sizeof(buf) - 1, stdin);
 	buf[n] = '\0';
 
-	root = yajl_tree_parse(buf, errbuf, sizeof(errbuf));
-	if (root == NULL) {
+	if ((root = yajl_tree_parse(buf, errbuf, sizeof(errbuf))) == NULL) {
 		fprintf(stderr, "%s\n", errbuf);
 		return 1;
 	}

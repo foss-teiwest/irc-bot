@@ -198,14 +198,12 @@ char *get_url_title(const char *url) {
 		fprintf(stderr, "Error: %s\n", curl_easy_strerror(code));
 		goto cleanup;
 	}
-
 	// Search http response in order to determine text encoding
 	if ((temp = strcasestr(mem.buffer, "iso-8859-7")) != NULL) {
 		len = sizeof("charset");
 		if (!strncasecmp(temp - len, "charset", len - 1) || !strncasecmp(temp - len - 1, "charset", len - 1))
 			iso = true;
 	}
-
 	if ((temp = strcasestr(mem.buffer, "<title")) == NULL)
 		goto cleanup;
 	url_title = temp + 7; // Point url_title to the first title character
