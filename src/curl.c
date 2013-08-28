@@ -17,8 +17,7 @@
 
 	// Our function will be called as many times as needed by curl_easy_perform to complete the operation
 	// So we increase the size of our buffer each time to accommodate for it (and null char)
-	mem->buffer = realloc(mem->buffer, mem->size + total_size + 1);
-	if (mem->buffer == NULL)
+	if ((mem->buffer = realloc(mem->buffer, mem->size + total_size + 1)) == NULL)
 		return 0;
 
 	// Our mem_buffer struct keeps the current size so far, so we begin writting to the end of it each time
@@ -43,8 +42,7 @@ char *shorten_url(const char *long_url) {
 	headers = curl_slist_append(headers, "Content-Type: application/json");
 	snprintf(url_formatted, URLLEN, "{\"longUrl\": \"%s\"}", long_url);
 
-	curl = curl_easy_init();
-	if (curl == NULL)
+	if ((curl = curl_easy_init()) == NULL)
 		goto cleanup;
 
 #ifdef TEST
@@ -68,12 +66,10 @@ char *shorten_url(const char *long_url) {
 		goto cleanup;
 	}
 	// Find the short url in the reply and null terminate it
-	short_url = strstr(mem.buffer, "http");
-	if (short_url == NULL)
+	if ((short_url = strstr(mem.buffer, "http")) == NULL)
 		goto cleanup;
 
-	temp = strchr(short_url, '"');
-	if (temp == NULL)
+	if ((temp = strchr(short_url, '"')) == NULL)
 		goto cleanup;
 	*temp = '\0';
 
@@ -93,8 +89,7 @@ char *fetch_mumble_users(void) {
 	CURLcode code;
 	Mem_buffer mem = {NULL, 0};
 
-	curl = curl_easy_init();
-	if (curl == NULL)
+	if ((curl = curl_easy_init()) == NULL)
 		goto cleanup;
 
 #ifdef TEST
@@ -126,8 +121,7 @@ Github *fetch_github_commits(const char *repo, int *commit_count, yajl_val root)
 	char *test, API_URL[URLLEN], errbuf[1024];
 	int i;
 
-	curl = curl_easy_init();
-	if (curl == NULL)
+	if ((curl = curl_easy_init()) == NULL)
 		goto cleanup;
 
 	// Use per_page field to limit json reply to the amount of commits specified
@@ -149,8 +143,7 @@ Github *fetch_github_commits(const char *repo, int *commit_count, yajl_val root)
 		fprintf(stderr, "Error: %s\n", curl_easy_strerror(code));
 		goto cleanup;
 	}
-	root = yajl_tree_parse(mem.buffer, errbuf, sizeof(errbuf));
-	if (!root) {
+	if ((root = yajl_tree_parse(mem.buffer, errbuf, sizeof(errbuf))) == NULL) {
 		fprintf(stderr, "%s\n", errbuf);
 		goto cleanup;
 	}
@@ -170,8 +163,7 @@ Github *fetch_github_commits(const char *repo, int *commit_count, yajl_val root)
 		commits[i].url  = YAJL_GET_STRING(val);
 
 		// Cut commit message at newline character if present
-		test = strchr(commits[i].msg, '\n');
-		if (test != NULL)
+		if ((test = strchr(commits[i].msg, '\n')) != NULL)
 			*test = '\0';
 	}
 cleanup:
@@ -188,8 +180,7 @@ char *get_url_title(const char *url) {
 	bool iso = false;
 	int len;
 
-	curl = curl_easy_init();
-	if (curl == NULL)
+	if ((curl = curl_easy_init()) == NULL)
 		goto cleanup;
 
 #ifdef TEST
@@ -209,20 +200,17 @@ char *get_url_title(const char *url) {
 	}
 
 	// Search http response in order to determine text encoding
-	temp = strcasestr(mem.buffer, "iso-8859-7");
-	if (temp != NULL) {
+	if ((temp = strcasestr(mem.buffer, "iso-8859-7")) != NULL) {
 		len = sizeof("charset");
 		if (!strncasecmp(temp - len, "charset", len - 1) || !strncasecmp(temp - len - 1, "charset", len - 1))
 			iso = true;
 	}
 
-	temp = strcasestr(mem.buffer, "<title");
-	if (temp == NULL)
+	if ((temp = strcasestr(mem.buffer, "<title")) == NULL)
 		goto cleanup;
 	url_title = temp + 7; // Point url_title to the first title character
 
-	temp = strcasestr(url_title, "</title");
-	if (temp == NULL) {
+	if ((temp = strcasestr(url_title, "</title")) == NULL) {
 		url_title = NULL;
 		goto cleanup;
 	}

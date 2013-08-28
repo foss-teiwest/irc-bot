@@ -36,8 +36,7 @@ size_t curl_write_memory(char *data, size_t size, size_t elements, void *membuf)
 void open_read(void) {
 
 	server = malloc_w(sizeof(*server));
-	server->sock = open("test-files/input.txt", O_RDONLY);
-	if (server->sock < 0)
+	if ((server->sock = open("test-files/input.txt", O_RDONLY)) < 0)
 		exit_msg("Failed to open file");
 }
 
@@ -49,8 +48,7 @@ void close_read(void) {
 void open_write(void) {
 
 	server = malloc_w(sizeof(*server));
-	server->sock = open("test-files/output.txt", O_RDWR);
-	if (server->sock < 0)
+	if ((server->sock = open("test-files/output.txt", O_RDWR)) < 0)
 		exit_msg("Failed to open file");
 
 	lseek(server->sock, 0, SEEK_SET);
@@ -237,8 +235,7 @@ void close_write(void) {
 
 	char buf[IRCLEN];
 	server = malloc_w(sizeof(*server));
-	server->sock = open("test-files/cmd_output.txt", O_RDWR | O_CREAT, 0755);
-	if (server->sock < 0)
+	if ((server->sock = open("test-files/cmd_output.txt", O_RDWR | O_CREAT, 0755)) < 0)
 		exit_msg("Failed to open file");
 
 	print_cmd_output(server, "#troll", (char *[]) { "echo", "rofl", NULL });
@@ -254,8 +251,7 @@ void close_write(void) {
 
 	int i;
 	server = malloc_w(sizeof(*server));
-	server->sock = open("test-files/channels.txt", O_RDWR | O_CREAT | O_TRUNC, 0755);
-	if (server->sock < 0)
+	if ((server->sock = open("test-files/channels.txt", O_RDWR | O_CREAT | O_TRUNC, 0755)) < 0)
 		exit_msg("Failed to open file");
 
 	server->isConnected = true;

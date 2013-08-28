@@ -31,8 +31,7 @@ void *_malloc_w(size_t size, const char *caller) {
 
 	void *buffer;
 
-	buffer = malloc(size);
-	if (buffer == NULL)
+	if ((buffer = malloc(size)) == NULL)
 		exit_msg("Error: malloc failed in %s", caller);
 
 	return buffer;
@@ -42,8 +41,7 @@ void *_calloc_w(size_t size, const char *caller) {
 
 	void *buffer;
 
-	buffer = calloc(1, size);
-	if (buffer == NULL)
+	if ((buffer = calloc(1, size)) == NULL)
 		exit_msg("Error: calloc failed in %s", caller);
 
 	return buffer;
@@ -53,8 +51,7 @@ void *_realloc_w(void *buf, size_t size, const char *caller) {
 
 	void *buffer;
 
-	buffer = realloc(buf, size);
-	if (buffer == NULL)
+	if ((buffer = realloc(buf, size)) == NULL)
 		exit_msg("Error: realloc failed in %s", caller);
 
 	return buffer;
@@ -75,8 +72,7 @@ char **extract_params(char *msg, int *argc) {
 		return NULL;
 
 	// Null terminate the the whole parameters line
-	temp = strrchr(msg, '\r');
-	if (temp == NULL)
+	if ((temp = strrchr(msg, '\r')) == NULL)
 		return argv;
 	*temp = '\0';
 
@@ -138,14 +134,12 @@ void print_cmd_output(Irc server, const char *target, char *cmd_args[]) {
 	close(fd[1]); // Close writting end
 
 	// Open socket as FILE stream since we need to print in lines anyway
-	prog = fdopen(fd[0], "r");
-	if (prog == NULL)
+	if ((prog = fdopen(fd[0], "r")) == NULL)
 		return;
 
 	// Print line by line the output of the program
 	while (fgets(line, LINELEN, prog) != NULL) {
-		len = strlen(line) - 1;
-		if (len > 1) { // Only print if line is not empty
+		if ((len = strlen(line) - 1) > 1) { // Only print if line is not empty
 			line[len] = '\0'; // Remove last newline char (\n) since we add it inside send_message()
 			send_message(server, target, "%s", line); // The %s is needed to avoid interpeting format specifiers in output
 		}
@@ -164,12 +158,10 @@ void print_cmd_output_unsafe(Irc server, const char *target, const char *cmd) {
 	if (prog == NULL)
 		return;
 
-	// Print line by line the output of the program
 	while (fgets(line, LINELEN, prog) != NULL) {
-		len = strlen(line) - 1;
-		if (len > 1) { // Only print if line is not empty
-			line[len] = '\0'; // Remove last newline char (\n) since we add it inside send_message()
-			send_message(server, target, "%s", line); // The %s is needed to avoid interpeting format specifiers in output
+		if ((len = strlen(line) - 1) > 1) {
+			line[len] = '\0';
+			send_message(server, target, "%s", line);
 		}
 	}
 	pclose(prog);
@@ -181,8 +173,7 @@ static size_t read_file(char **buf, const char *filename) {
 	struct stat st;
 	size_t n = 0;
 
-	file = fopen(filename, "r");
-	if (!file) {
+	if ((file = fopen(filename, "r")) == NULL) {
 		fprintf(stderr, "fopen error: ");
 		return 0;
 	}
@@ -220,8 +211,7 @@ void parse_config(yajl_val root, const char *config_file) {
 	if (read_file(&buf, config_file) == 0)
 		exit_msg(config_file);
 
-	root = yajl_tree_parse(buf, errbuf, sizeof(errbuf));
-	if (root == NULL)
+	if ((root = yajl_tree_parse(buf, errbuf, sizeof(errbuf))) == NULL)
 		exit_msg("%s", errbuf);
 
 	// Free original buffer since we have a duplicate in root now

@@ -30,8 +30,7 @@ int main(int argc, char *argv[]) {
 	curl_global_init(CURL_GLOBAL_ALL); // Initialize curl library
 
 	// Connect to server and set IRC details
-	freenode = connect_server(cfg.server, cfg.port);
-	if (freenode == NULL)
+	if ((freenode = connect_server(cfg.server, cfg.port)) == NULL)
 		exit_msg("Irc connection failed");
 
 	set_nick(freenode, cfg.nick);

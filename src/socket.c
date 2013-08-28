@@ -9,13 +9,9 @@
 #include "helper.h"
 
 
-static int bytes_read;
-static char buffer[IRCLEN];
-static char *buf_ptr;
-
 int sock_connect(const char *address, const char *port) {
 
-	int sock, ret_value;
+	int sock, retval;
 	struct addrinfo addr_filter, *addr_holder, *addr_iterator;
 
 	// Create filter for getaddrinfo()
@@ -28,20 +24,17 @@ int sock_connect(const char *address, const char *port) {
 	addr_filter.ai_flags   |= AI_NUMERICSERV;
 
 	// Return addresses according to the filter criteria
-	ret_value = getaddrinfo(address, port, &addr_filter, &addr_holder);
-	if (ret_value != 0)
-		exit_msg("getaddrinfo: %s", gai_strerror(ret_value));
+	if ((retval = getaddrinfo(address, port, &addr_filter, &addr_holder)) != 0)
+		exit_msg("getaddrinfo: %s", gai_strerror(retval));
 
 	sock = -1;
 	for (addr_iterator = addr_holder; addr_iterator != NULL; addr_iterator = addr_holder->ai_next) {
 
 		// Create TCP socket
-		sock = socket(addr_iterator->ai_family, addr_iterator->ai_socktype, addr_iterator->ai_protocol);
-		if (sock < 0)
+		if ((sock = socket(addr_iterator->ai_family, addr_iterator->ai_socktype, addr_iterator->ai_protocol)) < 0)
 			continue; // Failed, try next address
 
-		ret_value = connect(sock, addr_iterator->ai_addr, addr_iterator->ai_addrlen);
-		if (ret_value == 0)
+		if ((retval = connect(sock, addr_iterator->ai_addr, addr_iterator->ai_addrlen)) == 0)
 			break; // Success
 
 		close(sock); // Cleanup and try next address
@@ -61,16 +54,12 @@ ssize_t sock_write(int sock, const char *buf, size_t len) {
 	n_left = len;
 	buf_marker = buf;
 
+	// TODO we don't actually resend the buffer if we get EAGAIN...
 	while (n_left > 0) {
-		n_sent = write(sock, buf_marker, n_left);
-		if (n_sent < 0 && errno == EAGAIN)
-			return -2;
-		else if (n_sent < 0) {
-			perror("write");
-			return -1;
-		}
+		if ((n_sent = write(sock, buf_marker, n_left)) < 0)
+			return errno == EAGAIN ? -2 : (perror("write"), -1);
 		n_left -= n_sent;
-		buf_marker += n_sent; // Advance buffer pointer to the next unsent bytes
+		buf_marker += n_sent; // Advance buffer pointer to the next unsent byte
 	}
 	return len;
 }
@@ -81,13 +70,15 @@ ssize_t sock_write(int sock, const char *buf, size_t len) {
 	static ssize_t sock_readbyte(int sock, char *byte)
 #endif
 {
+	static ssize_t bytes_read;
+	static char buffer[IRCLEN];
+	static char *buf_ptr;
+
 	// Stores the character in byte. Returns 1 on success, -1 on error,
 	// -2 if the operation would block and 0 if connection is closed
-	while (bytes_read <= 0) {
-		bytes_read = read(sock, buffer, IRCLEN);
-		if (bytes_read <= 0)
-			return errno == EAGAIN ? -2 : bytes_read;
-
+	if (bytes_read <= 0) {
+		if ((bytes_read = read(sock, buffer, IRCLEN)) <= 0)
+			return errno == EAGAIN ? -2 : (perror("read"), bytes_read);
 		buf_ptr = buffer;
 	}
 	bytes_read--;
@@ -102,11 +93,11 @@ ssize_t sock_readline(int sock, char *line_buf, size_t len) {
 	ssize_t n;
 	char byte;
 
+	// If n == 0, connection is closed. Return bytes read so far
 	while (n_read++ <= len) {
-		n = sock_readbyte(sock, &byte);
-		if (n <= 0) {
+		if ((n = sock_readbyte(sock, &byte)) <= 0) {
 			*line_buf = '\0';
-			return n == 0 ? (ssize_t) (n_read - 1) : n; // If n == 0, connection is closed. Return bytes read so far
+			return n == 0 ? (ssize_t) n_read - 1 : n;
 		}
 		*line_buf++ = byte;
 		if (byte == '\n' && *(line_buf - 2) == '\r')

@@ -57,8 +57,7 @@ void url(Irc server, Parsed_data pdata) {
 		goto cleanup;
 
 	// Map shared memory for inter-process communication
-	short_url = mmap(NULL, ADDRLEN + 1, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-	if (short_url == MAP_FAILED) {
+	if ((short_url = mmap(NULL, ADDRLEN + 1, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0)) == MAP_FAILED) {
 		perror("mmap");
 		goto cleanup;
 	}
@@ -68,8 +67,7 @@ void url(Irc server, Parsed_data pdata) {
 		perror("fork");
 		break;
 	case 0:
-		temp = shorten_url(argv[0]);
-		if (temp != NULL) {
+		if ((temp = shorten_url(argv[0])) != NULL) {
 			strncpy(short_url, temp, ADDRLEN);
 			free(temp);
 		} else // Put a null char in the first byte if shorten_url fails so we can test for it in send_message
@@ -95,8 +93,7 @@ void mumble(Irc server, Parsed_data pdata) {
 
 	char *user_list;
 
-	user_list = fetch_mumble_users();
-	if (user_list != NULL) {
+	if ((user_list = fetch_mumble_users()) != NULL) {
 		send_message(server, pdata.target, "%s", user_list);
 		free(user_list);
 	}
