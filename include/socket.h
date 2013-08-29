@@ -25,7 +25,7 @@ int sock_connect(const char *address, const char *port);
  * @param sock  Non blocking socket
  * @param buf   Buffer to send
  * @param len   Number of bytes to write
- * @returns     On success: the amount of bytes written (this will always equal len), -1 on error and -2 if the operation would block
+ * @returns     On success: the amount of bytes written (this will always equal len), -1 on error and -EAGAIN if the operation would block
  */
 ssize_t sock_write(int sock, const char *buf, size_t len);
 
@@ -37,7 +37,7 @@ ssize_t sock_write(int sock, const char *buf, size_t len);
  * @param sock      Non blocking socket
  * @param line_buf  Buffer to store the line
  * @param len       Will fill the buffer up to len bytes
- * @returns         On success: line length, -1 on error and -2 if the operation would block
+ * @returns         On success: line length, -1 on error and -EAGAIN if the operation would block
  */
 ssize_t sock_readline(int sock, char *line_buf, size_t len);
 

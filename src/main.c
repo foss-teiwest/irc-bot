@@ -2,8 +2,10 @@
 #include <unistd.h>
 #include <poll.h>
 #include <signal.h>
+#include <errno.h>
 #include <curl/curl.h>
 #include "helper.h"
+
 
 pid_t main_pid;
 
@@ -45,7 +47,7 @@ int main(int argc, char *argv[]) {
 		// Keep reading & parsing lines as long the connection is active and act on any registered actions found
 		if (pfd.revents & POLLIN) {
 			while ((n = parse_irc_line(freenode)) > 0);
-			if (n != -2)
+			if (n != -EAGAIN)
 				goto cleanup;
 		}
 	}

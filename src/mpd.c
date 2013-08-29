@@ -15,9 +15,9 @@ void play(Irc server, Parsed_data pdata) {
 		goto cleanup;
 
 	if (strchr(argv[0], '.') == NULL)
-		goto cleanup;
-
-	print_cmd_output(server, pdata.target, (char *[]) { SCRIPTDIR "youtube2mp3.sh", cfg.mpd_database, argv[0], NULL });
+		print_cmd_output(server, pdata.target, (char *[]) { SCRIPTDIR "mpd_search.sh", cfg.mpd_database, argv[0], NULL });
+	else
+		print_cmd_output(server, pdata.target, (char *[]) { SCRIPTDIR "youtube2mp3.sh", cfg.mpd_database, argv[0], NULL });
 
 cleanup:
 	free(argv);
