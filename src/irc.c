@@ -84,6 +84,7 @@ int join_channel(Irc server, const char *channel) {
 		strncpy(server->channels[server->channels_set++], channel, CHANLEN);
 		if (server->isConnected)
 			irc_channel_command(server, server->channels[server->channels_set - 1]);
+
 		return 1;
 	}
 

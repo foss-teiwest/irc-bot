@@ -72,9 +72,10 @@ char **extract_params(char *msg, int *argc) {
 		return NULL;
 
 	// Null terminate the the whole parameters line
-	if ((temp = strrchr(msg, '\r')) == NULL)
+	if ((temp = strrchr(msg, '\r')) != NULL)
+		*temp = '\0';
+	else
 		return argv;
-	*temp = '\0';
 
 	// split parameters seperated by space or tab
 	argv[*argc] = strtok(msg, " \t");
@@ -126,8 +127,8 @@ void print_cmd_output(Irc server, const char *target, char *cmd_args[]) {
 			return;
 		}
 		close(fd[1]); // We don't need this anymore
-
 		execvp(cmd_args[0], cmd_args);
+
 		perror("exec failed"); // Exec functions return only on error
 		return;
 	}

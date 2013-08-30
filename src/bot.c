@@ -39,7 +39,6 @@ void bot_fail(Irc server, Parsed_data pdata) {
 		snprintf(quote, QUOTELEN, COLOR "%d%.*s", clr_r, (int) len, cfg.quotes[r] + sum);
 		send_message(server, pdata.target, "%s", quote);
 		sum += ++len;
-		sleep(1);
 	}
 }
 

@@ -18,7 +18,11 @@ rm "$DIR"/song.info.json
 print_song() {
 	touch "$DIR"/"$TITLE".mp3
 	QUEUESIZE=`mpc playlist | wc -l`
-	echo "♪ $TITLE ♪ queued after `expr $QUEUESIZE - 1` song(s)..."
+	if [ $QUEUESIZE -eq 1 ]; then
+		echo "♪ $TITLE ♪ playing @ http://foss.tesyd.teimes.gr:8000/"
+	else
+		echo "♪ $TITLE ♪ queued after `expr $QUEUESIZE - 1` song(s)..."
+	fi
 }
 
 if [ -f "$DIR"/"$TITLE".mp3 ]; then

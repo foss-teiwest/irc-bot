@@ -16,12 +16,10 @@ int sock_connect(const char *address, const char *port) {
 
 	// Create filter for getaddrinfo()
 	memset(&addr_filter, 0, sizeof(addr_filter));
-	addr_filter.ai_family   = AF_UNSPEC;    // IPv4 or IPv6
-	addr_filter.ai_socktype = SOCK_STREAM;  // Stream socket
-	addr_filter.ai_protocol = IPPROTO_TCP;  // TCP protocol
-
-	// Don't try to resolve service -> port, since we already provide it in numeric form
-	addr_filter.ai_flags   |= AI_NUMERICSERV;
+	addr_filter.ai_family   = AF_UNSPEC;      // IPv4 or IPv6
+	addr_filter.ai_socktype = SOCK_STREAM;    // Stream socket
+	addr_filter.ai_protocol = IPPROTO_TCP;    // TCP protocol
+	addr_filter.ai_flags   |= AI_NUMERICSERV; // Don't resolve service -> port, since we already provide it in numeric form
 
 	// Return addresses according to the filter criteria
 	if ((retval = getaddrinfo(address, port, &addr_filter, &addr_holder)) != 0)
@@ -29,8 +27,6 @@ int sock_connect(const char *address, const char *port) {
 
 	sock = -1;
 	for (addr_iterator = addr_holder; addr_iterator != NULL; addr_iterator = addr_holder->ai_next) {
-
-		// Create TCP socket
 		if ((sock = socket(addr_iterator->ai_family, addr_iterator->ai_socktype, addr_iterator->ai_protocol)) < 0)
 			continue; // Failed, try next address
 
@@ -58,6 +54,7 @@ ssize_t sock_write(int sock, const char *buf, size_t len) {
 	while (n_left > 0) {
 		if ((n_sent = write(sock, buf_marker, n_left)) < 0)
 			return errno == EAGAIN ? -2 : (perror("write"), -1);
+
 		n_left -= n_sent;
 		buf_marker += n_sent; // Advance buffer pointer to the next unsent byte
 	}
@@ -79,6 +76,7 @@ ssize_t sock_write(int sock, const char *buf, size_t len) {
 	if (bytes_read <= 0) {
 		if ((bytes_read = read(sock, buffer, IRCLEN)) <= 0)
 			return errno == EAGAIN ? -EAGAIN : (perror("read"), bytes_read);
+
 		buf_ptr = buffer;
 	}
 	bytes_read--;
