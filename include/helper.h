@@ -10,13 +10,13 @@
  * Contains general functions that are needed by many files
  */
 
-#define STARTSIZE    5
-#define MAXQUOTES    20
-#define HOMELEN      80
-#define EXIT_MSGLEN  128
-#define LINELEN      300
-#define CONFSIZE     4096
-#define TIMEOUT      360000 //!< Timeout in milliseconds for the poll function
+#define STARTSIZE   5
+#define MAXQUOTES   20
+#define HOMELEN     80
+#define EXIT_MSGLEN 128
+#define LINELEN     300
+#define CONFSIZE    4096
+#define TIMEOUT     360000 //!< Timeout in milliseconds for the poll function
 
 struct config_options {
 	char *server;

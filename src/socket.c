@@ -19,7 +19,7 @@ int sock_connect(const char *address, const char *port) {
 	addr_filter.ai_family   = AF_UNSPEC;      // IPv4 or IPv6
 	addr_filter.ai_socktype = SOCK_STREAM;    // Stream socket
 	addr_filter.ai_protocol = IPPROTO_TCP;    // TCP protocol
-	addr_filter.ai_flags   |= AI_NUMERICSERV; // Don't resolve service -> port, since we already provide it in numeric form
+	addr_filter.ai_flags    = AI_NUMERICSERV; // Don't resolve service -> port, since we already provide it in numeric form
 
 	// Return addresses according to the filter criteria
 	if ((retval = getaddrinfo(address, port, &addr_filter, &addr_holder)) != 0)
