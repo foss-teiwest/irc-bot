@@ -1,35 +1,26 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <poll.h>
-#include <signal.h>
-#include <errno.h>
-#include <curl/curl.h>
+#include "socket.h"
+#include "irc.h"
+#include "murmur.h"
 #include "helper.h"
 
-
-pid_t main_pid;
+enum { IRC, MURM_LISTEN, MURM_ACCEPT };
+int murm_listenfd, murm_acceptfd;
 
 int main(int argc, char *argv[]) {
 
 	Irc freenode;
-	yajl_val root = NULL;
-	struct pollfd pfd;
-	ssize_t n;
+	struct pollfd pfd[3];
 	int i, ready;
 
-	// Accept config path as an optional argument
-	if (argc > 2) {
-		fprintf(stderr, "Usage: %s [path_to_config]\n", argv[0]);
-		return 1;
-	} else if (argc == 2)
-		parse_config(root, argv[1]);
-	else
-		parse_config(root, "config.json");
+	initialize(argc, argv);
 
-	main_pid = getpid(); // store our process id to help exit_msg function exit appropriately
-	signal(SIGCHLD, SIG_IGN); // Make child processes not leave zombies behind when killed
-	signal(SIGPIPE, SIG_IGN); // Handle writing on closed sockets on our own
-	curl_global_init(CURL_GLOBAL_ALL); // Initialize curl library
+	if (add_murmur_callbacks(MURMUR_PORT) == 0) {
+		pfd[MURM_LISTEN].fd = murm_listenfd = sock_listen("127.0.0.1", CB_LISTEN_PORT_S);
+		pfd[MURM_LISTEN].events = POLLIN;
+	}
 
 	// Connect to server and set IRC details
 	if ((freenode = connect_server(cfg.server, cfg.port)) == NULL)
@@ -40,28 +31,37 @@ int main(int argc, char *argv[]) {
 	for (i = 0; i < cfg.channels_set; i++)
 		join_channel(freenode, cfg.channels[i]);
 
-	pfd.fd = get_socket(freenode);
-	pfd.events = POLLIN;
+	pfd[IRC].fd = get_socket(freenode);
+	pfd[IRC].events = POLLIN;
+	pfd[MURM_ACCEPT].fd = -1;
+	pfd[MURM_ACCEPT].events = POLLIN;
 
-	while ((ready = poll(&pfd, 1, TIMEOUT)) > 0) {
+	while ((ready = poll(pfd, 3, TIMEOUT)) > 0) {
 		// Keep reading & parsing lines as long the connection is active and act on any registered actions found
-		if (pfd.revents & POLLIN) {
-			while ((n = parse_irc_line(freenode)) > 0);
-			if (n != -EAGAIN)
-				goto cleanup;
+		if (pfd[IRC].revents & POLLIN)
+			while (parse_irc_line(freenode) > 0);
+		if (pfd[MURM_LISTEN].revents & POLLIN) {
+			pfd[MURM_ACCEPT].fd = sock_accept(murm_listenfd);
+			if (pfd[MURM_ACCEPT].fd > 0 && validate_murmur_connection(pfd[MURM_ACCEPT].fd) > 0) {
+				murm_acceptfd = pfd[MURM_ACCEPT].fd;
+				pfd[MURM_LISTEN].fd = -1;
+			}
+		}
+		if (pfd[MURM_ACCEPT].revents & POLLIN) {
+			if (listen_murmur_callbacks(freenode) <= 0) {
+				close(pfd[MURM_ACCEPT].fd);
+				pfd[MURM_ACCEPT].fd = -1;
+				pfd[MURM_LISTEN].fd = murm_listenfd;
+			}
 		}
 	}
 	// If we reach here, it means we got disconnected from server. Exit with error (1)
-	if (ready == 0) {
+	if (ready == 0)
 		fprintf(stderr, "%d minutes passed without getting a message, exiting...\n", TIMEOUT / 1000 / 60);
-		goto cleanup;
-	}
-	if (ready == -1)
+	else if (ready == -1)
 		perror("poll");
 
-cleanup:
 	quit_server(freenode, cfg.quit_msg);
-	yajl_tree_free(root);
-	curl_global_cleanup();
+	cleanup();
 	return 1;
 }

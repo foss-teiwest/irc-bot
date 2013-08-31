@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdarg.h>
+#include <errno.h>
 #include <assert.h>
 #include "socket.h"
 #include "irc.h"
@@ -11,11 +12,11 @@
 #include "helper.h"
 
 // Wrapper functions. If VA_ARGS is NULL (last 2 args) then ':' will be ommited. Do not call _irc_command() directly
-#define irc_nick_command(server, target)    _irc_command(server, "NICK", target, NULL, NULL)
-#define irc_user_command(server, target)    _irc_command(server, "USER", target, NULL, NULL)
-#define irc_channel_command(server, target) _irc_command(server, "JOIN", target, NULL, NULL)
-#define irc_ping_command(server, target)    _irc_command(server, "PONG", target, NULL, NULL)
-#define irc_quit_command(server, target)    _irc_command(server, "QUIT", "", target, NULL)
+#define irc_nick_command(server, target)    _irc_command(server, "NICK", target, NULL, (char *) NULL)
+#define irc_user_command(server, target)    _irc_command(server, "USER", target, NULL, (char *) NULL)
+#define irc_channel_command(server, target) _irc_command(server, "JOIN", target, NULL, (char *) NULL)
+#define irc_ping_command(server, target)    _irc_command(server, "PONG", target, NULL, (char *) NULL)
+#define irc_quit_command(server, target)    _irc_command(server, "QUIT", "", target,   (char *) NULL)
 
 struct irc_type {
 	int sock;
@@ -51,6 +52,11 @@ Irc connect_server(const char *address, const char *port) {
 int get_socket(Irc server) {
 
 	return server->sock;
+}
+
+char *default_channel(Irc server) {
+
+	return server->channels[0];
 }
 
 void set_nick(Irc server, const char *nick) {
@@ -105,6 +111,9 @@ ssize_t parse_irc_line(Irc server) {
 
 	// Read raw line from server. Example: ":laxanofido!~laxanofid@snf-23545.vm.okeanos.grnet.gr PRIVMSG #foss-teimes :How YA doing fossbot"
 	if ((n = sock_readline(server->sock, server->line + server->line_offset, IRCLEN - server->line_offset)) <= 0) {
+		if (n != -EAGAIN)
+			exit_msg("IRC connection closed");
+
 		server->line_offset = strlen(server->line);
 		return n;
 	}

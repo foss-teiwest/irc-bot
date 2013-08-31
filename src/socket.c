@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
-#include <errno.h>
 #include <sys/socket.h>
 #include <netdb.h>
+#include <fcntl.h>
+#include <errno.h>
 #include <assert.h>
 #include "socket.h"
 #include "helper.h"
@@ -23,18 +24,18 @@ int sock_connect(const char *address, const char *port) {
 
 	// Return addresses according to the filter criteria
 	if ((retval = getaddrinfo(address, port, &addr_filter, &addr_holder)) != 0) {
-		fprintf(stderr, "getaddrinfo: %s", gai_strerror(retval));
+		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(retval));
 		return sock;
 	}
 
-	for (addr_iterator = addr_holder; addr_iterator != NULL; addr_iterator = addr_holder->ai_next) {
+	for (addr_iterator = addr_holder; addr_iterator != NULL; addr_iterator = addr_iterator->ai_next) {
 
 		if ((sock = socket(addr_iterator->ai_family, addr_iterator->ai_socktype, addr_iterator->ai_protocol)) < 0) {
 			perror("socket");
 			continue; // Failed, try next address
 		}
 
-		if ((connect(sock, addr_iterator->ai_addr, addr_iterator->ai_addrlen)) == 0)
+		if (connect(sock, addr_iterator->ai_addr, addr_iterator->ai_addrlen) == 0)
 			break; // Success
 
 		// Cleanup and try next address
@@ -46,7 +47,7 @@ int sock_connect(const char *address, const char *port) {
 	return sock;
 }
 
-int sock_bind(const char *port) {
+int sock_listen(const char *address, const char *port) {
 
 	int retval, sock = -1;
 	struct addrinfo addr_filter, *addr_holder, *addr_iterator;
@@ -54,32 +55,41 @@ int sock_bind(const char *port) {
 	addr_filter.ai_family   = AF_UNSPEC;
 	addr_filter.ai_socktype = SOCK_STREAM;
 	addr_filter.ai_protocol = IPPROTO_TCP;
-	addr_filter.ai_flags    = AI_PASSIVE | AI_NUMERICSERV;
+	addr_filter.ai_flags    = AI_NUMERICSERV;
 
 	if ((retval = getaddrinfo(address, port, &addr_filter, &addr_holder)) != 0) {
-		fprintf(stderr, "getaddrinfo: %s", gai_strerror(retval));
+		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(retval));
 		return sock;
 	}
 
-	for (addr_iterator = addr_holder; addr_iterator != NULL; addr_iterator = addr_holder->ai_next) {
+	for (addr_iterator = addr_holder; addr_iterator != NULL; addr_iterator = addr_iterator->ai_next) {
 
 		if ((sock = socket(addr_iterator->ai_family, addr_iterator->ai_socktype, addr_iterator->ai_protocol)) < 0) {
 			perror("socket");
 			continue;
 		}
+		setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &(int) { 1 }, sizeof(int));
+		if (bind(sock, addr_iterator->ai_addr, addr_iterator->ai_addrlen) == 0 && listen(sock, 5) == 0)
+			break; // Success
 
-		if ((bind(servSock, servAddr->ai_addr, servAddr->ai_addrlen) != 0) {
-			perror("bind");
-			continue;
-			// Bind and list successful
-		}
-		close(servSock);
-		servSock = -1;
-		// Close and try again
+		perror("bind/listen");
+		close(sock);
+		sock = -1;
 	}
-	// Free address list allocated by getaddrinfo()
-	freeaddrinfo(servAddr);
-	return servSock;
+	freeaddrinfo(addr_holder);
+	return sock;
+}
+
+int sock_accept(int listen_fd) {
+
+	int accept_fd;
+
+	if ((accept_fd = accept(listen_fd, NULL, NULL)) < 0) {
+		perror("accept");
+		return -1;
+	}
+	fcntl(accept_fd, F_SETFL, O_NONBLOCK);
+	return accept_fd;
 }
 
 ssize_t sock_write(int sock, const char *buf, size_t len) {
@@ -95,28 +105,13 @@ ssize_t sock_write(int sock, const char *buf, size_t len) {
 	// TODO we don't actually resend the buffer if we get EAGAIN...
 	while (n_left > 0) {
 		if ((n_sent = write(sock, buf_marker, n_left)) < 0)
-			return errno == EAGAIN ? -2 : (perror("write"), -1);
+			return errno == EAGAIN ? -EAGAIN : (perror("write"), -1);
 
 		n_left -= n_sent;
-		buf_marker += n_sent; // Advance buffer pointer to the next unsent byte
+		buf_marker += n_sent; // Advance buffer pointer to the rest unsent bytes
 	}
 	return len;
 }
-
-// int AcceptTCPConnection(int servSock) {
-// 	struct sockaddr_storage clntAddr; // Client address
-// 	// Set length of client address structure (in-out parameter)
-// 	socklen_t clntAddrLen = sizeof(clntAddr);
-// 	// Wait for a client to connect
-// 	int clntSock = accept(servSock, (struct sockaddr *) &clntAddr, &clntAddrLen);
-// 	if (clntSock < 0)
-// 		DieWithSystemMessage("accept() failed");
-// 	// clntSock is connected to a client!
-// 	fputs("Handling client ", stdout);
-// 	PrintSocketAddress((struct sockaddr *) &clntAddr, stdout);
-// 	fputc('\n', stdout);
-// 	return clntSock;
-// }
 
 #ifdef TEST
 	ssize_t sock_readbyte(int sock, char *byte)
