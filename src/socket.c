@@ -28,61 +28,59 @@ int sock_connect(const char *address, const char *port) {
 	}
 
 	for (addr_iterator = addr_holder; addr_iterator != NULL; addr_iterator = addr_holder->ai_next) {
-		if ((sock = socket(addr_iterator->ai_family, addr_iterator->ai_socktype, addr_iterator->ai_protocol)) < 0)
-			continue; // Failed, try next address
 
-		if ((retval = connect(sock, addr_iterator->ai_addr, addr_iterator->ai_addrlen)) == 0)
+		if ((sock = socket(addr_iterator->ai_family, addr_iterator->ai_socktype, addr_iterator->ai_protocol)) < 0) {
+			perror("socket");
+			continue; // Failed, try next address
+		}
+
+		if ((connect(sock, addr_iterator->ai_addr, addr_iterator->ai_addrlen)) == 0)
 			break; // Success
 
-		close(sock); // Cleanup and try next address
+		// Cleanup and try next address
+		perror("connect");
+		close(sock);
 		sock = -1;
 	}
 	freeaddrinfo(addr_holder);
 	return sock;
 }
 
-// int sock_bind(const char *port) {
+int sock_bind(const char *port) {
 
-// 	int sock, retval;
-// 	struct addrinfo addr_filter, *addr_holder, *addr_iterator;
+	int retval, sock = -1;
+	struct addrinfo addr_filter, *addr_holder, *addr_iterator;
 
-// 	addr_filter.ai_family   = AF_UNSPEC;
-// 	addr_filter.ai_socktype = SOCK_STREAM;
-// 	addr_filter.ai_protocol = IPPROTO_TCP;
-// 	addr_filter.ai_flags    = AI_PASSIVE | AI_NUMERICSERV;
+	addr_filter.ai_family   = AF_UNSPEC;
+	addr_filter.ai_socktype = SOCK_STREAM;
+	addr_filter.ai_protocol = IPPROTO_TCP;
+	addr_filter.ai_flags    = AI_PASSIVE | AI_NUMERICSERV;
 
-// 	if ((retval = getaddrinfo(NULL, port, &addr_filter, &addr_holder)) != 0)
-// 		exit_msg("getaddrinfo: %s", gai_strerror(retval));
+	if ((retval = getaddrinfo(address, port, &addr_filter, &addr_holder)) != 0) {
+		fprintf(stderr, "getaddrinfo: %s", gai_strerror(retval));
+		return sock;
+	}
 
-// 	for (struct addrinfo *addr = servAddr; addr != NULL; addr = addr->ai_next) {
-// 		// Create a TCP socket
-// 		servSock = socket(servAddr->ai_family, servAddr->ai_socktype,
-// 		                  servAddr->ai_protocol);
-// 		if (servSock < 0)
-// 			continue;
-// 		// Socket creation failed; try next address
-// 		// Bind to the local address and set socket to list
-// 		if ((bind(servSock, servAddr->ai_addr, servAddr->ai_addrlen) == 0) &&
-// 		        (listen(servSock, MAXPENDING) == 0)) {
-// 			// Print local address of socket
-// 			struct sockaddr_storage localAddr;
-// 			socklen_t addrSize = sizeof(localAddr);
-// 			if (getsockname(servSock, (struct sockaddr *) &localAddr, &addrSize) < 0)
-// 				DieWithSystemMessage("getsockname() failed");
-// 			fputs("Binding to ", stdout);
-// 			PrintSocketAddress((struct sockaddr *) &localAddr, stdout);
-// 			fputc('\n', stdout);
-// 			break;
-// 			// Bind and list successful
-// 		}
-// 		close(servSock);
-// 		servSock = -1;
-// 		// Close and try again
-// 	}
-// 	// Free address list allocated by getaddrinfo()
-// 	freeaddrinfo(servAddr);
-// 	return servSock;
-// }
+	for (addr_iterator = addr_holder; addr_iterator != NULL; addr_iterator = addr_holder->ai_next) {
+
+		if ((sock = socket(addr_iterator->ai_family, addr_iterator->ai_socktype, addr_iterator->ai_protocol)) < 0) {
+			perror("socket");
+			continue;
+		}
+
+		if ((bind(servSock, servAddr->ai_addr, servAddr->ai_addrlen) != 0) {
+			perror("bind");
+			continue;
+			// Bind and list successful
+		}
+		close(servSock);
+		servSock = -1;
+		// Close and try again
+	}
+	// Free address list allocated by getaddrinfo()
+	freeaddrinfo(servAddr);
+	return servSock;
+}
 
 ssize_t sock_write(int sock, const char *buf, size_t len) {
 
@@ -104,6 +102,21 @@ ssize_t sock_write(int sock, const char *buf, size_t len) {
 	}
 	return len;
 }
+
+// int AcceptTCPConnection(int servSock) {
+// 	struct sockaddr_storage clntAddr; // Client address
+// 	// Set length of client address structure (in-out parameter)
+// 	socklen_t clntAddrLen = sizeof(clntAddr);
+// 	// Wait for a client to connect
+// 	int clntSock = accept(servSock, (struct sockaddr *) &clntAddr, &clntAddrLen);
+// 	if (clntSock < 0)
+// 		DieWithSystemMessage("accept() failed");
+// 	// clntSock is connected to a client!
+// 	fputs("Handling client ", stdout);
+// 	PrintSocketAddress((struct sockaddr *) &clntAddr, stdout);
+// 	fputc('\n', stdout);
+// 	return clntSock;
+// }
 
 #ifdef TEST
 	ssize_t sock_readbyte(int sock, char *byte)
