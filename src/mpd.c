@@ -7,20 +7,21 @@
 
 void play(Irc server, Parsed_data pdata) {
 
-	char **argv;
-	int argc;
+	char *temp;
 
-	argv = extract_params(pdata.message, &argc);
-	if (argc != 1)
-		goto cleanup;
+	if (pdata.message == NULL)
+		return;
 
-	if (strchr(argv[0], '.') == NULL)
-		print_cmd_output(server, pdata.target, (char *[]) { SCRIPTDIR "mpd_search.sh", cfg.mpd_database, argv[0], NULL });
+	// Null terminate the the whole parameters line
+	if ((temp = strrchr(pdata.message, '\r')) != NULL)
+		*temp = '\0';
 	else
-		print_cmd_output(server, pdata.target, (char *[]) { SCRIPTDIR "youtube2mp3.sh", cfg.mpd_database, argv[0], NULL });
+		return;
 
-cleanup:
-	free(argv);
+	if (strstr(pdata.message, "youtu") == NULL)
+		print_cmd_output(server, pdata.target, (char *[]) { SCRIPTDIR "mpd_search.sh", cfg.mpd_database, pdata.message, NULL });
+	else
+		print_cmd_output(server, pdata.target, (char *[]) { SCRIPTDIR "youtube2mp3.sh", cfg.mpd_database, pdata.message, NULL });
 }
 
 void playlist(Irc server, Parsed_data pdata) {
