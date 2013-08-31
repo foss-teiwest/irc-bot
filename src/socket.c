@@ -11,7 +11,7 @@
 
 int sock_connect(const char *address, const char *port) {
 
-	int sock, retval;
+	int retval, sock = -1;
 	struct addrinfo addr_filter, *addr_holder, *addr_iterator;
 
 	// Create filter for getaddrinfo()
@@ -19,21 +19,26 @@ int sock_connect(const char *address, const char *port) {
 	addr_filter.ai_family   = AF_UNSPEC;      // IPv4 or IPv6
 	addr_filter.ai_socktype = SOCK_STREAM;    // Stream socket
 	addr_filter.ai_protocol = IPPROTO_TCP;    // TCP protocol
-	addr_filter.ai_flags   |= AI_NUMERICSERV; // Don't resolve service -> port, since we already provide it in numeric form
+	addr_filter.ai_flags    = AI_NUMERICSERV; // Don't resolve service -> port, since we already provide it in numeric form
 
 	// Return addresses according to the filter criteria
-	if ((retval = getaddrinfo(address, port, &addr_filter, &addr_holder)) != 0)
-		exit_msg("getaddrinfo: %s", gai_strerror(retval));
+	if ((retval = getaddrinfo(address, port, &addr_filter, &addr_holder)) != 0) {
+		fprintf(stderr, "getaddrinfo: %s", gai_strerror(retval));
+		return sock;
+	}
 
-	sock = -1;
 	for (addr_iterator = addr_holder; addr_iterator != NULL; addr_iterator = addr_holder->ai_next) {
-		if ((sock = socket(addr_iterator->ai_family, addr_iterator->ai_socktype, addr_iterator->ai_protocol)) < 0)
+		if ((sock = socket(addr_iterator->ai_family, addr_iterator->ai_socktype, addr_iterator->ai_protocol)) < 0) {
+			perror("socket");
 			continue; // Failed, try next address
+		}
 
-		if ((retval = connect(sock, addr_iterator->ai_addr, addr_iterator->ai_addrlen)) == 0)
+		if ((connect(sock, addr_iterator->ai_addr, addr_iterator->ai_addrlen)) == 0)
 			break; // Success
 
-		close(sock); // Cleanup and try next address
+		// Cleanup and try next address
+		perror("connect");
+		close(sock);
 		sock = -1;
 	}
 	freeaddrinfo(addr_holder);
