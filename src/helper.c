@@ -3,13 +3,39 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdarg.h>
+#include <signal.h>
 #include <sys/stat.h>
+#include <curl/curl.h>
 #include <yajl/yajl_tree.h>
 #include "irc.h"
 #include "helper.h"
 
-extern pid_t main_pid;
+pid_t main_pid;
+yajl_val root;
 struct config_options cfg;
+
+void initialize(int argc, char *argv[]) {
+
+	main_pid = getpid(); // store our process id to help exit_msg function exit appropriately
+
+	// Accept config path as an optional argument
+	if (argc > 2)
+		exit_msg("Usage: %s [path_to_config]\n", argv[0]);
+	else if (argc == 2)
+		parse_config(root, argv[1]);
+	else
+		parse_config(root, "config.json");
+
+	signal(SIGCHLD, SIG_IGN); // Make child processes not leave zombies behind when killed
+	signal(SIGPIPE, SIG_IGN); // Handle writing on closed sockets on our own
+	curl_global_init(CURL_GLOBAL_ALL); // Initialize curl library
+}
+
+void cleanup(void) {
+
+	yajl_tree_free(root);
+	curl_global_cleanup();
+}
 
 void exit_msg(const char *format, ...) {
 

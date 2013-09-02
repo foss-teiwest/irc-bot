@@ -48,6 +48,13 @@ void *_malloc_w(size_t size, const char *caller);
 void *_calloc_w(size_t size, const char *caller);
 void *_realloc_w(void *buf, size_t size, const char *caller);
 
+/** Parse arguments, load config, install signal handlers etc
+ *  @param argc, argv main's parameters unaltered */
+void initialize(int argc, char *argv[]);
+
+/** Cleanup curl, free yajl handler etc */
+void cleanup(void);
+
 /** Takes a format specifier with a variable number of arguments. Prints message and exits with failure
  *  If the caller is not the main process then _exit() will be used to avoid,
  *  calling the functions registered with atexit(), flushing descriptors etc */

@@ -41,4 +41,7 @@ ssize_t sock_write(int sock, const char *buf, size_t len);
  */
 ssize_t sock_readline(int sock, char *line_buf, size_t len);
 
+int sock_listen(const char *address, const char *port);
+int sock_accept(int listen_fd);
+
 #endif

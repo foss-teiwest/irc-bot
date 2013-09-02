@@ -51,6 +51,9 @@ Irc connect_server(const char *address, const char *port);
  */
 int get_socket(Irc server);
 
+/** Returns a default channel to send messages to. Currently it's the first channel set */
+char *default_channel(Irc server);
+
 /** Set nickname */
 void set_nick(Irc server, const char *nick);
 
