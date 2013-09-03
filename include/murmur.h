@@ -27,6 +27,6 @@ int add_murmur_callbacks(const char *port);
 ssize_t validate_murmur_connection(int murm_acceptfd);
 
 /** Listen for callbacks */
-int listen_murmur_callbacks(Irc server);
+int listen_murmur_callbacks(Irc server, int murm_acceptfd);
 
 #endif
