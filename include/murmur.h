@@ -2,6 +2,7 @@
 #define MURMUR_H
 
 #include <sys/types.h>
+#include <stdbool.h>
 #include "irc.h"
 
 /**
@@ -21,12 +22,12 @@
 #define READ_BUFFER_SIZE 512
 
 /** Add callbacks */
-int add_murmur_callbacks(const char *port);
+bool add_murmur_callbacks(const char *port);
 
 /** Validate murmur's server connection */
 ssize_t validate_murmur_connection(int murm_acceptfd);
 
 /** Listen for callbacks */
-int listen_murmur_callbacks(Irc server, int murm_acceptfd);
+ssize_t listen_murmur_callbacks(Irc server, int murm_acceptfd);
 
 #endif

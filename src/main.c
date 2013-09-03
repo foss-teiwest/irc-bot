@@ -12,35 +12,32 @@ int main(int argc, char *argv[]) {
 
 	Irc freenode;
 	struct pollfd pfd[3];
-	int i, ready, murmur_fd;
+	int ready, murm_listenfd = -1;
 
 	initialize(argc, argv);
 
-	if ((murmur_fd = add_murmur_callbacks(MURMUR_PORT)) > 0) {
-		close(murmur_fd);
-		pfd[MURM_LISTEN].fd = murmur_fd = sock_listen("127.0.0.1", CB_LISTEN_PORT_S);
-		pfd[MURM_LISTEN].events = POLLIN;
-	}
+	if (add_murmur_callbacks(MURMUR_PORT))
+		pfd[MURM_LISTEN].fd = murm_listenfd = sock_listen("127.0.0.1", CB_LISTEN_PORT_S);
+
 	// Connect to server and set IRC details
 	if ((freenode = connect_server(cfg.server, cfg.port)) == NULL)
 		exit_msg("Irc connection failed");
 
 	set_nick(freenode, cfg.nick);
 	set_user(freenode, cfg.user);
-	for (i = 0; i < cfg.channels_set; i++)
+	for (int i = 0; i < cfg.channels_set; i++)
 		join_channel(freenode, cfg.channels[i]);
 
 	pfd[IRC].fd = get_socket(freenode);
-	pfd[IRC].events = POLLIN;
 	pfd[MURM_ACCEPT].fd = -1;
-	pfd[MURM_ACCEPT].events = POLLIN;
+	pfd[IRC].events = pfd[MURM_LISTEN].events = pfd[MURM_ACCEPT].events = POLLIN;
 
 	while ((ready = poll(pfd, 3, TIMEOUT)) > 0) {
 		// Keep reading & parsing lines as long the connection is active and act on any registered actions found
 		if (pfd[IRC].revents & POLLIN)
 			while (parse_irc_line(freenode) > 0);
 		if (pfd[MURM_LISTEN].revents & POLLIN) {
-			pfd[MURM_ACCEPT].fd = sock_accept(murmur_fd);
+			pfd[MURM_ACCEPT].fd = sock_accept(murm_listenfd);
 			if (pfd[MURM_ACCEPT].fd > 0 && validate_murmur_connection(pfd[MURM_ACCEPT].fd) > 0)
 				pfd[MURM_LISTEN].fd = -1; // Stop listening for connections
 		}
@@ -48,7 +45,7 @@ int main(int argc, char *argv[]) {
 			if (listen_murmur_callbacks(freenode, pfd[MURM_ACCEPT].fd) <= 0) {
 				close(pfd[MURM_ACCEPT].fd);
 				pfd[MURM_ACCEPT].fd = -1;
-				pfd[MURM_LISTEN].fd = murmur_fd; // Start listening again for Murmur connections
+				pfd[MURM_LISTEN].fd = murm_listenfd; // Start listening again for Murmur connections
 			}
 		}
 	}

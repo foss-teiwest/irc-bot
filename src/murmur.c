@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <arpa/inet.h>
 #include <errno.h>
@@ -9,12 +10,13 @@
 #include "murmur.h"
 
 
-int add_murmur_callbacks(const char *port) {
+bool add_murmur_callbacks(const char *port) {
 
 	uint16_t listener_port = htons(CB_LISTEN_PORT);
 	unsigned char *listener_port_bytes = (unsigned char *)&listener_port;
 	unsigned char read_buffer[READ_BUFFER_SIZE];
 	int murm_callbackfd;
+	bool status = false;
 
 	const unsigned char ice_isA_packet[] = {
 		0x49, 0x63, 0x65, 0x50, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0x38, 0x00, 0x00, 0x00, 0x01, 0x00,
@@ -34,29 +36,32 @@ int add_murmur_callbacks(const char *port) {
 	};
 
 	if ((murm_callbackfd = sock_connect("127.0.0.1", port)) < 0)
-		return -1;
+		return status;
 
 	if (read(murm_callbackfd, read_buffer, READ_BUFFER_SIZE) != VALIDATE_CONNECTION_PACKET_SIZE) {
 		fprintf(stderr, "Error: Failed to receive validate_packet. %s\n", strerror(errno));
-		return murm_callbackfd;
+		goto cleanup;
 	}
 	if (write(murm_callbackfd, ice_isA_packet, sizeof(ice_isA_packet)) < 0) {
 		fprintf(stderr, "Error: Failed to send ice_isA_packet. %s\n", strerror(errno));
-		return murm_callbackfd;
+		goto cleanup;
 	}
 	if (read(murm_callbackfd, read_buffer, READ_BUFFER_SIZE) != ICE_ISA_REPLY_PACKET_SIZE) {
 		fprintf(stderr, "Error: Failed to receive ice_isA_packet success reply. %s\n", strerror(errno));
-		return murm_callbackfd;
+		goto cleanup;
 	}
 	if (write(murm_callbackfd, addCallback_packet, sizeof(addCallback_packet)) < 0) {
 		fprintf(stderr, "Error: Failed to send addCallback_packet. %s\n", strerror(errno));
-		return murm_callbackfd;
+		goto cleanup;
 	}
 	if (read(murm_callbackfd, read_buffer, READ_BUFFER_SIZE) != ADDCALLBACK_REPLY_PACKET_SIZE) {
 		fprintf(stderr, "Error: Failed to receive addCallback_packet success reply. %s\n", strerror(errno));
-		return murm_callbackfd;
+		goto cleanup;
 	}
-	return murm_callbackfd;
+	status = true;
+cleanup:
+	close(murm_callbackfd);
+	return status;
 }
 
 ssize_t validate_murmur_connection(int murm_acceptfd) {
@@ -71,7 +76,7 @@ ssize_t validate_murmur_connection(int murm_acceptfd) {
 	return n;
 }
 
-int listen_murmur_callbacks(Irc server, int murm_acceptfd) {
+ssize_t listen_murmur_callbacks(Irc server, int murm_acceptfd) {
 
 	ssize_t n;
 	char *username, read_buffer[READ_BUFFER_SIZE];
