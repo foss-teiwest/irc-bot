@@ -42,13 +42,13 @@ int main(int argc, char *argv[]) {
 		if (pfd[MURM_LISTEN].revents & POLLIN) {
 			pfd[MURM_ACCEPT].fd = sock_accept(murmur_fd);
 			if (pfd[MURM_ACCEPT].fd > 0 && validate_murmur_connection(pfd[MURM_ACCEPT].fd) > 0)
-				pfd[MURM_LISTEN].fd = -1;
+				pfd[MURM_LISTEN].fd = -1; // Stop listening for connections
 		}
 		if (pfd[MURM_ACCEPT].revents & POLLIN) {
 			if (listen_murmur_callbacks(freenode, pfd[MURM_ACCEPT].fd) <= 0) {
 				close(pfd[MURM_ACCEPT].fd);
 				pfd[MURM_ACCEPT].fd = -1;
-				pfd[MURM_LISTEN].fd = murmur_fd;
+				pfd[MURM_LISTEN].fd = murmur_fd; // Start listening again for Murmur connections
 			}
 		}
 	}

@@ -81,16 +81,11 @@ int listen_murmur_callbacks(Irc server, int murm_acceptfd) {
 		if (read_buffer[8] == 0x4)
 			return -1;
 
-		/* Determine if received packet represents userConnected or userDisconnected callback */
-		if (read_buffer[62] == 'C') { /* Connected */
+		/* Determine if received packet represents userConnected callback */
+		if (read_buffer[62] == 'C') {
 			username = read_buffer + 99;
 			username[(unsigned)read_buffer[98]] = '\0';
 			send_message(server, default_channel(server), "Mumble: %s connected", username);
-		}
-		else if (read_buffer[62] == 'D') { /* Disconnected */
-			username = read_buffer + 102;
-			username[(unsigned)read_buffer[101]] = '\0';
-			send_message(server, default_channel(server), "Mumble: %s disconnected", username);
 		}
 	}
 	return errno == EAGAIN ? 1 : n;
