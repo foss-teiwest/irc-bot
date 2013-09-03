@@ -13,7 +13,7 @@
 	"verbose": true,
 
 	// String to reply on ctcp version
-	"bot_version": "foss-tesyd bot",
+	"bot_version": "irC Bot - http://github.com/foss-teimes/irc-bot",
 
 	// Default repo to substitute when not provided for the github command
 	"github_repo": "foss-teimes",
