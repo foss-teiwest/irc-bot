@@ -5,7 +5,7 @@ SRCDIR   = src
 INCLDIR  = include
 TESTDIR  = test
 CC       = gcc
-CFLAGS   = -g -Wall -Wextra -std=gnu99 -pedantic
+CFLAGS   = -g -Wall -Wextra -std=c99 -pedantic
 LDLIBS   = -lcurl -lyajl
 CPPFLAGS = -D_GNU_SOURCE
 CFLAGS-test := $(CFLAGS)

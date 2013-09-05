@@ -36,9 +36,9 @@
 struct function_list;
 #include <string.h>
 
-#define TOTAL_KEYWORDS 18
+#define TOTAL_KEYWORDS 19
 #define MIN_WORD_LENGTH 3
-#define MAX_WORD_LENGTH 10
+#define MAX_WORD_LENGTH 11
 #define MIN_HASH_VALUE 3
 #define MAX_HASH_VALUE 34
 /* maximum key range = 32, duplicates = 0 */
@@ -106,11 +106,11 @@ hash (register const char *str, register unsigned int len)
       35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
       35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
       35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
-      35, 35, 35, 35, 35, 15, 35,  0,  0,  0,
-      15,  0,  0, 10, 35, 15,  0,  0, 20,  0,
+      35, 35, 35, 35, 35, 10, 35,  0,  0,  0,
+      20,  0,  0, 10, 35, 15,  0,  0, 20,  0,
        5, 35,  0, 35,  0,  0, 35, 35, 35, 35,
-      35, 35, 35, 35, 35, 35, 35, 15, 35,  0,
-       0,  0, 15,  0,  0, 10, 35, 15,  0,  0,
+      35, 35, 35, 35, 35, 35, 35, 10, 35,  0,
+       0,  0, 20,  0,  0, 10, 35, 15,  0,  0,
       20,  0,  5, 35,  0, 35,  0,  0, 35, 35,
       35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
       35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
@@ -167,6 +167,8 @@ function_lookup (register const char *str, register unsigned int len)
       {"history", history},
 #line 24 "include/gperf-input.txt"
       {"ping", ping},
+#line 33 "include/gperf-input.txt"
+      {"random-mode", random_mode},
 #line 25 "include/gperf-input.txt"
       {"dns", dns},
 #line 32 "include/gperf-input.txt"
@@ -280,38 +282,45 @@ function_lookup (register const char *str, register unsigned int len)
                     goto compare;
                   }
                 break;
+              case 18:
+                if (len == 11)
+                  {
+                    resword = &wordlist[13];
+                    goto compare;
+                  }
+                break;
               case 20:
                 if (len == 3)
                   {
-                    resword = &wordlist[13];
+                    resword = &wordlist[14];
                     goto compare;
                   }
                 break;
               case 21:
                 if (len == 4)
                   {
-                    resword = &wordlist[14];
+                    resword = &wordlist[15];
                     goto compare;
                   }
                 break;
               case 23:
                 if (len == 6)
                   {
-                    resword = &wordlist[15];
+                    resword = &wordlist[16];
                     goto compare;
                   }
                 break;
               case 26:
                 if (len == 4)
                   {
-                    resword = &wordlist[16];
+                    resword = &wordlist[17];
                     goto compare;
                   }
                 break;
               case 31:
                 if (len == 4)
                   {
-                    resword = &wordlist[17];
+                    resword = &wordlist[18];
                     goto compare;
                   }
                 break;

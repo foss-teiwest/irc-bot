@@ -30,4 +30,7 @@ void current(Irc server, Parsed_data pdata);
 /** Skip song and print the title of the next */
 void next(Irc server, Parsed_data pdata);
 
+/** Queue up all songs and play them in random mode */
+void random_mode(Irc server, Parsed_data pdata) ;
+
 #endif

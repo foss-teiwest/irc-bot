@@ -2,6 +2,7 @@
 
 DIR=$1
 QUERY=$2
+RANDOM_ON=~/.mpd_random
 RESULT=`mpc search filename "$QUERY"`
 RESULT_BYTES=`echo "$RESULT" | wc -c`
 RESULT_LINES=`echo "$RESULT" | wc -l`
@@ -11,15 +12,21 @@ if [ $RESULT_BYTES -lt 5 ]; then
 fi
 
 if [ $RESULT_LINES -eq 1 ]; then
+	if [ -e $RANDOM_ON ]; then
+		echo "random mode disabled"
+		mpc crop && mpc -q random off
+		rm $RANDOM_ON
+	fi
+	QUEUESIZE=`mpc playlist | wc -l`
 	mpc add "$RESULT" && mpc -q play
 	if [ $? -eq 0 ]; then
 		touch "$DIR"/"$RESULT".mp3
 		RESULT=`echo "$RESULT" | gawk -F. -v OFS=. '{NF--; print}'`
-		QUEUESIZE=`mpc playlist | wc -l`
-		if [ $QUEUESIZE -eq 1 ]; then
+
+		if [ $QUEUESIZE -eq 0 ]; then
 			echo "♪ $RESULT ♪ playing @ http://foss.tesyd.teimes.gr:8000/"
 		else
-			echo "♪ $RESULT ♪ queued after `expr $QUEUESIZE - 1` song(s)..."
+			echo "♪ $RESULT ♪ queued after $QUEUESIZE song(s)..."
 		fi
 	fi
 else

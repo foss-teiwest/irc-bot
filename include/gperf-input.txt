@@ -30,3 +30,4 @@ struct function_list;
 "history", history
 "current", current
 "next", next
+"random-mode", random_mode

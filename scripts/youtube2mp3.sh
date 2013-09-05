@@ -3,6 +3,7 @@
 TIMELIMIT=550
 DIR=$1
 URL=`echo $2 | grep -o "^[^&]*"`
+RANDOM_ON=~/.mpd_random
 
 ~/bin/youtube-dl        \
 -q                      \
@@ -17,13 +18,19 @@ rm "$DIR"/song.info.json
 
 print_song() {
 	touch "$DIR"/"$TITLE".mp3
-	QUEUESIZE=`mpc playlist | wc -l`
-	if [ $QUEUESIZE -eq 1 ]; then
+	if [ $QUEUESIZE -eq 0 ]; then
 		echo "♪ $TITLE ♪ playing @ http://foss.tesyd.teimes.gr:8000/"
 	else
-		echo "♪ $TITLE ♪ queued after `expr $QUEUESIZE - 1` song(s)..."
+		echo "♪ $TITLE ♪ queued after $QUEUESIZE song(s)..."
 	fi
 }
+
+if [ -e $RANDOM_ON ]; then
+	echo "random mode disabled"
+	mpc crop && mpc -q random off
+	rm $RANDOM_ON
+fi
+QUEUESIZE=`mpc playlist | wc -l`
 
 if [ -f "$DIR"/"$TITLE".mp3 ]; then
 	mpc add "$TITLE".mp3 && mpc -q play
