@@ -217,8 +217,8 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 			perror("fork");
 		}
 	}
-	// CTCP requests must be received in private & begin with ascii char 1
-	else if (*pdata.command == '\x01' && pdata.target == pdata.sender) {
+	// CTCP requests must begin with ascii char 1
+	else if (*pdata.command == '\x01') {
 		if (strncmp(pdata.command + 1, "VERSION", 7) == 0) // Skip the leading escape char
 			send_notice(server, pdata.sender, "\x01%s\x01", cfg.bot_version);
 	}
