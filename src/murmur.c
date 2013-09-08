@@ -101,7 +101,7 @@ bool listen_murmur_callbacks(Irc server, int murm_acceptfd) {
 		/* Determine if received packet represents userConnected callback */
 		if (read_buffer[62] == 'C') {
 			username = read_buffer + 99;
-			username[(unsigned)read_buffer[98]] = '\0';
+			username[(unsigned) *(username - 1)] = '\0';
 			send_message(server, default_channel(server), "Mumble: %s connected", username);
 		}
 	}
