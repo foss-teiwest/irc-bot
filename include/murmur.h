@@ -24,10 +24,11 @@
 /** Add callbacks */
 bool add_murmur_callbacks(const char *port);
 
-/** Validate murmur's server connection */
-ssize_t validate_murmur_connection(int murm_acceptfd);
+/** Accept and check that the incoming connection is valid
+ *  @return non-blocking socket */
+int accept_murmur_connection(int murm_listenfd);
 
 /** Listen for callbacks */
-ssize_t listen_murmur_callbacks(Irc server, int murm_acceptfd);
+bool listen_murmur_callbacks(Irc server, int murm_acceptfd);
 
 #endif

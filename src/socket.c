@@ -3,7 +3,6 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <netdb.h>
-#include <fcntl.h>
 #include <errno.h>
 #include <assert.h>
 #include "socket.h"
@@ -87,7 +86,6 @@ int sock_accept(int listen_fd) {
 		perror("accept");
 		return -1;
 	}
-	fcntl(accept_fd, F_SETFL, O_NONBLOCK);
 	return accept_fd;
 }
 

@@ -29,6 +29,7 @@ Irc server;
 char test_buffer[IRCLEN + 1];
 int sock, status;
 Parsed_data pdata;
+int mpdfd = 5;
 
 ssize_t sock_readbyte(int sock, char *byte);
 size_t curl_write_memory(char *data, size_t size, size_t elements, void *membuf);
@@ -99,11 +100,11 @@ void close_write(void) {
 
 	ck_assert_str_eq("lol\r\ntroll\r\n", test_buffer2);
 
-#test parseline
-
-	ck_assert_int_eq(parse_irc_line(server), 0);
-	lseek(server->sock, 0, SEEK_SET);
-	ck_assert_int_eq(parse_irc_line(server), 5);
+//#test parseline
+//
+//	ck_assert_int_eq(parse_irc_line(server), 0);
+//	lseek(server->sock, 0, SEEK_SET);
+//	ck_assert_int_eq(parse_irc_line(server), 5);
 
 /*****************************************************************************/
 

@@ -12,7 +12,7 @@
 
 #define STARTSIZE   5
 #define MAXQUOTES   20
-#define HOMELEN     80
+#define PATHLEN     120
 #define EXIT_MSGLEN 128
 #define LINELEN     300
 #define CONFSIZE    4096
@@ -29,13 +29,20 @@ struct config_options {
 	char *bot_version;
 	char *github_repo;
 	char *quit_msg;
+	char *murmur_port;
+	char *mpd_port;
 	char *mpd_database;
+	char *mpd_random_mode_file;
 	char *quotes[MAXQUOTES];
 	int quote_count;
 	bool verbose;
 };
 
 extern struct config_options cfg; //!< global struct with config's values
+
+/** Returns array size
+ *  @warning  Must ONLY be used for local arrays (same scope) allocated in stack */
+#define SIZE(x) (int) (sizeof(x) / sizeof(x[0]))
 
 //@{
 /** Wrappers for allocating memory. Print the caller function on failure and exit. Will always return a valid pointer */

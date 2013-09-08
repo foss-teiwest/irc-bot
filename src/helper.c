@@ -98,10 +98,9 @@ char **extract_params(char *msg, int *argc) {
 		return NULL;
 
 	// Null terminate the the whole parameters line
-	if ((temp = strrchr(msg, '\r')) != NULL)
-		*temp = '\0';
-	else
+	if ((temp = strrchr(msg, '\r')) == NULL)
 		return argv;
+	*temp = '\0';
 
 	// split parameters seperated by space or tab
 	argv[*argc] = strtok(msg, " \t");
@@ -231,7 +230,7 @@ cleanup:
 
 void parse_config(yajl_val root, const char *config_file) {
 
-	char errbuf[1024], *buf = NULL, *home;
+	char errbuf[1024], *buf = NULL, *mpd_path, *mpd_random_file_path, *HOME;
 	yajl_val val, array;
 	int i;
 
@@ -262,12 +261,25 @@ void parse_config(yajl_val root, const char *config_file) {
 	cfg.quit_msg     = YAJL_GET_STRING(val);
 	if ((val         = yajl_tree_get(root, (const char *[]) { "mpd_database", NULL }, yajl_t_string)) == NULL) exit_msg("mpd_database: missing / wrong type");
 	cfg.mpd_database = YAJL_GET_STRING(val);
+	if ((val         = yajl_tree_get(root, (const char *[]) { "murmur_port", NULL },  yajl_t_string)) == NULL) exit_msg("murmur_port: missing / wrong type");
+	cfg.murmur_port  = YAJL_GET_STRING(val);
+	if ((val         = yajl_tree_get(root, (const char *[]) { "mpd_port", NULL },     yajl_t_string)) == NULL) exit_msg("mpd_port: missing / wrong type");
+	cfg.mpd_port     = YAJL_GET_STRING(val);
+
+	if ((val = yajl_tree_get(root, (const char *[]) { "mpd_random_mode_file", NULL }, yajl_t_string)) == NULL) exit_msg("mpd_random_mode_file: missing / wrong type");
+	cfg.mpd_random_mode_file = YAJL_GET_STRING(val);
 
 	// Expand tilde '~' by reading the HOME enviroment variable
+	HOME = getenv("HOME");
 	if (cfg.mpd_database[0] == '~') {
-		home = malloc_w(HOMELEN);
-		snprintf(home, HOMELEN, "%s%s", getenv("HOME"), cfg.mpd_database + 1);
-		cfg.mpd_database = home;
+		mpd_path = malloc_w(PATHLEN);
+		snprintf(mpd_path, PATHLEN, "%s%s", HOME, cfg.mpd_database + 1);
+		cfg.mpd_database = mpd_path;
+	}
+	if (cfg.mpd_random_mode_file[0] == '~') {
+		mpd_random_file_path = malloc_w(PATHLEN);
+		snprintf(mpd_random_file_path, PATHLEN, "%s%s", HOME, cfg.mpd_random_mode_file + 1);
+		cfg.mpd_random_mode_file = mpd_random_file_path;
 	}
 
 	// Only accept true or false value

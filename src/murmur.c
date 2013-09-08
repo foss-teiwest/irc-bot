@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <arpa/inet.h>
@@ -16,7 +17,6 @@ bool add_murmur_callbacks(const char *port) {
 	unsigned char *listener_port_bytes = (unsigned char *)&listener_port;
 	unsigned char read_buffer[READ_BUFFER_SIZE];
 	int murm_callbackfd;
-	bool status = false;
 
 	const unsigned char ice_isA_packet[] = {
 		0x49, 0x63, 0x65, 0x50, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0x38, 0x00, 0x00, 0x00, 0x01, 0x00,
@@ -36,7 +36,7 @@ bool add_murmur_callbacks(const char *port) {
 	};
 
 	if ((murm_callbackfd = sock_connect("127.0.0.1", port)) < 0)
-		return status;
+		return false;
 
 	if (read(murm_callbackfd, read_buffer, READ_BUFFER_SIZE) != VALIDATE_CONNECTION_PACKET_SIZE) {
 		fprintf(stderr, "Error: Failed to receive validate_packet. %s\n", strerror(errno));
@@ -58,13 +58,14 @@ bool add_murmur_callbacks(const char *port) {
 		fprintf(stderr, "Error: Failed to receive addCallback_packet success reply. %s\n", strerror(errno));
 		goto cleanup;
 	}
-	status = true;
+	return true; // Everything succeeded
+
 cleanup:
 	close(murm_callbackfd);
-	return status;
+	return false;
 }
 
-ssize_t validate_murmur_connection(int murm_acceptfd) {
+static ssize_t validate_murmur_connection(int murm_acceptfd) {
 
 	ssize_t n;
 	const unsigned char validate_packet[] =	{
@@ -76,15 +77,26 @@ ssize_t validate_murmur_connection(int murm_acceptfd) {
 	return n;
 }
 
-ssize_t listen_murmur_callbacks(Irc server, int murm_acceptfd) {
+int accept_murmur_connection(int murm_listenfd) {
 
-	ssize_t n;
+	int murm_acceptfd;
+
+	murm_acceptfd = sock_accept(murm_listenfd);
+	if (murm_acceptfd > 0 && validate_murmur_connection(murm_acceptfd) > 0) {
+		fcntl(murm_acceptfd, F_SETFL, O_NONBLOCK);
+		return murm_acceptfd;
+	}
+	return -1;
+}
+
+bool listen_murmur_callbacks(Irc server, int murm_acceptfd) {
+
 	char *username, read_buffer[READ_BUFFER_SIZE];
 
-	while ((n = read(murm_acceptfd, read_buffer, sizeof(read_buffer))) > 0) {
+	while (read(murm_acceptfd, read_buffer, sizeof(read_buffer)) > 0) {
 		/* Close connection when related packet received */
 		if (read_buffer[8] == 0x4)
-			return -1;
+			return false;
 
 		/* Determine if received packet represents userConnected callback */
 		if (read_buffer[62] == 'C') {
@@ -93,5 +105,9 @@ ssize_t listen_murmur_callbacks(Irc server, int murm_acceptfd) {
 			send_message(server, default_channel(server), "Mumble: %s connected", username);
 		}
 	}
-	return errno == EAGAIN ? 1 : n;
+	if (errno == EAGAIN)
+		return true;
+
+	close(murm_acceptfd);
+	return false;
 }
