@@ -24,7 +24,7 @@ void play(Irc server, Parsed_data pdata) {
 		return;
 
 	if (write(mpdfd, "noidle\n", 7) <= 0)
-		perror("play write");
+		perror("mpd play");
 
 	if (strstr(pdata.message, "youtu") == NULL)
 		print_cmd_output(server, pdata.target, (char *[]) { SCRIPTDIR "mpd_search.sh", cfg.mpd_database, pdata.message, NULL });
@@ -34,15 +34,21 @@ void play(Irc server, Parsed_data pdata) {
 
 void playlist(Irc server, Parsed_data pdata) {
 
-	print_cmd_output_unsafe(server, pdata.target, "mpc playlist | head |" REMOVE_EXTENSION);
+	if (access(cfg.mpd_random_mode_file, F_OK) != 0)
+		print_cmd_output_unsafe(server, pdata.target, "mpc playlist | head |" REMOVE_EXTENSION);
+	else
+		send_message(server, pdata.target, "%s", "playlist disabled in random mode");
 }
 
 void history(Irc server, Parsed_data pdata) {
 
 	char cmd[CMDLEN];
 
-	snprintf(cmd, CMDLEN, "ls -t1 %s | head | tac |" REMOVE_EXTENSION, cfg.mpd_database);
-	print_cmd_output_unsafe(server, pdata.target, cmd);
+	if (access(cfg.mpd_random_mode_file, F_OK) != 0) {
+		snprintf(cmd, CMDLEN, "ls -t1 %s | head | tac |" REMOVE_EXTENSION, cfg.mpd_database);
+		print_cmd_output_unsafe(server, pdata.target, cmd);
+	} else
+		send_message(server, pdata.target, "%s", "history disabled in random mode");
 }
 
 void current(Irc server, Parsed_data pdata) {
@@ -52,6 +58,7 @@ void current(Irc server, Parsed_data pdata) {
 
 void next(Irc server, Parsed_data pdata) {
 
+	// TODO Only print the result to the one who send the command on channel / prive
 	if (access(cfg.mpd_random_mode_file, F_OK) == 0)
 		print_cmd_output_unsafe(server, pdata.target, "mpc -q next");
 	else
@@ -60,8 +67,9 @@ void next(Irc server, Parsed_data pdata) {
 
 void random_mode(Irc server, Parsed_data pdata) {
 
-	if (write(mpdfd, "idle player\n", 12) <= 0)
-		perror("random_mode write");
+	if (access(cfg.mpd_random_mode_file, F_OK) != 0)
+		if (write(mpdfd, "idle player\n", 12) <= 0)
+			perror("random_mode write");
 
 	print_cmd_output_unsafe(server, pdata.target, SCRIPTDIR "mpd_random.sh");
 }
@@ -74,15 +82,21 @@ int mpd_connect(const char *port) {
 	if ((mpd = sock_connect(LOCALHOST, port)) < 0)
 		return -1;
 
-	if (read(mpd, buf, sizeof(buf) - 1) < 0) {
-		close(mpd);
-		return -1;
-	}
-	if (strncmp(buf, "OK", 2) != 0) {
-		close(mpd);
-		return -1;
-	}
-	return mpd;
+	if (read(mpd, buf, sizeof(buf) - 1) < 0)
+		goto cleanup;
+
+	if (strncmp(buf, "OK", 2) != 0)
+		goto cleanup;
+
+	if (access(cfg.mpd_random_mode_file, F_OK) == 0)
+		if (write(mpd, "idle player\n", 12) <= 0)
+			goto cleanup;
+
+	return mpd; // Success
+
+cleanup:
+	close(mpd);
+	return -1;
 }
 
 ssize_t print_song(Irc server, const char *channel) {
@@ -91,17 +105,23 @@ ssize_t print_song(Irc server, const char *channel) {
 	char *test, *song_title, buf[SONGLEN + 1];
 	ssize_t n;
 
-	if (read(mpdfd, buf, SONGLEN) < 0)
+	if (read(mpdfd, buf, SONGLEN) < 0) {
+		perror("print_song");
 		return -1;
+	}
 
 	if (strncmp(buf, "changed", 7) != 0)
 		return 1;
 
-	if (write(mpdfd, "currentsong\n", 12) != 12)
+	if (write(mpdfd, "currentsong\n", 12) != 12) {
+		perror("print_song");
 		return -1;
+	}
 
-	if ((n = read(mpdfd, buf, SONGLEN)) < 0)
+	if ((n = read(mpdfd, buf, SONGLEN)) < 0) {
+		perror("print_song");
 		return -1;
+	}
 
 	buf[n] = '\0'; // terminate reply
 	if ((song_title = strstr(buf, "file")) == NULL)

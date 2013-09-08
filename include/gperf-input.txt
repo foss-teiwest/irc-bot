@@ -31,3 +31,4 @@ struct function_list;
 "current", current
 "next", next
 "random-mode", random_mode
+"mpd-random", random_mode
