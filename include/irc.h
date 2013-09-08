@@ -42,7 +42,7 @@ enum irc_reply {
  * @param port     Port in string form
  * @returns        On success: A handler than can be used on every function that requires one or NULL on failure
  */
-Irc connect_server(const char *address, const char *port);
+Irc irc_connect(const char *address, const char *port);
 
 /**
  * Extract the socket descriptor from the opaque Irc object

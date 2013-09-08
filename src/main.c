@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
 
 	Irc freenode;
 	struct pollfd pfd[4];
-	int i, ready, murm_listenfd;
+	int i, ready, murm_listenfd = -1;
 
 	initialize(argc, argv);
 
@@ -22,16 +22,16 @@ int main(int argc, char *argv[]) {
 		pfd[i].fd = -1;
 		pfd[i].events = POLLIN;
 	}
-	if (add_murmur_callbacks(MURMUR_PORT))
-		pfd[MURM_LISTEN].fd = murm_listenfd = sock_listen("127.0.0.1", CB_LISTEN_PORT_S);
+	if (add_murmur_callbacks(cfg.murmur_port))
+		pfd[MURM_LISTEN].fd = murm_listenfd = sock_listen(LOCALHOST, CB_LISTEN_PORT_S);
 	else
 		fprintf(stderr, "Could not connect to Murmur\n");
 
-	if ((pfd[MPD].fd = mpdfd = mpd_connect("6600")) < 0)
+	if ((pfd[MPD].fd = mpdfd = mpd_connect(cfg.mpd_port)) < 0)
 		fprintf(stderr, "Could not connect to MPD\n");
 
 	// Connect to server and set IRC details
-	if ((freenode = connect_server(cfg.server, cfg.port)) == NULL)
+	if ((freenode = irc_connect(cfg.server, cfg.port)) == NULL)
 		exit_msg("Irc connection failed");
 
 	pfd[IRC].fd = get_socket(freenode);

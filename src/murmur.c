@@ -9,6 +9,7 @@
 #include "socket.h"
 #include "irc.h"
 #include "murmur.h"
+#include "helper.h"
 
 
 bool add_murmur_callbacks(const char *port) {
@@ -35,7 +36,7 @@ bool add_murmur_callbacks(const char *port) {
 		0x00, 0xff, 0xff, 0xff, 0xff, 0x00
 	};
 
-	if ((murm_callbackfd = sock_connect("127.0.0.1", port)) < 0)
+	if ((murm_callbackfd = sock_connect(LOCALHOST, port)) < 0)
 		return false;
 
 	if (read(murm_callbackfd, read_buffer, READ_BUFFER_SIZE) != VALIDATE_CONNECTION_PACKET_SIZE) {

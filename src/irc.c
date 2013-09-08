@@ -31,7 +31,7 @@ struct irc_type {
 	bool isConnected;
 };
 
-Irc connect_server(const char *address, const char *port) {
+Irc irc_connect(const char *address, const char *port) {
 
 	Irc server = calloc_w(sizeof(*server));
 

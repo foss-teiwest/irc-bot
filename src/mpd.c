@@ -71,7 +71,7 @@ int mpd_connect(const char *port) {
 	int mpd;
 	char buf[64];
 
-	if ((mpd = sock_connect("127.0.0.1", port)) < 0)
+	if ((mpd = sock_connect(LOCALHOST, port)) < 0)
 		return -1;
 
 	if (read(mpd, buf, sizeof(buf) - 1) < 0) {
