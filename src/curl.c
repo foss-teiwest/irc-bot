@@ -83,34 +83,6 @@ cleanup:
 	return short_url;
 }
 
-char *fetch_mumble_users(void) {
-
-	CURL *curl;
-	CURLcode code;
-	Mem_buffer mem = {NULL, 0};
-
-	if ((curl = curl_easy_init()) == NULL)
-		goto cleanup;
-
-#ifdef TEST
-	curl_easy_setopt(curl, CURLOPT_URL, TESTDIR "mumble.txt");
-#else
-	curl_easy_setopt(curl, CURLOPT_URL, "https://foss.tesyd.teimes.gr/weblist-bot.php"); // Set mumble users list url
-#endif
-	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 8L);
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_memory);
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &mem);
-
-	code = curl_easy_perform(curl);
-	if (code != CURLE_OK || mem.buffer == NULL)
-		fprintf(stderr, "Error: %s\n", curl_easy_strerror(code));
-
-cleanup:
-	curl_easy_cleanup(curl);
-	return mem.buffer;
-}
-
 Github *fetch_github_commits(const char *repo, int *commit_count, yajl_val root) {
 
 	CURL *curl;

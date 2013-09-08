@@ -2,6 +2,7 @@
 #define BOT_H
 
 #include "irc.h"
+#include "murmur.h"
 
 /**
  * @file bot.h

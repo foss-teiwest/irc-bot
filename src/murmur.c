@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -12,12 +13,10 @@
 #include "helper.h"
 
 
-bool add_murmur_callbacks(const char *port) {
+static int murmur_connect(const char *port) {
 
-	uint16_t listener_port = htons(CB_LISTEN_PORT);
-	unsigned char *listener_port_bytes = (unsigned char *)&listener_port;
+	int murmfd;
 	unsigned char read_buffer[READ_BUFFER_SIZE];
-	int murm_callbackfd;
 
 	const unsigned char ice_isA_packet[] = {
 		0x49, 0x63, 0x65, 0x50, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0x38, 0x00, 0x00, 0x00, 0x01, 0x00,
@@ -25,6 +24,36 @@ bool add_murmur_callbacks(const char *port) {
 		0x41, 0x01, 0x00, 0x15, 0x00, 0x00, 0x00, 0x01, 0x00, 0x0e, 0x3a, 0x3a, 0x4d, 0x75, 0x72, 0x6d,
 		0x75, 0x72, 0x3a, 0x3a, 0x4d, 0x65, 0x74, 0x61
 	};
+
+	if ((murmfd = sock_connect(LOCALHOST, port)) < 0)
+		return -1;
+
+	if (read(murmfd, read_buffer, READ_BUFFER_SIZE) != VALIDATE_CONNECTION_PACKET_SIZE) {
+		fprintf(stderr, "Error: Failed to receive validate_packet. %s\n", strerror(errno));
+		goto cleanup;
+	}
+	if (write(murmfd, ice_isA_packet, sizeof(ice_isA_packet)) < 0) {
+		fprintf(stderr, "Error: Failed to send ice_isA_packet. %s\n", strerror(errno));
+		goto cleanup;
+	}
+	if (read(murmfd, read_buffer, READ_BUFFER_SIZE) != ICE_ISA_REPLY_PACKET_SIZE) {
+		fprintf(stderr, "Error: Failed to receive ice_isA_packet success reply. %s\n", strerror(errno));
+		goto cleanup;
+	}
+	return murmfd; // Everything succeeded
+
+cleanup:
+	close(murmfd);
+	return -1;
+}
+
+bool add_murmur_callbacks(const char *port) {
+
+	uint16_t listener_port = htons(CB_LISTEN_PORT);
+	unsigned char *listener_port_bytes = (unsigned char *)&listener_port;
+	unsigned char read_buffer[READ_BUFFER_SIZE];
+	int murm_callbackfd;
+
 	const unsigned char addCallback_packet[] = {
 		0x49, 0x63, 0x65, 0x50, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0x70, 0x00, 0x00, 0x00, 0x02, 0x00,
 		0x00, 0x00, 0x01, 0x31, 0x01, 0x73, 0x00, 0x0b, 0x61, 0x64, 0x64, 0x43, 0x61, 0x6c, 0x6c, 0x62,
@@ -36,21 +65,9 @@ bool add_murmur_callbacks(const char *port) {
 		0x00, 0xff, 0xff, 0xff, 0xff, 0x00
 	};
 
-	if ((murm_callbackfd = sock_connect(LOCALHOST, port)) < 0)
+	if ((murm_callbackfd = murmur_connect(port)) < 0)
 		return false;
 
-	if (read(murm_callbackfd, read_buffer, READ_BUFFER_SIZE) != VALIDATE_CONNECTION_PACKET_SIZE) {
-		fprintf(stderr, "Error: Failed to receive validate_packet. %s\n", strerror(errno));
-		goto cleanup;
-	}
-	if (write(murm_callbackfd, ice_isA_packet, sizeof(ice_isA_packet)) < 0) {
-		fprintf(stderr, "Error: Failed to send ice_isA_packet. %s\n", strerror(errno));
-		goto cleanup;
-	}
-	if (read(murm_callbackfd, read_buffer, READ_BUFFER_SIZE) != ICE_ISA_REPLY_PACKET_SIZE) {
-		fprintf(stderr, "Error: Failed to receive ice_isA_packet success reply. %s\n", strerror(errno));
-		goto cleanup;
-	}
 	if (write(murm_callbackfd, addCallback_packet, sizeof(addCallback_packet)) < 0) {
 		fprintf(stderr, "Error: Failed to send addCallback_packet. %s\n", strerror(errno));
 		goto cleanup;
@@ -59,11 +76,58 @@ bool add_murmur_callbacks(const char *port) {
 		fprintf(stderr, "Error: Failed to receive addCallback_packet success reply. %s\n", strerror(errno));
 		goto cleanup;
 	}
-	return true; // Everything succeeded
+	return true; // Success
 
 cleanup:
 	close(murm_callbackfd);
 	return false;
+}
+
+char *fetch_murmur_users(void) {
+
+	int murmfd, bytes_written, user_counter = 0;
+	unsigned char read_buffer[USERLIST_BUFFER_SIZE];
+	unsigned char *username = read_buffer + 50;
+	char *user_list;
+
+	const unsigned char getUsers_packet[] = {
+		0x49, 0x63, 0x65, 0x50, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x07, 0x00,
+		0x00, 0x00, 0x01, 0x31, 0x01, 0x73, 0x00, 0x08, 0x67, 0x65, 0x74, 0x55, 0x73, 0x65, 0x72, 0x73,
+		0x02, 0x00, 0x06, 0x00, 0x00, 0x00, 0x01, 0x00
+	};
+
+	if ((murmfd = sock_connect(LOCALHOST, cfg.murmur_port)) < 0)
+		return NULL;
+
+	if (write(murmfd, getUsers_packet, sizeof(getUsers_packet)) < 0) {
+		fprintf(stderr, "Error: Failed to send getUsers_packet\n");
+		close(murmfd);
+		return NULL;
+	}
+	if (read(murmfd, read_buffer, READ_BUFFER_SIZE) < 0) {
+		fprintf(stderr, "Error: Failed to receive getUsers_packet reply\n");
+		close(murmfd);
+		return NULL;
+	}
+	user_list = malloc_w(READ_BUFFER_SIZE);
+
+	/* read_buffer[25] = number of users */
+	bytes_written = snprintf(user_list, READ_BUFFER_SIZE, "%u Online Client%s%s", read_buffer[25],
+		(read_buffer[25] == 1 ? "" : "s"), (read_buffer[25] == 0 ? "" : ": "));
+
+	while (user_counter++ < read_buffer[25]) {
+		if (user_counter > 1) {
+			while (!((username[0] == 0x0) && (username[1] == 0x0) && (username[2] == 0xff) && (username[3] == 0xff)))
+				username++;
+			username += 0x2d;
+		}
+		username[(unsigned) *(username - 1)] = '\0';
+		bytes_written += snprintf(user_list + bytes_written, READ_BUFFER_SIZE - bytes_written,
+			(user_counter < read_buffer[25] ? "%s, " : "%s"), username);
+	}
+
+	close(murmfd);
+	return user_list;
 }
 
 static ssize_t validate_murmur_connection(int murm_acceptfd) {

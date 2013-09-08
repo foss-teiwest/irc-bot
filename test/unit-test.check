@@ -205,7 +205,7 @@ void close_write(void) {
 
 #test mumble_list
 
-	char *data = fetch_mumble_users();
+	char *data = fetch_murmur_users();
 	ck_assert_str_eq(data, "7 Online clients: Chubby ZED gkino Erevos freestyler charkost tomkap");
 
 #test titleurl

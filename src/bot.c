@@ -92,7 +92,7 @@ void mumble(Irc server, Parsed_data pdata) {
 
 	char *user_list;
 
-	if ((user_list = fetch_mumble_users()) != NULL) {
+	if ((user_list = fetch_murmur_users()) != NULL) {
 		send_message(server, pdata.target, "%s", user_list);
 		free(user_list);
 	}
