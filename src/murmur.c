@@ -96,7 +96,7 @@ char *fetch_murmur_users(void) {
 		0x02, 0x00, 0x06, 0x00, 0x00, 0x00, 0x01, 0x00
 	};
 
-	if ((murmfd = sock_connect(LOCALHOST, cfg.murmur_port)) < 0)
+	if ((murmfd = murmur_connect(cfg.murmur_port)) < 0)
 		return NULL;
 
 	if (write(murmfd, getUsers_packet, sizeof(getUsers_packet)) < 0) {
