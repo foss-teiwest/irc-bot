@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
 			}
 		}
 		if (pfd[MPD].revents & POLLIN)
-			if (print_song(freenode, default_channel(freenode)) <= 0)
+			if (!print_song(freenode, default_channel(freenode)))
 				pfd[MPD].fd = mpdfd = mpd_connect(cfg.mpd_port);
 	}
 	// If we reach here, it means we got disconnected from server. Exit with error (1)

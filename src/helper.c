@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <signal.h>
+#include <sys/mman.h>
 #include <sys/stat.h>
 #include <curl/curl.h>
 #include <yajl/yajl_tree.h>
@@ -13,6 +14,7 @@
 pid_t main_pid;
 yajl_val root;
 struct config_options cfg;
+bool *mpd_random_mode;
 
 void initialize(int argc, char *argv[]) {
 
@@ -29,6 +31,12 @@ void initialize(int argc, char *argv[]) {
 	signal(SIGCHLD, SIG_IGN); // Make child processes not leave zombies behind when killed
 	signal(SIGPIPE, SIG_IGN); // Handle writing on closed sockets on our own
 	curl_global_init(CURL_GLOBAL_ALL); // Initialize curl library
+
+	if ((mpd_random_mode = mmap(NULL, sizeof(bool), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0)) == MAP_FAILED)
+		perror("mmap");
+
+	if (access(cfg.mpd_random_mode_file, F_OK) == 0)
+		*mpd_random_mode = true;
 }
 
 void cleanup(void) {

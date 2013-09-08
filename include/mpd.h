@@ -2,6 +2,7 @@
 #define MPD_H
 
 #include "irc.h"
+#include <stdbool.h>
 
 /**
  * @file mpd.h
@@ -52,8 +53,7 @@ int mpd_connect(const char *port);
  *  @warning  It keeps a static array for song comparison. Will restart the query for a next song automatically
  *
  * @param channel  the channel to send to
- * @return         Positive number for success or -1 on error
  */
-ssize_t print_song(Irc server, const char *channel);
+bool print_song(Irc server, const char *channel);
 
 #endif
