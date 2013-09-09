@@ -20,7 +20,7 @@ if [ $RESULT_LINES -eq 1 ]; then
 	QUEUESIZE=`mpc playlist | wc -l`
 	mpc add "$RESULT" && mpc -q play
 	if [ $? -eq 0 ]; then
-		touch "$DIR"/"$RESULT".mp3
+		touch "$DIR"/"$RESULT"
 		RESULT=`echo "$RESULT" | gawk -F. -v OFS=. '{NF--; print}'`
 
 		if [ $QUEUESIZE -eq 0 ]; then
