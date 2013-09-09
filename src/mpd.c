@@ -61,7 +61,7 @@ void next(Irc server, Parsed_data pdata) {
 	if (*mpd_random_mode)
 		print_cmd_output_unsafe(server, pdata.target, "mpc -q next");
 	else
-		print_cmd_output_unsafe(server, pdata.target, "mpc next |" REMOVE_EXTENSION_1LN);
+		print_cmd_output_unsafe(server, pdata.target, "mpc next |" REMOVE_EXTENSION);
 }
 
 void random_mode(Irc server, Parsed_data pdata) {

@@ -17,9 +17,6 @@
 /** Remove file extension. Works with multiple dots in file as well */
 #define REMOVE_EXTENSION "gawk -F. -v OFS=. '{NF--; print}'"
 
-/** Remove file extension from first line only. Works with multiple dots in file as well */
-#define REMOVE_EXTENSION_1LN "gawk -F. -v OFS=. '{NF--; print $1}'"
-
 /** Download video from youtube, convert it to mp3, feed it to mpd and start streaming in icecast.
  *  If there is no dot '.' on the argument, then a search will be performed.
  *  If there is a single result it will be added to queue, else up to 3 results will be printed */
