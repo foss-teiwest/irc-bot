@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-TIMELIMIT=550
+TIMELIMIT=600
 DIR=$1
 URL=`echo $2 | grep -o "^[^&]*"`
 RANDOM_ON=~/.mpd_random
@@ -43,13 +43,13 @@ if [ -f "$DIR"/"$TITLE".mp3 ]; then
 fi
 
 if [ "$DURATION" -gt $TIMELIMIT ]; then
-	echo "Song longer than `expr $TIMELIMIT / 60`:`expr $TIMELIMIT % 60` mins, skipping..."
+	echo "Song longer than `expr $TIMELIMIT / 60` mins, skipping..."
 	exit
 fi
 
 ~/bin/youtube-dl        \
 -q                      \
---max-filesize 120M     \
+--max-filesize 150M     \
 --extract-audio         \
 --audio-format mp3      \
 --audio-quality 192k    \
