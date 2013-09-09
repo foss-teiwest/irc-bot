@@ -151,6 +151,7 @@ int accept_murmur_connection(int murm_listenfd) {
 		fcntl(murm_acceptfd, F_SETFL, O_NONBLOCK);
 		return murm_acceptfd;
 	}
+	close(murm_acceptfd);
 	return -1;
 }
 
@@ -158,10 +159,11 @@ bool listen_murmur_callbacks(Irc server, int murm_acceptfd) {
 
 	char *username, read_buffer[READ_BUFFER_SIZE];
 
+	errno = 0;
 	while (read(murm_acceptfd, read_buffer, sizeof(read_buffer)) > 0) {
 		/* Close connection when related packet received */
 		if (read_buffer[8] == 0x4)
-			return false;
+			break;
 
 		/* Determine if received packet represents userConnected callback */
 		if (read_buffer[62] == 'C') {
