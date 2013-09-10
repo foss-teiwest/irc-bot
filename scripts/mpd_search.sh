@@ -14,7 +14,7 @@ fi
 if [ $RESULT_LINES -eq 1 ]; then
 	if [ -e $RANDOM_ON ]; then
 		echo "random mode disabled"
-		mpc crop && mpc -q random off
+		mpc -q crop && mpc -q random off
 		rm $RANDOM_ON
 	fi
 	QUEUESIZE=`mpc playlist | wc -l`

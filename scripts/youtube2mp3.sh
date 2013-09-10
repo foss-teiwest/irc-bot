@@ -27,7 +27,7 @@ print_song() {
 
 if [ -e $RANDOM_ON ]; then
 	echo "random mode disabled"
-	mpc crop && mpc -q random off
+	mpc -q crop && mpc -q random off
 	rm $RANDOM_ON
 fi
 QUEUESIZE=`mpc playlist | wc -l`

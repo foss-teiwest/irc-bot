@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <errno.h>
 #include <string.h>
 #include "socket.h"
 #include "irc.h"
@@ -112,6 +113,8 @@ bool print_song(Irc server, const char *channel) {
 	char *test, *song_title, buf[SONGLEN + 1];
 	ssize_t n;
 
+
+	errno = 0;
 	if (read(mpdfd, buf, SONGLEN) <= 0) {
 		perror("print_song");
 		goto cleanup;
