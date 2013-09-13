@@ -9,7 +9,7 @@
 #include "socket.h"
 #include "irc.h"
 #include "gperf.h"
-#include "helper.h"
+#include "common.h"
 
 // Wrapper functions. If VA_ARGS is NULL (last 2 args) then ':' will be ommited. Do not call _irc_command() directly
 #define irc_nick_command(server, target)    _irc_command(server, "NICK", target, NULL, (char *) NULL)
@@ -220,7 +220,7 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 	// CTCP requests must begin with ascii char 1
 	else if (*pdata.command == '\x01') {
 		if (strncmp(pdata.command + 1, "VERSION", 7) == 0) // Skip the leading escape char
-			send_notice(server, pdata.sender, "\x01%s\x01", cfg.bot_version);
+			send_notice(server, pdata.sender, "\x01VERSION %s\x01", cfg.bot_version);
 	}
 }
 
@@ -295,7 +295,7 @@ void _irc_command(Irc server, const char *type, const char *target, const char *
 		snprintf(irc_msg, IRCLEN, "%s %s\r\n", type, target);
 
 	// Send message & print it on stdout
-	if (sock_write(server->sock, irc_msg, strlen(irc_msg)) == -1)
+	if (sock_write_non_blocking(server->sock, irc_msg, strlen(irc_msg)) == -1)
 		exit_msg("Failed to send message");
 
 	if (cfg.verbose)
@@ -310,7 +310,7 @@ void quit_server(Irc server, const char *msg) {
 	irc_quit_command(server, msg);
 
 	if (close(server->sock) < 0)
-		perror("close");
+		perror(__func__);
 
 	free(server);
 }

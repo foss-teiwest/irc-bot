@@ -9,7 +9,7 @@
 #include <curl/curl.h>
 #include <yajl/yajl_tree.h>
 #include "irc.h"
-#include "helper.h"
+#include "common.h"
 
 pid_t main_pid;
 yajl_val root;
@@ -201,7 +201,7 @@ void print_cmd_output_unsafe(Irc server, const char *target, const char *cmd) {
 	pclose(prog);
 }
 
-static size_t read_file(char **buf, const char *filename) {
+STATIC size_t read_file(char **buf, const char *filename) {
 
 	FILE *file;
 	struct stat st;

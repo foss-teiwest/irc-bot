@@ -3,15 +3,11 @@
 #include <string.h>
 #include <curl/curl.h>
 #include "curl.h"
-#include "helper.h"
+#include "common.h"
 
 
-#ifdef TEST
-	size_t curl_write_memory(char *data, size_t size, size_t elements, void *membuf)
-#else
-	static size_t curl_write_memory(char *data, size_t size, size_t elements, void *membuf)
-#endif
-{
+STATIC size_t curl_write_memory(char *data, size_t size, size_t elements, void *membuf) {
+
 	Mem_buffer *mem = membuf;
 	size_t total_size = size * elements;
 

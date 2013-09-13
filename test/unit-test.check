@@ -7,9 +7,9 @@
 #include "socket.h"
 #include "irc.h"
 #include "gperf.h"
-#include "helper.h"
 #include "bot.h"
 #include "curl.h"
+#include "common.h"
 
 struct irc_type {
 	int sock;

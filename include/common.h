@@ -1,14 +1,21 @@
-#ifndef HELPER_H
-#define HELPER_H
+#ifndef COMMON_H
+#define COMMON_H
 
 #include <stdbool.h>
 #include <yajl/yajl_tree.h>
 #include "irc.h"
 
 /**
- * @file helper.h
+ * @file common.h
  * Contains general functions that are needed by many files
  */
+
+// Allow testing on static functions
+#ifdef TEST
+	#define STATIC
+#else
+	#define STATIC static
+#endif
 
 #define STARTSIZE   5
 #define MAXQUOTES   20

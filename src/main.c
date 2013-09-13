@@ -4,7 +4,7 @@
 #include "irc.h"
 #include "murmur.h"
 #include "mpd.h"
-#include "helper.h"
+#include "common.h"
 
 enum { IRC, MURM_LISTEN, MURM_ACCEPT, MPD };
 

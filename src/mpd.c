@@ -2,12 +2,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdbool.h>
-#include <errno.h>
 #include <string.h>
 #include "socket.h"
 #include "irc.h"
 #include "mpd.h"
-#include "helper.h"
+#include "common.h"
 
 extern int mpdfd;
 extern bool *mpd_random_mode;
@@ -26,8 +25,7 @@ void play(Irc server, Parsed_data pdata) {
 
 	if (*mpd_random_mode) {
 		*mpd_random_mode = false;
-		if (write(mpdfd, "noidle\n", 7) <= 0)
-			perror("mpd play");
+		sock_write(mpdfd, "noidle\n", 7);
 	}
 
 	if (strstr(pdata.message, "youtu") == NULL)
@@ -72,8 +70,7 @@ void random_mode(Irc server, Parsed_data pdata) {
 	else {
 		*mpd_random_mode = true;
 		print_cmd_output_unsafe(server, pdata.target, SCRIPTDIR "mpd_random.sh");
-		if (write(mpdfd, "idle player\n", 12) <= 0)
-			perror("random_mode write");
+		sock_write(mpdfd, "idle player\n", 12);
 	}
 }
 
@@ -90,14 +87,14 @@ int mpd_connect(const char *port) {
 	if ((mpd = sock_connect(LOCALHOST, port)) < 0)
 		return -1;
 
-	if (read(mpd, buf, sizeof(buf) - 1) < 0)
+	if (sock_read(mpd, buf, sizeof(buf) - 1) <= 0)
 		goto cleanup;
 
 	if (strncmp(buf, "OK", 2) != 0)
 		goto cleanup;
 
 	if (*mpd_random_mode)
-		if (write(mpd, "idle player\n", 12) <= 0)
+		if (sock_write(mpd, "idle player\n", 12) < 0)
 			goto cleanup;
 
 	return mpd; // Success
@@ -113,23 +110,18 @@ bool print_song(Irc server, const char *channel) {
 	char *test, *song_title, buf[SONGLEN + 1];
 	ssize_t n;
 
-
-	errno = 0;
-	if (read(mpdfd, buf, SONGLEN) <= 0) {
-		perror("print_song");
+	if (sock_read(mpdfd, buf, SONGLEN) <= 0)
 		goto cleanup;
-	}
+
 	if (strncmp(buf, "changed", 7) != 0)
+		return true;
+
+	if (sock_write(mpdfd, "currentsong\n", 12) < 0)
 		goto cleanup;
 
-	if (write(mpdfd, "currentsong\n", 12) != 12) {
-		perror("print_song");
+	if ((n = sock_read(mpdfd, buf, SONGLEN)) <= 0)
 		goto cleanup;
-	}
-	if ((n = read(mpdfd, buf, SONGLEN)) <= 0) {
-		perror("print_song");
-		goto cleanup;
-	}
+
 	buf[n] = '\0'; // terminate reply
 	if ((song_title = strstr(buf, "file")) == NULL)
 		goto cleanup;
@@ -150,7 +142,7 @@ bool print_song(Irc server, const char *channel) {
 		snprintf(old_song, SONGLEN, "%s", song_title);
 	}
 	// Restart query
-	if (write(mpdfd, "idle player\n", 12) == 12)
+	if (sock_write(mpdfd, "idle player\n", 12) == 12)
 		return true;
 
 cleanup:

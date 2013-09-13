@@ -9,7 +9,7 @@
 #include "bot.h"
 #include "irc.h"
 #include "curl.h"
-#include "helper.h"
+#include "common.h"
 
 
 void help(Irc server, Parsed_data pdata) {

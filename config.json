@@ -9,11 +9,11 @@
 	// Comma seperated list of channels
 	"channels": [ "#foss-teimes" ],
 
-	// Set to false to only show errors
-	"verbose": true,
-
 	// String to reply on ctcp version
 	"bot_version": "irC Bot - http://github.com/foss-teimes/irc-bot",
+
+	// Set to false to only show errors
+	"verbose": true,
 
 	// Default repo to substitute when not provided for the github command
 	"github_repo": "foss-teimes",
