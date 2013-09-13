@@ -1,10 +1,10 @@
 # Main program variables
 PROGRAM  = irc-bot
-OUTDIR   = bin
-SRCDIR   = src
-INCLDIR  = include
-TESTDIR  = test
 CC       = gcc
+OUTDIR   = bin
+INCLDIR  = include
+SRCDIR   = src
+TESTDIR  = test
 CFLAGS   = -g -Wall -Wextra -std=c99 -pedantic
 LDLIBS   = -lcurl -lyajl
 CPPFLAGS = -D_GNU_SOURCE

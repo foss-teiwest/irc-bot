@@ -40,7 +40,7 @@ struct config_options {
 	char *murmur_port;
 	char *mpd_port;
 	char *mpd_database;
-	char *mpd_random_mode_file;
+	char *mpd_random_file;
 	char *quotes[MAXQUOTES];
 	int quote_count;
 	bool verbose;
@@ -74,6 +74,12 @@ void cleanup(void);
  *  If the caller is not the main process then _exit() will be used to avoid,
  *  calling the functions registered with atexit(), flushing descriptors etc */
 void exit_msg(const char *format, ...);
+
+/** @returns  true if strings match */
+bool streq(const char *s1, const char *s2);
+
+/** @returns  true if s1 starts with s2 */
+bool starts_with(const char *s1, const char *s2);
 
 /**
  * Extract parameters seperated by space and put them in an array

@@ -36,7 +36,7 @@ Irc irc_connect(const char *address, const char *port) {
 	Irc server = calloc_w(sizeof(*server));
 
 	// Minimum validity checks
-	if (strchr(address, '.') == NULL || atoi(port) > 65535)
+	if (!strchr(address, '.') || atoi(port) > 65535)
 		return NULL;
 
 	if ((server->sock = sock_connect(address, port)) < 0)
@@ -61,7 +61,7 @@ char *default_channel(Irc server) {
 
 void set_nick(Irc server, const char *nick) {
 
-	assert(nick != NULL && "Error in set_nick");
+	assert(nick && "Error in set_nick");
 	strncpy(server->nick, nick, NICKLEN);
 	irc_nick_command(server, server->nick);
 }
@@ -70,7 +70,7 @@ void set_user(Irc server, const char *user) {
 
 	char user_with_flags[USERLEN * 2 + 6];
 
-	assert(user != NULL && "Error in set_user");
+	assert(user && "Error in set_user");
 	strncpy(server->user, user, USERLEN);
 
 	snprintf(user_with_flags, USERLEN * 2 + 6, "%s 0 * :%s", server->user, server->user);
@@ -81,7 +81,7 @@ int join_channel(Irc server, const char *channel) {
 
 	int i = 0;
 
-	if (channel != NULL) {
+	if (channel) {
 		assert(channel[0] == '#' && "Missing # in channel");
 		if (server->channels_set == MAXCHANS) {
 			fprintf(stderr, "Channel limit reached (%d)\n", MAXCHANS);
@@ -103,7 +103,7 @@ int join_channel(Irc server, const char *channel) {
 
 ssize_t parse_irc_line(Irc server) {
 
-	char *test_char;
+	char *test;
 	Parsed_data pdata;
 	Function_list flist;
 	int reply;
@@ -124,33 +124,33 @@ ssize_t parse_irc_line(Irc server) {
 
 	// Check for server ping request. Example: "PING :wolfe.freenode.net"
 	// If we match PING then change the 2nd char to 'O' and terminate the argument before sending back
-	if (strncmp(server->line, "PING", 4) == 0) {
-		test_char = strrchr(server->line, '\r');
-		*test_char = '\0';
+	if (starts_with(server->line, "PING")) {
+		test = strrchr(server->line, '\r');
+		*test = '\0';
 		irc_ping_command(server, server->line + 5);
 		return n;
 	}
 	// Store the sender of the message / server command without the leading ':'.
 	// Examples: "laxanofido!~laxanofid@snf-23545.vm.okeanos.grnet.gr", "wolfe.freenode.net"
-	if ((pdata.sender = strtok(server->line + 1, " ")) == NULL)
+	if (!(pdata.sender = strtok(server->line + 1, " ")))
 		return n;
 
 	// Store the server command. Examples: "PRIVMSG", "MODE", "433"
-	if ((pdata.command = strtok(NULL, " ")) == NULL)
+	if (!(pdata.command = strtok(NULL, " ")))
 		return n;
 
 	// Store everything that comes after the server command
 	// Examples: "#foss-teimes :How YA doing fossbot_", "fossbot :How YA doing fossbot"
-	if ((pdata.message = strtok(NULL, "")) == NULL)
+	if (!(pdata.message = strtok(NULL, "")))
 		return n;
 
 	// Initialize the last struct member to silence compiler warnings
 	pdata.target = NULL;
 
 	// Find out if server command is a numeric reply
-	if ((reply = atoi(pdata.command)) == 0) {
+	if (!(reply = atoi(pdata.command))) {
 		// Find & launch any functions registered to IRC commands
-		if ((flist = function_lookup(pdata.command, strlen(pdata.command))) != NULL)
+		if ((flist = function_lookup(pdata.command, strlen(pdata.command))))
 			flist->function(server, pdata);
 	} else
 		numeric_reply(server, reply);
@@ -176,36 +176,36 @@ int numeric_reply(Irc server, int reply) {
 void irc_privmsg(Irc server, Parsed_data pdata) {
 
 	Function_list flist;
-	char *test_char;
+	char *test;
 
 	// Discard hostname from nickname. "laxanofido!~laxanofid@snf-23545.vm.okeanos.grnet.gr" becomes "laxanofido"
-	if ((test_char = strchr(pdata.sender, '!')) != NULL)
-		*test_char = '\0';
+	if ((test = strchr(pdata.sender, '!')))
+		*test = '\0';
 
 	// Store message destination. Example channel: "#foss-teimes" or private: "fossbot"
-	if ((pdata.target = strtok(pdata.message, " ")) == NULL)
+	if (!(pdata.target = strtok(pdata.message, " ")))
 		return;
 
 	// If target is not a channel, reply on private back to sender instead
-	if (strchr(pdata.target, '#') == NULL)
+	if (!strchr(pdata.target, '#'))
 		pdata.target = pdata.sender;
 
 	// Example commands we might receive: ":!url in.gr", ":\x01VERSION\x01"
-	if ((pdata.command = strtok(NULL, " ")) == NULL)
+	if (!(pdata.command = strtok(NULL, " ")))
 		return;
 	pdata.command++; // Skip leading ":" character
 
 	// Make sure BOT command / CTCP request gets null terminated if there are no parameters
-	if ((pdata.message = strtok(NULL, "")) == NULL) {
-		test_char = strrchr(pdata.command, '\r');
-		*test_char = '\0';
+	if (!(pdata.message = strtok(NULL, ""))) {
+		test = strrchr(pdata.command, '\r');
+		*test = '\0';
 	}
 	// Bot commands must begin with '!'
 	if (*pdata.command == '!') {
 		pdata.command++; // Skip leading '!' before passing the command
 
 		// Query our hash table for any functions registered to BOT commands
-		if ((flist = function_lookup(pdata.command, strlen(pdata.command))) == NULL)
+		if (!(flist = function_lookup(pdata.command, strlen(pdata.command))))
 			return;
 
 		// Launch the function in a new process
@@ -219,7 +219,7 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 	}
 	// CTCP requests must begin with ascii char 1
 	else if (*pdata.command == '\x01') {
-		if (strncmp(pdata.command + 1, "VERSION", 7) == 0) // Skip the leading escape char
+		if (starts_with(pdata.command + 1, "VERSION")) // Skip the leading escape char
 			send_notice(server, pdata.sender, "\x01VERSION %s\x01", cfg.bot_version);
 	}
 }
@@ -229,17 +229,17 @@ void irc_notice(Irc server, Parsed_data pdata) {
 	bool temp;
 
 	// notice destination
-	if ((pdata.target = strtok(pdata.message, " ")) == NULL)
+	if (!(pdata.target = strtok(pdata.message, " ")))
 		return;
 
 	// Grab the message
-	if ((pdata.message = strtok(NULL, "")) == NULL)
+	if (!(pdata.message = strtok(NULL, "")))
 		return;
 
 	// Skip leading ':'
 	pdata.message++;
 
-	if (strncmp(pdata.message, "This nickname is registered", 27) == 0) {
+	if (starts_with(pdata.message, "This nickname is registered")) {
 		temp = cfg.verbose;
 		cfg.verbose = false;
 		send_message(server, "nickserv", "identify %s", cfg.nick_pwd);
@@ -250,30 +250,33 @@ void irc_notice(Irc server, Parsed_data pdata) {
 
 void irc_kick(Irc server, Parsed_data pdata) {
 
-	char *test_char, *victim;
+	char *test, *victim;
 	int i;
 
 	// Discard hostname from nickname
-	if ((test_char = strchr(pdata.sender, '!')) != NULL)
-		*test_char = '\0';
+	if ((test = strchr(pdata.sender, '!')))
+		*test = '\0';
 
 	// Which channel did the kick happen
-	if ((pdata.target = strtok(pdata.message, " ")) == NULL)
+	if (!(pdata.target = strtok(pdata.message, " ")))
 		return;
 
 	// Who got kicked
-	if ((victim = strtok(NULL, " ")) == NULL)
+	if (!(victim = strtok(NULL, " ")))
 		return;
 
+	// Null terminate victim's nick
+	if ((test = strchr(victim, ' ')))
+		*test = '\0';
+
 	// Rejoin and send a message back to the one who kicked us
-	// We check len + 1 (hit null char) to avoid matching extra chars after our nick
-	if (strncmp(victim, server->nick, strlen(server->nick) + 1) == 0) {
-		sleep(6);
+	if (streq(victim, server->nick)) {
+		sleep(5);
 
 		// Find the channel we got kicked on and remove it from our list
 		// TODO verify if we actually rejoined the channel
 		for (i = 0; i < server->channels_set; i++)
-			if (strcmp(pdata.target, server->channels[i]) == 0)
+			if (streq(pdata.target, server->channels[i]))
 				break;
 
 		strncpy(server->channels[i], server->channels[--server->channels_set], CHANLEN);
@@ -306,7 +309,7 @@ void _irc_command(Irc server, const char *type, const char *target, const char *
 
 void quit_server(Irc server, const char *msg) {
 
-	assert(msg != NULL && "Error in quit_server");
+	assert(msg && "Error in quit_server");
 	irc_quit_command(server, msg);
 
 	if (close(server->sock) < 0)

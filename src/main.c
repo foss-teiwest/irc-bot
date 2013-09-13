@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
 		fprintf(stderr, "Could not connect to MPD\n");
 
 	// Connect to server and set IRC details
-	if ((freenode = irc_connect(cfg.server, cfg.port)) == NULL)
+	if (!(freenode = irc_connect(cfg.server, cfg.port)))
 		exit_msg("Irc connection failed");
 
 	pfd[IRC].fd = get_socket(freenode);
@@ -60,10 +60,10 @@ int main(int argc, char *argv[]) {
 				pfd[MPD].fd = mpdfd = mpd_connect(cfg.mpd_port);
 	}
 	// If we reach here, it means we got disconnected from server. Exit with error (1)
-	if (ready == 0)
-		fprintf(stderr, "%d minutes passed without getting a message, exiting...\n", TIMEOUT / 1000 / 60);
-	else if (ready == -1)
+	if (ready == -1)
 		perror("poll");
+	else
+		fprintf(stderr, "%d minutes passed without getting a message, exiting...\n", TIMEOUT / 1000 / 60);
 
 	quit_server(freenode, cfg.quit_msg);
 	cleanup();

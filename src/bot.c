@@ -15,7 +15,7 @@
 void help(Irc server, Parsed_data pdata) {
 
 	send_message(server, pdata.target, "%s", "list / help, url, mumble, fail, github, ping, traceroute, dns, uptime");
-	send_message(server, pdata.target, "%s", "MPD: play, playlist, history, current, random-mode / mpd-random");
+	send_message(server, pdata.target, "%s", "MPD: play, playlist, history, current, next, random-mode / mpd-random");
 }
 
 void bot_fail(Irc server, Parsed_data pdata) {
@@ -24,7 +24,7 @@ void bot_fail(Irc server, Parsed_data pdata) {
 	size_t len, maxlen, sum = 0;
 	char quote[QUOTELEN];
 
-	if (cfg.quote_count == 0)
+	if (!cfg.quote_count)
 		return;
 
 	// Make sure the seed is different even if we call the command twice in a second
@@ -52,7 +52,7 @@ void url(Irc server, Parsed_data pdata) {
 		goto cleanup;
 
 	// Check first parameter for a URL that contains at least one dot.
-	if (strchr(argv[0], '.') == NULL)
+	if (!strchr(argv[0], '.'))
 		goto cleanup;
 
 	// Map shared memory for inter-process communication
@@ -66,7 +66,7 @@ void url(Irc server, Parsed_data pdata) {
 		perror("fork");
 		break;
 	case 0:
-		if ((temp = shorten_url(argv[0])) != NULL) {
+		if ((temp = shorten_url(argv[0]))) {
 			strncpy(short_url, temp, ADDRLEN);
 			free(temp);
 		} else // Put a null char in the first byte if shorten_url fails so we can test for it in send_message
@@ -92,7 +92,7 @@ void mumble(Irc server, Parsed_data pdata) {
 
 	char *user_list;
 
-	if ((user_list = fetch_murmur_users()) != NULL) {
+	if ((user_list = fetch_murmur_users())) {
 		send_message(server, pdata.target, "%s", user_list);
 		free(user_list);
 	}
@@ -111,7 +111,7 @@ void github(Irc server, Parsed_data pdata) {
 		return;
 	}
 	// If user is not supplied, substitute with a default one
-	if (strchr(argv[0], '/') == NULL)
+	if (!strchr(argv[0], '/'))
 		snprintf(repo, REPOLEN, "%s/%s", cfg.github_repo, argv[0]);
 	else {
 		strncpy(repo, argv[0], REPOLEN);
@@ -123,7 +123,7 @@ void github(Irc server, Parsed_data pdata) {
 		commit_count = get_int(argv[1], MAXCOMMITS);
 
 	commits = fetch_github_commits(repo, &commit_count, root);
-	if (commit_count == 0)
+	if (!commit_count)
 		goto cleanup;
 
 	// Print each commit info with it's short url in a seperate colorized line
@@ -153,9 +153,9 @@ void ping(Irc server, Parsed_data pdata) {
 		goto cleanup;
 
 	// Find if the IP is an v4 or v6. Weak parsing
-	if (strchr(argv[0], '.') != NULL)
+	if (strchr(argv[0], '.'))
 		cmd = "ping";
-	else if (strchr(argv[0], ':') != NULL)
+	else if (strchr(argv[0], ':'))
 		cmd = "ping6";
 	else
 		goto cleanup;
@@ -179,14 +179,15 @@ void traceroute(Irc server, Parsed_data pdata) {
 	if (argc != 1)
 		goto cleanup;
 
-	if (strchr(argv[0], '.') != NULL)
+	if (strchr(argv[0], '.'))
 		cmd = "traceroute";
-	else if (strchr(argv[0], ':') != NULL)
+	else if (strchr(argv[0], ':'))
 		cmd = "traceroute6";
 	else
 		goto cleanup;
 
-	if (strchr(pdata.target, '#') != NULL) // Don't send the following msg if the request was initiated in private
+	// Don't send the following msg if the request was initiated in private
+	if (strchr(pdata.target, '#'))
 		send_message(server, pdata.target, "Printing results privately to %s", pdata.sender);
 
 	// Limit max hops to 18
@@ -205,7 +206,7 @@ void dns(Irc server, Parsed_data pdata) {
 	if (argc != 1)
 		goto cleanup;
 
-	if (strchr(argv[0], '.') == NULL)
+	if (!strchr(argv[0], '.'))
 		goto cleanup;
 
 	print_cmd_output(server, pdata.target, (char *[]) { "nslookup", argv[0], NULL });

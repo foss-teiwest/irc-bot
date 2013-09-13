@@ -11,7 +11,7 @@
  */
 
 #define CMDLEN 100
-#define SONGLEN 256
+#define SONGLEN 512
 #define SCRIPTDIR "scripts/" //!< default folder to look for scripts like the youtube one
 
 /** Remove file extension. Works with multiple dots in file as well */

@@ -15,11 +15,11 @@ void play(Irc server, Parsed_data pdata) {
 
 	char *temp;
 
-	if (pdata.message == NULL)
+	if (!pdata.message)
 		return;
 
 	// Null terminate the the whole parameters line
-	if ((temp = strrchr(pdata.message, '\r')) == NULL)
+	if (!(temp = strrchr(pdata.message, '\r')))
 		return;
 	*temp = '\0';
 
@@ -28,7 +28,7 @@ void play(Irc server, Parsed_data pdata) {
 		sock_write(mpdfd, "noidle\n", 7);
 	}
 
-	if (strstr(pdata.message, "youtu") == NULL)
+	if (!strstr(pdata.message, "youtu"))
 		print_cmd_output(server, pdata.target, (char *[]) { SCRIPTDIR "mpd_search.sh", cfg.mpd_database, pdata.message, NULL });
 	else
 		print_cmd_output(server, pdata.target, (char *[]) { SCRIPTDIR "youtube2mp3.sh", cfg.mpd_database, pdata.message, NULL });
@@ -90,7 +90,7 @@ int mpd_connect(const char *port) {
 	if (sock_read(mpd, buf, sizeof(buf) - 1) <= 0)
 		goto cleanup;
 
-	if (strncmp(buf, "OK", 2) != 0)
+	if (!starts_with(buf, "OK"))
 		goto cleanup;
 
 	if (*mpd_random_mode)
@@ -113,7 +113,7 @@ bool print_song(Irc server, const char *channel) {
 	if (sock_read(mpdfd, buf, SONGLEN) <= 0)
 		goto cleanup;
 
-	if (strncmp(buf, "changed", 7) != 0)
+	if (!starts_with(buf, "changed"))
 		return true;
 
 	if (sock_write(mpdfd, "currentsong\n", 12) < 0)
@@ -123,21 +123,21 @@ bool print_song(Irc server, const char *channel) {
 		goto cleanup;
 
 	buf[n] = '\0'; // terminate reply
-	if ((song_title = strstr(buf, "file")) == NULL)
+	if (!(song_title = strstr(buf, "file")))
 		goto cleanup;
 
 	song_title += 6; // advance to song_title start
-	if ((test = strchr(song_title, '\n')) == NULL)
+	if (!(test = strchr(song_title, '\n')))
 		goto cleanup;
 
 	*test = '\0'; // terminate line
 
 	// Cut file extension (.mp3)
-	if ((test = strrchr(buf + 6, '.')) == NULL)
+	if (!(test = strrchr(buf + 6, '.')))
 		goto cleanup;
 	*test = '\0';
 
-	if (strcmp(old_song, song_title) != 0) {
+	if (!streq(old_song, song_title)) {
 		send_message(server, channel, "♪ %s ♪", song_title);
 		snprintf(old_song, SONGLEN, "%s", song_title);
 	}

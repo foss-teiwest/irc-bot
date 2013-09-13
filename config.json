@@ -24,7 +24,7 @@
 	// MPD settings
 	"mpd_port": "6600",
 	"mpd_database": "~/Music",
-	"mpd_random_mode_file": "~/.mpd_random",
+	"mpd_random_file": "~/.mpd_random",
 
 	// Multiline quote sentences must be seperated by the newline character (\n)
 	// Newline char is optional if the sentence is the last OR the only one from a quote
