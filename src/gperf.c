@@ -36,9 +36,9 @@
 struct function_list;
 #include <string.h>
 
-#define TOTAL_KEYWORDS 20
+#define TOTAL_KEYWORDS 19
 #define MIN_WORD_LENGTH 3
-#define MAX_WORD_LENGTH 11
+#define MAX_WORD_LENGTH 10
 #define MIN_HASH_VALUE 3
 #define MAX_HASH_VALUE 34
 /* maximum key range = 32, duplicates = 0 */
@@ -106,12 +106,12 @@ hash (register const char *str, register unsigned int len)
       35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
       35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
       35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
-      35, 35, 35, 35, 35, 10, 35,  0,  0,  0,
-      20,  0,  0, 10, 35, 15,  0,  0, 20,  0,
-       5, 35,  0, 35,  0,  0, 35, 35, 35, 35,
-      35, 35, 35, 35, 35, 35, 35, 10, 35,  0,
-       0,  0, 20,  0,  0, 10, 35, 15,  0,  0,
-      20,  0,  5, 35,  0, 35,  0,  0, 35, 35,
+      35, 35, 35, 35, 35, 20, 35,  5,  5, 15,
+      10,  5,  0, 10, 35, 15,  0, 10,  5,  0,
+       0, 35,  0,  5,  0,  0, 35, 35, 35, 35,
+      35, 35, 35, 35, 35, 35, 35, 20, 35,  5,
+       5, 15, 10,  5,  0, 10, 35, 15,  0, 10,
+       5,  0,  0, 35,  0,  5,  0,  0, 35, 35,
       35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
       35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
       35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
@@ -141,45 +141,43 @@ function_lookup (register const char *str, register unsigned int len)
 {
   static const struct function_list wordlist[] =
     {
-#line 22 "include/gperf-input.txt"
-      {"url", url},
-#line 18 "include/gperf-input.txt"
-      {"help", help},
 #line 21 "include/gperf-input.txt"
-      {"mumble", mumble},
-#line 31 "include/gperf-input.txt"
-      {"current", current},
-#line 28 "include/gperf-input.txt"
+      {"url", url},
+#line 27 "include/gperf-input.txt"
       {"play", play},
 #line 26 "include/gperf-input.txt"
-      {"traceroute", traceroute},
-#line 27 "include/gperf-input.txt"
       {"uptime", uptime},
 #line 15 "include/gperf-input.txt"
       {"PRIVMSG", irc_privmsg},
-#line 29 "include/gperf-input.txt"
+#line 28 "include/gperf-input.txt"
       {"playlist", playlist},
-#line 19 "include/gperf-input.txt"
-      {"list", help},
-#line 34 "include/gperf-input.txt"
-      {"mpd-random", random_mode},
-#line 23 "include/gperf-input.txt"
-      {"github", github},
-#line 30 "include/gperf-input.txt"
-      {"history", history},
-#line 24 "include/gperf-input.txt"
-      {"ping", ping},
 #line 33 "include/gperf-input.txt"
-      {"random-mode", random_mode},
+      {"stop", stop},
 #line 25 "include/gperf-input.txt"
-      {"dns", dns},
-#line 32 "include/gperf-input.txt"
-      {"next", next},
+      {"traceroute", traceroute},
 #line 16 "include/gperf-input.txt"
       {"NOTICE", irc_notice},
+#line 30 "include/gperf-input.txt"
+      {"current", current},
+#line 24 "include/gperf-input.txt"
+      {"dns", dns},
+#line 23 "include/gperf-input.txt"
+      {"ping", ping},
+#line 20 "include/gperf-input.txt"
+      {"mumble", mumble},
+#line 29 "include/gperf-input.txt"
+      {"history", history},
+#line 18 "include/gperf-input.txt"
+      {"help", help},
+#line 22 "include/gperf-input.txt"
+      {"github", github},
+#line 31 "include/gperf-input.txt"
+      {"next", next},
+#line 32 "include/gperf-input.txt"
+      {"random", random_mode},
 #line 17 "include/gperf-input.txt"
       {"KICK", irc_kick},
-#line 20 "include/gperf-input.txt"
+#line 19 "include/gperf-input.txt"
       {"fail", bot_fail}
     };
 
@@ -221,50 +219,50 @@ function_lookup (register const char *str, register unsigned int len)
                     goto compare;
                   }
                 break;
+              case 5:
+                if (len == 8)
+                  {
+                    resword = &wordlist[4];
+                    goto compare;
+                  }
+                break;
               case 6:
                 if (len == 4)
                   {
-                    resword = &wordlist[4];
+                    resword = &wordlist[5];
                     goto compare;
                   }
                 break;
               case 7:
                 if (len == 10)
                   {
-                    resword = &wordlist[5];
+                    resword = &wordlist[6];
                     goto compare;
                   }
                 break;
               case 8:
                 if (len == 6)
                   {
-                    resword = &wordlist[6];
+                    resword = &wordlist[7];
                     goto compare;
                   }
                 break;
               case 9:
                 if (len == 7)
                   {
-                    resword = &wordlist[7];
-                    goto compare;
-                  }
-                break;
-              case 10:
-                if (len == 8)
-                  {
                     resword = &wordlist[8];
                     goto compare;
                   }
                 break;
-              case 11:
-                if (len == 4)
+              case 10:
+                if (len == 3)
                   {
                     resword = &wordlist[9];
                     goto compare;
                   }
                 break;
-              case 12:
-                if (len == 10)
+              case 11:
+                if (len == 4)
                   {
                     resword = &wordlist[10];
                     goto compare;
@@ -292,44 +290,37 @@ function_lookup (register const char *str, register unsigned int len)
                   }
                 break;
               case 18:
-                if (len == 11)
+                if (len == 6)
                   {
                     resword = &wordlist[14];
-                    goto compare;
-                  }
-                break;
-              case 20:
-                if (len == 3)
-                  {
-                    resword = &wordlist[15];
                     goto compare;
                   }
                 break;
               case 21:
                 if (len == 4)
                   {
-                    resword = &wordlist[16];
+                    resword = &wordlist[15];
                     goto compare;
                   }
                 break;
               case 23:
                 if (len == 6)
                   {
-                    resword = &wordlist[17];
+                    resword = &wordlist[16];
                     goto compare;
                   }
                 break;
               case 26:
                 if (len == 4)
                   {
-                    resword = &wordlist[18];
+                    resword = &wordlist[17];
                     goto compare;
                   }
                 break;
               case 31:
                 if (len == 4)
                   {
-                    resword = &wordlist[19];
+                    resword = &wordlist[18];
                     goto compare;
                   }
                 break;

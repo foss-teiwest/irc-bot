@@ -14,8 +14,8 @@
 
 void help(Irc server, Parsed_data pdata) {
 
-	send_message(server, pdata.target, "%s", "list / help, url, mumble, fail, github, ping, traceroute, dns, uptime");
-	send_message(server, pdata.target, "%s", "MPD: play, playlist, history, current, next, random-mode / mpd-random");
+	send_message(server, pdata.target, "%s", "url, mumble, fail, github, ping, traceroute, dns, uptime");
+	send_message(server, pdata.target, "%s", "MPD: play, playlist, history, current, next, random, stop");
 }
 
 void bot_fail(Irc server, Parsed_data pdata) {

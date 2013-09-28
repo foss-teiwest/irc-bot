@@ -79,6 +79,18 @@ void current(Irc server, Parsed_data pdata) {
 	print_cmd_output_unsafe(server, pdata.target, "mpc current |" REMOVE_EXTENSION);
 }
 
+void stop(Irc server, Parsed_data pdata) {
+
+	print_cmd_output_unsafe(server, pdata.target, "mpc -q clear");
+
+	if (*mpd_random_mode) {
+		*mpd_random_mode = false;
+		remove(cfg.mpd_random_file);
+		sock_write(mpdfd, "noidle\n", 7);
+		print_cmd_output_unsafe(server, pdata.target, "mpc -q random off");
+	}
+}
+
 int mpd_connect(const char *port) {
 
 	int mpd;

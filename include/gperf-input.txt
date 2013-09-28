@@ -16,7 +16,6 @@ struct function_list;
 "NOTICE", irc_notice
 "KICK", irc_kick
 "help", help
-"list", help
 "fail", bot_fail
 "mumble", mumble
 "url", url
@@ -30,5 +29,5 @@ struct function_list;
 "history", history
 "current", current
 "next", next
-"random-mode", random_mode
-"mpd-random", random_mode
+"random", random_mode
+"stop", stop

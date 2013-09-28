@@ -33,6 +33,9 @@ void history(Irc server, Parsed_data pdata);
 /** Current song */
 void current(Irc server, Parsed_data pdata);
 
+/** Stops playback. Works in normal or random mode */
+void stop(Irc server, Parsed_data pdata);
+
 /** Skip song and print the title of the next */
 void next(Irc server, Parsed_data pdata);
 
