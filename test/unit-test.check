@@ -37,7 +37,8 @@ size_t curl_write_memory(char *data, size_t size, size_t elements, void *membuf)
 void open_read(void) {
 
 	server = malloc_w(sizeof(*server));
-	if ((server->sock = open("test-files/input.txt", O_RDONLY)) < 0)
+	server->sock = open("test-files/input.txt", O_RDONLY);
+	if (server->sock < 0)
 		exit_msg("Failed to open file");
 }
 
@@ -49,7 +50,8 @@ void close_read(void) {
 void open_write(void) {
 
 	server = malloc_w(sizeof(*server));
-	if ((server->sock = open("test-files/output.txt", O_RDWR)) < 0)
+	server->sock = open("test-files/output.txt", O_RDWR);
+	if (server->sock < 0)
 		exit_msg("Failed to open file");
 
 	lseek(server->sock, 0, SEEK_SET);
@@ -73,7 +75,7 @@ void close_write(void) {
 #test irc_connection
 
 	server = irc_connect("chat.freenode.net", "6667");
-	ck_assert_msg(server, "irc connection failed");
+	ck_assert_msg(server != NULL, "irc connection failed");
 	quit_server(server, "bye");
 
 /*****************************************************************************/
@@ -158,10 +160,10 @@ void close_write(void) {
 #tcase function match
 #test gperf
 
-	Function_list flist = function_lookup("list", 4);
+	Function_list flist = function_lookup("help", 4);
 	ck_assert_ptr_ne(flist, NULL);
 
-	flist = function_lookup("random", 6);
+	flist = function_lookup("trolol", 6);
 	ck_assert_ptr_eq(flist, NULL);
 
 #test curl_writeback
@@ -203,11 +205,6 @@ void close_write(void) {
 	ck_assert_int_eq(get_int("432efgdger", 21324124), 432);
 	ck_assert_int_eq(get_int("sdfsdf462", 2), 1);
 
-#test mumble_list
-
-	char *data = fetch_murmur_users();
-	ck_assert_str_eq(data, "7 Online clients: Chubby ZED gkino Erevos freestyler charkost tomkap");
-
 #test titleurl
 
 	char *url_title = get_url_title("https://www.archlinux.org/");
@@ -236,13 +233,14 @@ void close_write(void) {
 
 	char buf[IRCLEN];
 	server = malloc_w(sizeof(*server));
-	if ((server->sock = open("test-files/cmd_output.txt", O_RDWR | O_CREAT, 0755)) < 0)
+	server->sock = open("test-files/cmd_output.txt", O_RDWR | O_CREAT, 0755);
+	if (server->sock < 0)
 		exit_msg("Failed to open file");
 
 	print_cmd_output(server, "#troll", (char *[]) { "echo", "rofl", NULL });
 	lseek(server->sock, 0, SEEK_SET);
 	read(server->sock, buf, IRCLEN);
-	buf[strlen(buf) - 2] = '\0';
+	buf[strlen(buf) - 3] = '\0';
 	ck_assert_str_eq(buf, "PRIVMSG #troll :rofl");
 
 	free(server);
@@ -252,7 +250,8 @@ void close_write(void) {
 
 	int i;
 	server = malloc_w(sizeof(*server));
-	if ((server->sock = open("test-files/channels.txt", O_RDWR | O_CREAT | O_TRUNC, 0755)) < 0)
+	server->sock = open("test-files/channels.txt", O_RDWR | O_CREAT | O_TRUNC, 0755);
+	if (server->sock < 0)
 		exit_msg("Failed to open file");
 
 	server->isConnected = true;

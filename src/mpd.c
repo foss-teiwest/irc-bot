@@ -13,15 +13,17 @@ extern bool *mpd_random_mode;
 
 void play(Irc server, Parsed_data pdata) {
 
-	char *temp;
+	char *test;
 
 	if (!pdata.message)
 		return;
 
 	// Null terminate the the whole parameters line
-	if (!(temp = strrchr(pdata.message, '\r')))
+	test = strrchr(pdata.message, '\r');
+	if (!test)
 		return;
-	*temp = '\0';
+
+	*test = '\0';
 
 	if (*mpd_random_mode) {
 		*mpd_random_mode = false;
@@ -96,7 +98,8 @@ int mpd_connect(const char *port) {
 	int mpd;
 	char buf[64];
 
-	if ((mpd = sock_connect(LOCALHOST, port)) < 0)
+	mpd = sock_connect(LOCALHOST, port);
+	if (mpd < 0)
 		return -1;
 
 	if (sock_read(mpd, buf, sizeof(buf) - 1) <= 0)
@@ -131,22 +134,27 @@ bool print_song(Irc server, const char *channel) {
 	if (sock_write(mpdfd, "currentsong\n", 12) < 0)
 		goto cleanup;
 
-	if ((n = sock_read(mpdfd, buf, SONGLEN)) <= 0)
+	n = sock_read(mpdfd, buf, SONGLEN);
+	if (n <= 0)
 		goto cleanup;
 
 	buf[n] = '\0'; // terminate reply
-	if (!(song_title = strstr(buf, "file")))
+	song_title = strstr(buf, "file");
+	if (!song_title)
 		goto cleanup;
 
 	song_title += 6; // advance to song_title start
-	if (!(test = strchr(song_title, '\n')))
+	test = strchr(song_title, '\n');
+	if (!test)
 		goto cleanup;
 
 	*test = '\0'; // terminate line
 
 	// Cut file extension (.mp3)
-	if (!(test = strrchr(buf + 6, '.')))
+	test = strrchr(buf + 6, '.');
+	if (!test)
 		goto cleanup;
+
 	*test = '\0';
 
 	if (!streq(old_song, song_title)) {

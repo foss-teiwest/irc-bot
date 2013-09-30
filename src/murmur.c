@@ -23,7 +23,8 @@ STATIC int murmur_connect(const char *port) {
 		0x75, 0x72, 0x3a, 0x3a, 0x4d, 0x65, 0x74, 0x61
 	};
 
-	if ((murmfd = sock_connect(LOCALHOST, port)) < 0)
+	murmfd = sock_connect(LOCALHOST, port);
+	if (murmfd < 0)
 		return -1;
 
 	if (sock_read(murmfd, read_buffer, READ_BUFFER_SIZE) != VALIDATE_CONNECTION_PACKET_SIZE) {
@@ -63,7 +64,8 @@ bool add_murmur_callbacks(const char *port) {
 		0x00, 0xff, 0xff, 0xff, 0xff, 0x00
 	};
 
-	if ((murm_callbackfd = murmur_connect(port)) < 0)
+	murm_callbackfd = murmur_connect(port);
+	if (murm_callbackfd < 0)
 		return false;
 
 	if (sock_write(murm_callbackfd, addCallback_packet, sizeof(addCallback_packet)) < 0) {
@@ -94,7 +96,8 @@ char *fetch_murmur_users(void) {
 		0x02, 0x00, 0x06, 0x00, 0x00, 0x00, 0x01, 0x00
 	};
 
-	if ((murmfd = murmur_connect(cfg.murmur_port)) < 0)
+	murmfd = murmur_connect(cfg.murmur_port);
+	if (murmfd < 0)
 		return NULL;
 
 	if (sock_write(murmfd, getUsers_packet, sizeof(getUsers_packet)) < 0) {
@@ -115,7 +118,7 @@ char *fetch_murmur_users(void) {
 
 	while (user_counter++ < read_buffer[25]) {
 		if (user_counter > 1) {
-			while (!((username[0] == 0x0) && (username[1] == 0x0) && (username[2] == 0xff) && (username[3] == 0xff)))
+			while (!(username[0] == 0x0 && username[1] == 0x0 && username[2] == 0xff && username[3] == 0xff))
 				username++;
 
 			username += 0x2d;
@@ -135,7 +138,9 @@ STATIC ssize_t validate_murmur_connection(int murm_acceptfd) {
 	const unsigned char validate_packet[] =	{
 		0x49, 0x63, 0x65, 0x50, 0x01, 0x00, 0x01, 0x00, 0x03, 0x00, 0x0e, 0x00, 0x00, 0x00
 	};
-	if ((n = sock_write_non_blocking(murm_acceptfd, validate_packet, sizeof(validate_packet))) < 0)
+
+	n = sock_write_non_blocking(murm_acceptfd, validate_packet, sizeof(validate_packet));
+	if (n < 0)
 		fprintf(stderr, "Error: Failed to send validate_packet\n");
 
 	return n;
@@ -145,7 +150,8 @@ int accept_murmur_connection(int murm_listenfd) {
 
 	int murm_acceptfd;
 
-	if ((murm_acceptfd = sock_accept(murm_listenfd, true)) == -1)
+	murm_acceptfd = sock_accept(murm_listenfd, true);
+	if (murm_acceptfd == -1)
 		return -1;
 
 	if (validate_murmur_connection(murm_acceptfd) < 0) {

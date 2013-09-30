@@ -39,7 +39,8 @@ Irc irc_connect(const char *address, const char *port) {
 	if (!strchr(address, '.') || atoi(port) > 65535)
 		return NULL;
 
-	if ((server->sock = sock_connect(address, port)) < 0)
+	server->sock = sock_connect(address, port);
+	if (server->sock < 0)
 		return NULL;
 
 	fcntl(server->sock, F_SETFL, O_NONBLOCK); // Set socket to non-blocking mode
@@ -95,8 +96,8 @@ int join_channel(Irc server, const char *channel) {
 	}
 
 	if (server->isConnected)
-		for (; i < server->channels_set; i++)
-			irc_channel_command(server, server->channels[i]);
+		while (i < server->channels_set)
+			irc_channel_command(server, server->channels[i++]);
 
 	return i;
 }
@@ -110,14 +111,15 @@ ssize_t parse_irc_line(Irc server) {
 	ssize_t n;
 
 	// Read raw line from server. Example: ":laxanofido!~laxanofid@snf-23545.vm.okeanos.grnet.gr PRIVMSG #foss-teimes :How YA doing fossbot"
-	if ((n = sock_readline(server->sock, server->line + server->line_offset, IRCLEN - server->line_offset)) <= 0) {
+	n = sock_readline(server->sock, server->line + server->line_offset, IRCLEN - server->line_offset);
+	if (n <= 0) {
 		if (n != -EAGAIN)
 			exit_msg("IRC connection closed");
 
 		server->line_offset = strlen(server->line);
 		return n;
 	}
-	server->line_offset = 0;
+	server->line_offset = 0; // Clear offset if the read was successful
 
 	if (cfg.verbose)
 		fputs(server->line, stdout);
@@ -132,29 +134,34 @@ ssize_t parse_irc_line(Irc server) {
 	}
 	// Store the sender of the message / server command without the leading ':'.
 	// Examples: "laxanofido!~laxanofid@snf-23545.vm.okeanos.grnet.gr", "wolfe.freenode.net"
-	if (!(pdata.sender = strtok(server->line + 1, " ")))
+	pdata.sender = strtok(server->line + 1, " ");
+	if (!pdata.sender)
 		return n;
 
 	// Store the server command. Examples: "PRIVMSG", "MODE", "433"
-	if (!(pdata.command = strtok(NULL, " ")))
+	pdata.command = strtok(NULL, " ");
+	if (!pdata.command)
 		return n;
 
 	// Store everything that comes after the server command
 	// Examples: "#foss-teimes :How YA doing fossbot_", "fossbot :How YA doing fossbot"
-	if (!(pdata.message = strtok(NULL, "")))
+	pdata.message = strtok(NULL, "");
+	if (!pdata.message)
 		return n;
 
 	// Initialize the last struct member to silence compiler warnings
 	pdata.target = NULL;
 
 	// Find out if server command is a numeric reply
-	if (!(reply = atoi(pdata.command))) {
-		// Find & launch any functions registered to IRC commands
-		if ((flist = function_lookup(pdata.command, strlen(pdata.command))))
-			flist->function(server, pdata);
-	} else
+	reply = atoi(pdata.command);
+	if (reply)
 		numeric_reply(server, reply);
-
+	else {
+		// Find & launch any functions registered to IRC commands
+		flist = function_lookup(pdata.command, strlen(pdata.command));
+		if (flist)
+			flist->function(server, pdata);
+	}
 	return n;
 }
 
@@ -179,11 +186,13 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 	char *test;
 
 	// Discard hostname from nickname. "laxanofido!~laxanofid@snf-23545.vm.okeanos.grnet.gr" becomes "laxanofido"
-	if ((test = strchr(pdata.sender, '!')))
+	test = strchr(pdata.sender, '!');
+	if (test)
 		*test = '\0';
 
 	// Store message destination. Example channel: "#foss-teimes" or private: "fossbot"
-	if (!(pdata.target = strtok(pdata.message, " ")))
+	pdata.target = strtok(pdata.message, " ");
+	if (!pdata.target)
 		return;
 
 	// If target is not a channel, reply on private back to sender instead
@@ -191,12 +200,15 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 		pdata.target = pdata.sender;
 
 	// Example commands we might receive: ":!url in.gr", ":\x01VERSION\x01"
-	if (!(pdata.command = strtok(NULL, " ")))
+	pdata.command = strtok(NULL, " ");
+	if (!pdata.command)
 		return;
+
 	pdata.command++; // Skip leading ":" character
 
 	// Make sure BOT command / CTCP request gets null terminated if there are no parameters
-	if (!(pdata.message = strtok(NULL, ""))) {
+	pdata.message = strtok(NULL, "");
+	if (!pdata.message) {
 		test = strrchr(pdata.command, '\r');
 		*test = '\0';
 	}
@@ -205,7 +217,8 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 		pdata.command++; // Skip leading '!' before passing the command
 
 		// Query our hash table for any functions registered to BOT commands
-		if (!(flist = function_lookup(pdata.command, strlen(pdata.command))))
+		flist = function_lookup(pdata.command, strlen(pdata.command));
+		if (!flist)
 			return;
 
 		// Launch the function in a new process
@@ -228,12 +241,14 @@ void irc_notice(Irc server, Parsed_data pdata) {
 
 	bool temp;
 
-	// notice destination
-	if (!(pdata.target = strtok(pdata.message, " ")))
+	// Notice destination
+	pdata.target = strtok(pdata.message, " ");
+	if (!pdata.target)
 		return;
 
 	// Grab the message
-	if (!(pdata.message = strtok(NULL, "")))
+	pdata.message = strtok(NULL, "");
+	if (!pdata.message)
 		return;
 
 	// Skip leading ':'
@@ -254,19 +269,23 @@ void irc_kick(Irc server, Parsed_data pdata) {
 	int i;
 
 	// Discard hostname from nickname
-	if ((test = strchr(pdata.sender, '!')))
+	test = strchr(pdata.sender, '!');
+	if (test)
 		*test = '\0';
 
 	// Which channel did the kick happen
-	if (!(pdata.target = strtok(pdata.message, " ")))
+	pdata.target = strtok(pdata.message, " ");
+	if (!pdata.target)
 		return;
 
 	// Who got kicked
-	if (!(victim = strtok(NULL, " ")))
+	victim = strtok(NULL, " ");
+	if (!victim)
 		return;
 
 	// Null terminate victim's nick
-	if ((test = strchr(victim, ' ')))
+	test = strchr(victim, ' ');
+	if (test)
 		*test = '\0';
 
 	// Rejoin and send a message back to the one who kicked us

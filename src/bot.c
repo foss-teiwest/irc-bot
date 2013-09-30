@@ -35,10 +35,14 @@ void bot_fail(Irc server, Parsed_data pdata) {
 
 	// Pick a random entry from the read-only quotes array and print it.
 	// We use indexes and lengths since we can't make changes to the array
-	while (sum < maxlen && (len = strcspn(cfg.quotes[r] + sum, "\n")) > 0) {
+	while (sum < maxlen) {
+		len = strcspn(cfg.quotes[r] + sum, "\n");
+		if (len <= 0)
+			return;
+
 		snprintf(quote, QUOTELEN, COLOR "%d%.*s", clr_r, (int) len, cfg.quotes[r] + sum);
 		send_message(server, pdata.target, "%s", quote);
-		sum += ++len;
+		sum += ++len; // Skip newline
 	}
 }
 
@@ -56,7 +60,8 @@ void url(Irc server, Parsed_data pdata) {
 		goto cleanup;
 
 	// Map shared memory for inter-process communication
-	if ((short_url = mmap(NULL, ADDRLEN + 1, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0)) == MAP_FAILED) {
+	short_url = mmap(NULL, ADDRLEN + 1, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+	if (short_url == MAP_FAILED) {
 		perror("mmap");
 		goto cleanup;
 	}
@@ -66,7 +71,8 @@ void url(Irc server, Parsed_data pdata) {
 		perror("fork");
 		break;
 	case 0:
-		if ((temp = shorten_url(argv[0]))) {
+		temp = shorten_url(argv[0]);
+		if (temp) {
 			strncpy(short_url, temp, ADDRLEN);
 			free(temp);
 		} else // Put a null char in the first byte if shorten_url fails so we can test for it in send_message
@@ -92,7 +98,8 @@ void mumble(Irc server, Parsed_data pdata) {
 
 	char *user_list;
 
-	if ((user_list = fetch_murmur_users())) {
+	user_list = fetch_murmur_users();
+	if (user_list) {
 		send_message(server, pdata.target, "%s", user_list);
 		free(user_list);
 	}

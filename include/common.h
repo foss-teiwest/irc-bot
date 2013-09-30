@@ -81,6 +81,9 @@ bool streq(const char *s1, const char *s2);
 /** @returns  true if s1 starts with s2 */
 bool starts_with(const char *s1, const char *s2);
 
+/** Case insensitive version */
+bool starts_case_with(const char *s1, const char *s2);
+
 /**
  * Extract parameters seperated by space and put them in an array
  * Example: argv = extract_params(pdata.message, &argc);  argv[argc - 1] will contain the last parameter

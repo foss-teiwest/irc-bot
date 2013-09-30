@@ -14,11 +14,13 @@ int main(int argc, char *argv[]) {
 	n = fread(buf, sizeof(char), sizeof(buf) - 1, stdin);
 	buf[n] = '\0';
 
-	if ((root = yajl_tree_parse(buf, errbuf, sizeof(errbuf))) == NULL) {
+	root = yajl_tree_parse(buf, errbuf, sizeof(errbuf));
+	if (!root) {
 		fprintf(stderr, "%s\n", errbuf);
 		return 1;
 	}
-	if ((val = yajl_tree_get(root, (const char *[]) { argv[1], NULL }, yajl_t_string)) == NULL)
+	val = yajl_tree_get(root, (const char *[]) { argv[1], NULL }, yajl_t_string);
+	if (!val)
 		return 1;
 
 	result = YAJL_GET_STRING(val);

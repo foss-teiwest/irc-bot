@@ -23,13 +23,15 @@ int sock_connect(const char *address, const char *port) {
 	addr_filter.ai_flags    = AI_NUMERICSERV; // Don't resolve service -> port, since we already provide it in numeric form
 
 	// Return addresses according to the filter criteria
-	if ((retval = getaddrinfo(address, port, &addr_filter, &addr_holder))) {
+	retval = getaddrinfo(address, port, &addr_filter, &addr_holder);
+	if (retval) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(retval));
 		return sock;
 	}
 	for (addr_iterator = addr_holder; addr_iterator; addr_iterator = addr_iterator->ai_next) {
 
-		if ((sock = socket(addr_iterator->ai_family, addr_iterator->ai_socktype, addr_iterator->ai_protocol)) < 0) {
+		sock = socket(addr_iterator->ai_family, addr_iterator->ai_socktype, addr_iterator->ai_protocol);
+		if (sock < 0) {
 			perror(__func__);
 			continue; // Failed, try next address
 		}
@@ -55,16 +57,19 @@ int sock_listen(const char *address, const char *port) {
 	addr_filter.ai_protocol = IPPROTO_TCP;
 	addr_filter.ai_flags    = AI_NUMERICSERV;
 
-	if ((retval = getaddrinfo(address, port, &addr_filter, &addr_holder))) {
+	retval = getaddrinfo(address, port, &addr_filter, &addr_holder);
+	if (retval) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(retval));
 		return sock;
 	}
 	for (addr_iterator = addr_holder; addr_iterator; addr_iterator = addr_iterator->ai_next) {
 
-		if ((sock = socket(addr_iterator->ai_family, addr_iterator->ai_socktype, addr_iterator->ai_protocol)) < 0) {
+		sock = socket(addr_iterator->ai_family, addr_iterator->ai_socktype, addr_iterator->ai_protocol);
+		if (sock < 0) {
 			perror(__func__);
 			continue;
 		}
+		// Allow us to re-use the binding port
 		setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &(int) { 1 }, sizeof(int));
 		if (!bind(sock, addr_iterator->ai_addr, addr_iterator->ai_addrlen) && !listen(sock, 5))
 			break; // Success
@@ -81,7 +86,8 @@ int sock_accept(int listen_fd, bool non_block) {
 
 	int accept_fd;
 
-	if ((accept_fd = accept(listen_fd, NULL, NULL)) < 0) {
+	accept_fd = accept(listen_fd, NULL, NULL);
+	if (accept_fd < 0) {
 		perror(__func__);
 		return -1;
 	}
@@ -98,7 +104,8 @@ ssize_t sock_write(int sock, const void *buffer, size_t len) {
 	const unsigned char *buf = buffer;
 
 	while (n_left > 0) {
-		if ((n_sent = write(sock, buf, n_left)) < 0) {
+		n_sent = write(sock, buf, n_left);
+		if (n_sent < 0) {
 			if (errno == EINTR) // Interrupted by signal, retry
 				continue;
 
@@ -129,7 +136,8 @@ ssize_t sock_read(int sock, void *buffer, size_t len) {
 
 	while (true) {
 		errno = 0;
-		if ((n = read(sock, buf, len)) <= 0) {
+		n = read(sock, buf, len);
+		if (n <= 0) {
 			if (errno == EINTR)
 				continue;
 
@@ -146,7 +154,8 @@ ssize_t sock_read_non_blocking(int sock, void *buffer, size_t len) {
 	unsigned char *buf = buffer;
 
 	errno = 0;
-	if ((n = read(sock, buf, len)) <= 0)
+	n = read(sock, buf, len);
+	if (n <= 0)
 		return errno == EAGAIN ? -EAGAIN : (perror(__func__), n);
 
 	return n;
@@ -162,7 +171,8 @@ STATIC ssize_t sock_readbyte(int sock, char *byte) {
 	// -EAGAIN if the operation would block and 0 if connection is closed
 	if (bytes_read <= 0) {
 		errno = 0;
-		if ((bytes_read = read(sock, buffer, IRCLEN)) <= 0)
+		bytes_read = read(sock, buffer, IRCLEN);
+		if (bytes_read <= 0)
 			return errno == EAGAIN ? -EAGAIN : (perror(__func__), bytes_read);
 
 		buf_ptr = buffer;
@@ -181,7 +191,8 @@ ssize_t sock_readline(int sock, char *line_buf, size_t len) {
 
 	// If n == 0, connection is closed. Return bytes read so far
 	while (n_read++ <= len) {
-		if ((n = sock_readbyte(sock, &byte)) <= 0) {
+		n = sock_readbyte(sock, &byte);
+		if (n <= 0) {
 			*line_buf = '\0';
 			return n == 0 ? (ssize_t) n_read - 1 : n;
 		}

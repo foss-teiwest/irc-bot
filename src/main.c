@@ -23,15 +23,17 @@ int main(int argc, char *argv[]) {
 		pfd[i].events = POLLIN;
 	}
 	if (add_murmur_callbacks(cfg.murmur_port))
-		pfd[MURM_LISTEN].fd = murm_listenfd = sock_listen(LOCALHOST, CB_LISTEN_PORT_S);
+		murm_listenfd = pfd[MURM_LISTEN].fd = sock_listen(LOCALHOST, CB_LISTEN_PORT_S);
 	else
 		fprintf(stderr, "Could not connect to Murmur\n");
 
-	if ((pfd[MPD].fd = mpdfd = mpd_connect(cfg.mpd_port)) < 0)
+	mpdfd = pfd[MPD].fd = mpd_connect(cfg.mpd_port);
+	if (mpdfd < 0)
 		fprintf(stderr, "Could not connect to MPD\n");
 
 	// Connect to server and set IRC details
-	if (!(irc_server = irc_connect(cfg.server, cfg.port)))
+	irc_server = irc_connect(cfg.server, cfg.port);
+	if (!irc_server)
 		exit_msg("Irc connection failed");
 
 	pfd[IRC].fd = get_socket(irc_server);
@@ -45,9 +47,11 @@ int main(int argc, char *argv[]) {
 		if (pfd[IRC].revents & POLLIN)
 			while (parse_irc_line(irc_server) > 0);
 
-		if (pfd[MURM_LISTEN].revents & POLLIN)
-			if ((pfd[MURM_ACCEPT].fd = accept_murmur_connection(murm_listenfd)) > 0)
+		if (pfd[MURM_LISTEN].revents & POLLIN) {
+			pfd[MURM_ACCEPT].fd = accept_murmur_connection(murm_listenfd);
+			if (pfd[MURM_ACCEPT].fd > 0)
 				pfd[MURM_LISTEN].fd = -1; // Stop listening for connections
+		}
 
 		if (pfd[MURM_ACCEPT].revents & POLLIN) {
 			if (!listen_murmur_callbacks(irc_server, pfd[MURM_ACCEPT].fd)) {
