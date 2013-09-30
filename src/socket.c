@@ -135,17 +135,15 @@ ssize_t sock_read(int sock, void *buffer, size_t len) {
 	unsigned char *buf = buffer;
 
 	while (true) {
-		errno = 0;
 		n = read(sock, buf, len);
-		if (n <= 0) {
-			if (errno == EINTR)
-				continue;
+		if (n == -1 && errno == EINTR)
+			continue;
 
+		if (n == -1)
 			perror(__func__);
-		}
-		break;
+
+		return n;
 	}
-	return n;
 }
 
 ssize_t sock_read_non_blocking(int sock, void *buffer, size_t len) {
@@ -153,10 +151,12 @@ ssize_t sock_read_non_blocking(int sock, void *buffer, size_t len) {
 	ssize_t n;
 	unsigned char *buf = buffer;
 
-	errno = 0;
 	n = read(sock, buf, len);
-	if (n <= 0)
-		return errno == EAGAIN ? -EAGAIN : (perror(__func__), n);
+	if (n == -1 && errno == EAGAIN)
+		return -EAGAIN;
+
+	if (n == -1)
+		perror(__func__);
 
 	return n;
 }
@@ -170,11 +170,16 @@ STATIC ssize_t sock_readbyte(int sock, char *byte) {
 	// Stores the character in byte. Returns 1 on success, -1 on error,
 	// -EAGAIN if the operation would block and 0 if connection is closed
 	if (bytes_read <= 0) {
-		errno = 0;
 		bytes_read = read(sock, buffer, IRCLEN);
-		if (bytes_read <= 0)
-			return errno == EAGAIN ? -EAGAIN : (perror(__func__), bytes_read);
+		if (bytes_read <= 0) {
+			if (bytes_read == -1 && errno == EAGAIN)
+				return -EAGAIN;
 
+			if (bytes_read == -1)
+				perror(__func__);
+
+			return bytes_read;
+		}
 		buf_ptr = buffer;
 	}
 	bytes_read--;
