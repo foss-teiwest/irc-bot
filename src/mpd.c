@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <poll.h>
+#include <fcntl.h>
 #include <stdbool.h>
 #include <string.h>
 #include "socket.h"
@@ -27,7 +29,7 @@ void play(Irc server, Parsed_data pdata) {
 
 	if (*mpd_random_mode) {
 		*mpd_random_mode = false;
-		sock_write(mpdfd, "noidle\n", 7);
+		sock_write_non_blocking(mpdfd, "noidle\n", 7);
 	}
 
 	if (!strstr(pdata.message, "youtu"))
@@ -72,7 +74,7 @@ void random_mode(Irc server, Parsed_data pdata) {
 	else {
 		*mpd_random_mode = true;
 		print_cmd_output_unsafe(server, pdata.target, SCRIPTDIR "mpd_random.sh");
-		sock_write(mpdfd, "idle player\n", 12);
+		sock_write_non_blocking(mpdfd, "idle player\n", 12);
 	}
 }
 
@@ -88,7 +90,7 @@ void stop(Irc server, Parsed_data pdata) {
 	if (*mpd_random_mode) {
 		*mpd_random_mode = false;
 		remove(cfg.mpd_random_file);
-		sock_write(mpdfd, "noidle\n", 7);
+		sock_write_non_blocking(mpdfd, "noidle\n", 7);
 		print_cmd_output_unsafe(server, pdata.target, "mpc -q random off");
 	}
 }
@@ -112,6 +114,7 @@ int mpd_connect(const char *port) {
 		if (sock_write(mpd, "idle player\n", 12) < 0)
 			goto cleanup;
 
+	fcntl(mpd, F_SETFL, O_NONBLOCK);
 	return mpd; // Success
 
 cleanup:
@@ -119,50 +122,79 @@ cleanup:
 	return -1;
 }
 
-bool print_song(Irc server, const char *channel) {
+STATIC char *get_title(void) {
 
-	static char old_song[SONGLEN];
 	char *test, *song_title, buf[SONGLEN + 1];
-	ssize_t n;
+	struct pollfd pfd;
+	ssize_t n = 0;
+	int ready;
 
-	if (sock_read(mpdfd, buf, SONGLEN) <= 0)
-		goto cleanup;
+	pfd.fd = mpdfd;
+	pfd.events = POLLIN;
 
-	if (!starts_with(buf, "changed"))
-		return true;
-
-	if (sock_write(mpdfd, "currentsong\n", 12) < 0)
-		goto cleanup;
-
-	n = sock_read(mpdfd, buf, SONGLEN);
-	if (n <= 0)
-		goto cleanup;
+	ready = poll(&pfd, 1, 4000);
+	if (ready == 1) {
+		if (pfd.revents & POLLIN) {
+			n = sock_read_non_blocking(mpdfd, buf, SONGLEN);
+			if (n <= 0)
+				return NULL;
+		}
+	} else if (ready == -1) {
+		perror(__func__);
+		return NULL;
+	} else {
+		fprintf(stderr, "%s:Timeout limit reached\n", __func__);
+		return NULL;
+	}
 
 	buf[n] = '\0'; // terminate reply
 	song_title = strstr(buf, "file");
 	if (!song_title)
-		goto cleanup;
+		return NULL;
 
 	song_title += 6; // advance to song_title start
 	test = strchr(song_title, '\n');
 	if (!test)
-		goto cleanup;
+		return NULL;
 
 	*test = '\0'; // terminate line
 
 	// Cut file extension (.mp3)
 	test = strrchr(buf + 6, '.');
 	if (!test)
-		goto cleanup;
+		return NULL;
 
 	*test = '\0';
+
+	return song_title;
+}
+
+bool print_song(Irc server, const char *channel) {
+
+	static char old_song[SONGLEN];
+	char *song_title, buf[128 + 1];
+
+	if (sock_read_non_blocking(mpdfd, buf, 128) <= 0)
+		goto cleanup;
+
+	// Preserve the connection if "noidle" was issued
+	if (!starts_with(buf, "changed"))
+		return true;
+
+	// Ask for current song
+	if (sock_write_non_blocking(mpdfd, "currentsong\n", 12) < 0)
+		goto cleanup;
+
+	song_title = get_title();
+	if (!song_title)
+		goto cleanup;
 
 	if (!streq(old_song, song_title)) {
 		send_message(server, channel, "♪ %s ♪", song_title);
 		snprintf(old_song, SONGLEN, "%s", song_title);
 	}
 	// Restart query
-	if (sock_write(mpdfd, "idle player\n", 12) == 12)
+	if (sock_write_non_blocking(mpdfd, "idle player\n", 12) == 12)
 		return true;
 
 cleanup:
