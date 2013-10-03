@@ -85,14 +85,14 @@ void current(Irc server, Parsed_data pdata) {
 
 void stop(Irc server, Parsed_data pdata) {
 
-	print_cmd_output_unsafe(server, pdata.target, "mpc -q clear");
-
 	if (*mpd_random_mode) {
 		*mpd_random_mode = false;
 		remove(cfg.mpd_random_file);
 		sock_write_non_blocking(mpdfd, "noidle\n", 7);
 		print_cmd_output_unsafe(server, pdata.target, "mpc -q random off");
 	}
+
+	print_cmd_output_unsafe(server, pdata.target, "mpc -q clear");
 }
 
 int mpd_connect(const char *port) {
