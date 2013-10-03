@@ -32,10 +32,10 @@ void play(Irc server, Parsed_data pdata) {
 		sock_write_non_blocking(mpdfd, "noidle\n", 7);
 	}
 
-	if (!strstr(pdata.message, "youtu"))
-		print_cmd_output(server, pdata.target, (char *[]) { SCRIPTDIR "mpd_search.sh", cfg.mpd_database, pdata.message, NULL });
-	else
+	if (strstr(pdata.message, "youtu"))
 		print_cmd_output(server, pdata.target, (char *[]) { SCRIPTDIR "youtube2mp3.sh", cfg.mpd_database, pdata.message, NULL });
+	else
+		print_cmd_output(server, pdata.target, (char *[]) { SCRIPTDIR "mpd_search.sh", cfg.mpd_database, pdata.message, NULL });
 }
 
 void playlist(Irc server, Parsed_data pdata) {
