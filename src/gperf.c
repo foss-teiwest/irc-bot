@@ -36,12 +36,12 @@
 struct function_list;
 #include <string.h>
 
-#define TOTAL_KEYWORDS 19
+#define TOTAL_KEYWORDS 20
 #define MIN_WORD_LENGTH 3
 #define MAX_WORD_LENGTH 10
 #define MIN_HASH_VALUE 3
-#define MAX_HASH_VALUE 34
-/* maximum key range = 32, duplicates = 0 */
+#define MAX_HASH_VALUE 39
+/* maximum key range = 37, duplicates = 0 */
 
 #ifndef GPERF_DOWNCASE
 #define GPERF_DOWNCASE 1
@@ -100,32 +100,32 @@ hash (register const char *str, register unsigned int len)
 {
   static const unsigned char asso_values[] =
     {
-      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
-      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
-      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
-      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
-      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
-      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
-      35, 35, 35, 35, 35, 20, 35,  5,  5, 15,
-      10,  5,  0, 10, 35, 15,  0, 10,  5,  0,
-       0, 35,  0,  5,  0,  0, 35, 35, 35, 35,
-      35, 35, 35, 35, 35, 35, 35, 20, 35,  5,
-       5, 15, 10,  5,  0, 10, 35, 15,  0, 10,
-       5,  0,  0, 35,  0,  5,  0,  0, 35, 35,
-      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
-      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
-      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
-      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
-      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
-      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
-      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
-      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
-      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
-      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
-      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
-      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
-      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
-      35, 35, 35, 35, 35, 35
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 20, 40,  5, 10, 15,
+      15,  5,  5, 10, 40, 20,  0, 10,  0,  5,
+       0, 40,  0, 25,  0,  0, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 20, 40,  5,
+      10, 15, 15,  5,  5, 10, 40, 20,  0, 10,
+       0,  5,  0, 40,  0, 25,  0,  0, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40
     };
   return len + asso_values[(unsigned char)str[1]] + asso_values[(unsigned char)str[0]];
 }
@@ -151,8 +151,8 @@ function_lookup (register const char *str, register unsigned int len)
       {"PRIVMSG", irc_privmsg},
 #line 28 "include/gperf-input.txt"
       {"playlist", playlist},
-#line 33 "include/gperf-input.txt"
-      {"stop", stop},
+#line 34 "include/gperf-input.txt"
+      {"roll", roll},
 #line 25 "include/gperf-input.txt"
       {"traceroute", traceroute},
 #line 16 "include/gperf-input.txt"
@@ -165,16 +165,18 @@ function_lookup (register const char *str, register unsigned int len)
       {"ping", ping},
 #line 20 "include/gperf-input.txt"
       {"mumble", mumble},
+#line 31 "include/gperf-input.txt"
+      {"next", next},
+#line 22 "include/gperf-input.txt"
+      {"github", github},
 #line 29 "include/gperf-input.txt"
       {"history", history},
 #line 18 "include/gperf-input.txt"
       {"help", help},
-#line 22 "include/gperf-input.txt"
-      {"github", github},
-#line 31 "include/gperf-input.txt"
-      {"next", next},
 #line 32 "include/gperf-input.txt"
       {"random", random_mode},
+#line 33 "include/gperf-input.txt"
+      {"stop", stop},
 #line 17 "include/gperf-input.txt"
       {"KICK", irc_kick},
 #line 19 "include/gperf-input.txt"
@@ -275,22 +277,22 @@ function_lookup (register const char *str, register unsigned int len)
                     goto compare;
                   }
                 break;
-              case 14:
-                if (len == 7)
+              case 16:
+                if (len == 4)
                   {
                     resword = &wordlist[12];
                     goto compare;
                   }
                 break;
-              case 16:
-                if (len == 4)
+              case 18:
+                if (len == 6)
                   {
                     resword = &wordlist[13];
                     goto compare;
                   }
                 break;
-              case 18:
-                if (len == 6)
+              case 19:
+                if (len == 7)
                   {
                     resword = &wordlist[14];
                     goto compare;
@@ -321,6 +323,13 @@ function_lookup (register const char *str, register unsigned int len)
                 if (len == 4)
                   {
                     resword = &wordlist[18];
+                    goto compare;
+                  }
+                break;
+              case 36:
+                if (len == 4)
+                  {
+                    resword = &wordlist[19];
                     goto compare;
                   }
                 break;

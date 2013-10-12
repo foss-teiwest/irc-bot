@@ -226,3 +226,18 @@ void uptime(Irc server, Parsed_data pdata) {
 
 	print_cmd_output_unsafe(server, pdata.target, "uptime");
 }
+
+void roll(Irc server, Parsed_data pdata) {
+
+	char **argv;
+	int argc, r, roll = 100;
+
+	srand(time(NULL) + getpid());
+	argv = extract_params(pdata.message, &argc);
+	if (argc >= 1)
+		roll = get_int(argv[0], MAXROLL);
+
+	r = rand() % roll + 1;
+	send_message(server, pdata.target, "%s rolls %d", pdata.sender, r);
+	free(argv);
+}

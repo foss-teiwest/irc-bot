@@ -31,3 +31,4 @@ struct function_list;
 "next", next
 "random", random_mode
 "stop", stop
+"roll", roll

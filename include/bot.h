@@ -20,6 +20,7 @@
 #define MAXPINGS   10
 #define REPOLEN    80
 #define QUOTELEN   150
+#define MAXROLL    1000000
 
 // Irc color codes
 #define COLOR   RESET
@@ -75,5 +76,8 @@ void dns(Irc server, Parsed_data pdata);
 
 /** Print uptime command */
 void uptime(Irc server, Parsed_data pdata);
+
+/** Rolls a random number (optional maximum roll number) */
+void roll(Irc server, Parsed_data pdata);
 
 #endif
