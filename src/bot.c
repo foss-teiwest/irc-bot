@@ -14,8 +14,8 @@
 
 void help(Irc server, Parsed_data pdata) {
 
-	send_message(server, pdata.target, "%s", "url, mumble, fail, github, ping, traceroute, dns, uptime");
-	send_message(server, pdata.target, "%s", "MPD: play, playlist, history, current, next, random, stop");
+	send_message(server, pdata.target, "%s", "url, mumble, fail, github, ping, traceroute, dns, uptime, roll");
+	send_message(server, pdata.target, "%s", "MPD: play, playlist, history, current, next, random, stop, seek, announce");
 }
 
 void bot_fail(Irc server, Parsed_data pdata) {
@@ -230,14 +230,21 @@ void uptime(Irc server, Parsed_data pdata) {
 void roll(Irc server, Parsed_data pdata) {
 
 	char **argv;
-	int argc, r, roll = 100;
+	int argc, r, roll = DEFAULT_ROLL;
 
 	srand(time(NULL) + getpid());
 	argv = extract_params(pdata.message, &argc);
-	if (argc >= 1)
-		roll = get_int(argv[0], MAXROLL);
+	if (argc != 1) {
+		free(argv);
+		return;
+	}
+
+	roll = get_int(argv[0], MAXROLL);
+	if (roll == 1)
+		roll = DEFAULT_ROLL;
 
 	r = rand() % roll + 1;
 	send_message(server, pdata.target, "%s rolls %d", pdata.sender, r);
+
 	free(argv);
 }

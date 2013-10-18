@@ -32,6 +32,7 @@ if [ -e $RANDOM_ON ]; then
 fi
 QUEUESIZE=`mpc playlist | wc -l`
 
+
 if [ -f "$DIR"/"$TITLE".mp3 ]; then
 	mpc add "$TITLE".mp3 && mpc -q play
 	if [ $? -eq 0 ]; then
@@ -56,6 +57,7 @@ fi
 --max-quality 22 "$URL" \
 -o "$DIR"/"$TITLE"."%(ext)s"
 
+id3v2 -t "$TITLE" "$DIR"/"$TITLE".mp3
 mpc -q update --wait && mpc add "$TITLE".mp3 && mpc -q play
 if [ $? -eq 0 ]; then
 	print_song

@@ -92,7 +92,7 @@ int sock_accept(int listen_fd, bool non_block) {
 		return -1;
 	}
 	if (non_block)
-		fcntl(listen_fd, F_SETFL, O_NONBLOCK);
+		fcntl(accept_fd, F_SETFL, O_NONBLOCK);
 
 	return accept_fd;
 }

@@ -32,3 +32,5 @@ struct function_list;
 "random", random_mode
 "stop", stop
 "roll", roll
+"seek", seek
+"announce", announce

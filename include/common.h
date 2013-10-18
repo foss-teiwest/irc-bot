@@ -24,7 +24,7 @@
 #define LINELEN     300
 #define CONFSIZE    4096
 #define TIMEOUT     300000 //!< Timeout in milliseconds for the poll function
-#define LOCALHOST "127.0.0.1"
+#define LOCALHOST  "127.0.0.1"
 
 struct config_options {
 	char *server;

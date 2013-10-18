@@ -36,12 +36,12 @@
 struct function_list;
 #include <string.h>
 
-#define TOTAL_KEYWORDS 20
+#define TOTAL_KEYWORDS 22
 #define MIN_WORD_LENGTH 3
 #define MAX_WORD_LENGTH 10
 #define MIN_HASH_VALUE 3
-#define MAX_HASH_VALUE 39
-/* maximum key range = 37, duplicates = 0 */
+#define MAX_HASH_VALUE 44
+/* maximum key range = 42, duplicates = 0 */
 
 #ifndef GPERF_DOWNCASE
 #define GPERF_DOWNCASE 1
@@ -100,32 +100,32 @@ hash (register const char *str, register unsigned int len)
 {
   static const unsigned char asso_values[] =
     {
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 20, 40,  5, 10, 15,
-      15,  5,  5, 10, 40, 20,  0, 10,  0,  5,
-       0, 40,  0, 25,  0,  0, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 20, 40,  5,
-      10, 15, 15,  5,  5, 10, 40, 20,  0, 10,
-       0,  5,  0, 40,  0, 25,  0,  0, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 10, 45,  5, 10, 15,
+      30,  0, 15, 20, 45, 15,  0, 15,  0,  5,
+       0, 45,  0, 10,  0,  0, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 10, 45,  5,
+      10, 15, 30,  0, 15, 20, 45, 15,  0, 15,
+       0,  5,  0, 45,  0, 10,  0,  0, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45
     };
   return len + asso_values[(unsigned char)str[1]] + asso_values[(unsigned char)str[0]];
 }
@@ -161,24 +161,28 @@ function_lookup (register const char *str, register unsigned int len)
       {"current", current},
 #line 24 "include/gperf-input.txt"
       {"dns", dns},
-#line 23 "include/gperf-input.txt"
-      {"ping", ping},
-#line 20 "include/gperf-input.txt"
-      {"mumble", mumble},
-#line 31 "include/gperf-input.txt"
-      {"next", next},
-#line 22 "include/gperf-input.txt"
-      {"github", github},
-#line 29 "include/gperf-input.txt"
-      {"history", history},
-#line 18 "include/gperf-input.txt"
-      {"help", help},
-#line 32 "include/gperf-input.txt"
-      {"random", random_mode},
 #line 33 "include/gperf-input.txt"
       {"stop", stop},
+#line 32 "include/gperf-input.txt"
+      {"random", random_mode},
+#line 36 "include/gperf-input.txt"
+      {"announce", announce},
+#line 31 "include/gperf-input.txt"
+      {"next", next},
+#line 20 "include/gperf-input.txt"
+      {"mumble", mumble},
+#line 23 "include/gperf-input.txt"
+      {"ping", ping},
+#line 22 "include/gperf-input.txt"
+      {"github", github},
+#line 35 "include/gperf-input.txt"
+      {"seek", seek},
+#line 18 "include/gperf-input.txt"
+      {"help", help},
 #line 17 "include/gperf-input.txt"
       {"KICK", irc_kick},
+#line 29 "include/gperf-input.txt"
+      {"history", history},
 #line 19 "include/gperf-input.txt"
       {"fail", bot_fail}
     };
@@ -277,22 +281,22 @@ function_lookup (register const char *str, register unsigned int len)
                     goto compare;
                   }
                 break;
-              case 16:
-                if (len == 4)
+              case 15:
+                if (len == 8)
                   {
                     resword = &wordlist[12];
                     goto compare;
                   }
                 break;
-              case 18:
-                if (len == 6)
+              case 16:
+                if (len == 4)
                   {
                     resword = &wordlist[13];
                     goto compare;
                   }
                 break;
-              case 19:
-                if (len == 7)
+              case 18:
+                if (len == 6)
                   {
                     resword = &wordlist[14];
                     goto compare;
@@ -330,6 +334,20 @@ function_lookup (register const char *str, register unsigned int len)
                 if (len == 4)
                   {
                     resword = &wordlist[19];
+                    goto compare;
+                  }
+                break;
+              case 39:
+                if (len == 7)
+                  {
+                    resword = &wordlist[20];
+                    goto compare;
+                  }
+                break;
+              case 41:
+                if (len == 4)
+                  {
+                    resword = &wordlist[21];
                     goto compare;
                   }
                 break;

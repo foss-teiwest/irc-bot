@@ -9,12 +9,13 @@
 #include <curl/curl.h>
 #include <yajl/yajl_tree.h>
 #include "irc.h"
+#include "mpd.h"
 #include "common.h"
 
 pid_t main_pid;
 yajl_val root;
 struct config_options cfg;
-bool *mpd_random_mode;
+struct mpd_status_type *mpd_status;
 
 void initialize(int argc, char *argv[]) {
 
@@ -32,12 +33,14 @@ void initialize(int argc, char *argv[]) {
 	signal(SIGPIPE, SIG_IGN); // Handle writing on closed sockets on our own
 	curl_global_init(CURL_GLOBAL_ALL); // Initialize curl library
 
-	mpd_random_mode = mmap(NULL, sizeof(bool), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-	if (mpd_random_mode == MAP_FAILED)
+	mpd_status = mmap(NULL, sizeof(*mpd_status), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+	if (mpd_status == MAP_FAILED)
 		perror("mmap");
 
+	mpd_status->random = OFF;
+	mpd_status->announce = OFF;
 	if (!access(cfg.mpd_random_file, F_OK))
-		*mpd_random_mode = true;
+		mpd_status->random = ON;
 }
 
 void cleanup(void) {

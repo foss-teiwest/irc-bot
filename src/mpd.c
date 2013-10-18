@@ -11,7 +11,24 @@
 #include "common.h"
 
 extern int mpdfd;
-extern bool *mpd_random_mode;
+extern struct mpd_status_type *mpd_status;
+
+STATIC bool mpd_announce(int set) {
+
+	if (set == ON) {
+		if (mpd_status->announce)
+			return true;
+
+		mpd_status->announce = ON;
+		return sock_write_non_blocking(mpdfd, "idle player\n", 12) == 12;
+	} else {
+		if (!mpd_status->announce)
+			return true;
+
+		mpd_status->announce = OFF;
+		return sock_write_non_blocking(mpdfd, "noidle\n", 7) == 7;
+	}
+}
 
 void play(Irc server, Parsed_data pdata) {
 
@@ -26,11 +43,8 @@ void play(Irc server, Parsed_data pdata) {
 		return;
 
 	*test = '\0';
-
-	if (*mpd_random_mode) {
-		*mpd_random_mode = false;
-		sock_write_non_blocking(mpdfd, "noidle\n", 7);
-	}
+	mpd_announce(OFF);
+	mpd_status->random = OFF;
 
 	if (strstr(pdata.message, "youtu"))
 		print_cmd_output(server, pdata.target, (char *[]) { SCRIPTDIR "youtube2mp3.sh", cfg.mpd_database, pdata.message, NULL });
@@ -40,58 +54,63 @@ void play(Irc server, Parsed_data pdata) {
 
 void playlist(Irc server, Parsed_data pdata) {
 
-	if (*mpd_random_mode)
-		send_message(server, pdata.target, "%s", "playlist disabled in random mode");
-	else
-		print_cmd_output_unsafe(server, pdata.target, "mpc playlist | head |" REMOVE_EXTENSION);
+	print_cmd_output_unsafe(server, pdata.target, "mpc playlist | head");
 }
 
 void history(Irc server, Parsed_data pdata) {
 
 	char cmd[CMDLEN];
 
-	if (*mpd_random_mode)
-		send_message(server, pdata.target, "%s", "history disabled in random mode");
-	else {
-		snprintf(cmd, CMDLEN, "ls -t1 %s | head | tac |" REMOVE_EXTENSION, cfg.mpd_database);
-		print_cmd_output_unsafe(server, pdata.target, cmd);
-	}
+	snprintf(cmd, CMDLEN, "ls -t1 %s | head | tac |" REMOVE_EXTENSION, cfg.mpd_database);
+	print_cmd_output_unsafe(server, pdata.target, cmd);
 }
 
 void next(Irc server, Parsed_data pdata) {
 
 	// TODO Only print the result to the one who send the command on channel / prive
-	if (*mpd_random_mode)
+	if (mpd_status->announce)
 		print_cmd_output_unsafe(server, pdata.target, "mpc -q next");
 	else
-		print_cmd_output_unsafe(server, pdata.target, "mpc next |" REMOVE_EXTENSION);
+		print_cmd_output_unsafe(server, pdata.target, "mpc next | head -n1");
+}
+
+void seek(Irc server, Parsed_data pdata) {
+
+	char **argv;
+	int argc;
+
+	argv = extract_params(pdata.message, &argc);
+	if (argc != 1) {
+		free(argv);
+		return;
+	}
+	print_cmd_output(server, pdata.target, (char *[]) { "mpc", "seek", "-q", argv[0], NULL });
 }
 
 void random_mode(Irc server, Parsed_data pdata) {
 
-	if (*mpd_random_mode)
+	if (mpd_status->random)
 		send_message(server, pdata.target, "%s", "already in random mode");
 	else {
-		*mpd_random_mode = true;
+		mpd_announce(ON);
+		mpd_status->random = ON;
 		print_cmd_output_unsafe(server, pdata.target, SCRIPTDIR "mpd_random.sh");
-		sock_write_non_blocking(mpdfd, "idle player\n", 12);
 	}
 }
 
 void current(Irc server, Parsed_data pdata) {
 
-	print_cmd_output_unsafe(server, pdata.target, "mpc current |" REMOVE_EXTENSION);
+	print_cmd_output_unsafe(server, pdata.target, "mpc current");
 }
 
 void stop(Irc server, Parsed_data pdata) {
 
-	if (*mpd_random_mode) {
-		*mpd_random_mode = false;
+	if (mpd_status->random) {
+		mpd_status->random = OFF;
+		mpd_announce(OFF);
 		remove(cfg.mpd_random_file);
-		sock_write_non_blocking(mpdfd, "noidle\n", 7);
 		print_cmd_output_unsafe(server, pdata.target, "mpc -q random off");
 	}
-
 	print_cmd_output_unsafe(server, pdata.target, "mpc -q clear");
 }
 
@@ -110,8 +129,8 @@ int mpd_connect(const char *port) {
 	if (!starts_with(buf, "OK"))
 		goto cleanup;
 
-	if (*mpd_random_mode)
-		if (sock_write(mpd, "idle player\n", 12) < 0)
+	if (mpd_status->random)
+		if (!mpd_announce(ON))
 			goto cleanup;
 
 	fcntl(mpd, F_SETFL, O_NONBLOCK);
@@ -122,9 +141,29 @@ cleanup:
 	return -1;
 }
 
+void announce(Irc server, Parsed_data pdata) {
+
+	char **argv;
+	int argc;
+
+	(void) server; // Silence unused variable warning
+
+	argv = extract_params(pdata.message, &argc);
+	if (argc != 1) {
+		free(argv);
+		return;
+	}
+	if (starts_case_with(argv[0], "on"))
+		mpd_announce(ON);
+	else if (starts_case_with(argv[0], "off"))
+		mpd_announce(OFF);
+
+	free(argv);
+}
+
 STATIC char *get_title(void) {
 
-	char *test, *song_title, buf[SONGLEN + 1];
+	char *test, *song_title, buf[SONG_INFO_LEN + 1];
 	struct pollfd pfd;
 	ssize_t n = 0;
 	int ready;
@@ -135,7 +174,7 @@ STATIC char *get_title(void) {
 	ready = poll(&pfd, 1, 4000);
 	if (ready == 1) {
 		if (pfd.revents & POLLIN) {
-			n = sock_read_non_blocking(mpdfd, buf, SONGLEN);
+			n = sock_read_non_blocking(mpdfd, buf, SONG_INFO_LEN);
 			if (n <= 0)
 				return NULL;
 		}
@@ -148,30 +187,22 @@ STATIC char *get_title(void) {
 	}
 
 	buf[n] = '\0'; // terminate reply
-	song_title = strstr(buf, "file");
+	song_title = strstr(buf, "Title");
 	if (!song_title)
 		return NULL;
 
-	song_title += 6; // advance to song_title start
+	song_title += 7; // advance to song_title start
 	test = strchr(song_title, '\n');
 	if (!test)
 		return NULL;
 
 	*test = '\0'; // terminate line
-
-	// Cut file extension (.mp3)
-	test = strrchr(buf + 6, '.');
-	if (!test)
-		return NULL;
-
-	*test = '\0';
-
 	return song_title;
 }
 
 bool print_song(Irc server, const char *channel) {
 
-	static char old_song[SONGLEN];
+	static char old_song[SONG_TITLE_LEN];
 	char *song_title, buf[128 + 1];
 
 	if (sock_read_non_blocking(mpdfd, buf, 128) <= 0)
@@ -191,10 +222,13 @@ bool print_song(Irc server, const char *channel) {
 
 	if (!streq(old_song, song_title)) {
 		send_message(server, channel, "♪ %s ♪", song_title);
-		snprintf(old_song, SONGLEN, "%s", song_title);
+		snprintf(old_song, SONG_TITLE_LEN, "%s", song_title);
+		strcat(old_song, ".mp3");
+		print_cmd_output(server, channel, (char *[]) { "touch", old_song, NULL });
+		old_song[strlen(old_song) - 4] = '\0';
 	}
 	// Restart query
-	if (sock_write_non_blocking(mpdfd, "idle player\n", 12) == 12)
+	if (mpd_announce(ON))
 		return true;
 
 cleanup:

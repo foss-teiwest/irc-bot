@@ -16,11 +16,12 @@
  *  They will not crash main program in case of failure
  */
 
-#define MAXCOMMITS 10
-#define MAXPINGS   10
-#define REPOLEN    80
-#define QUOTELEN   150
-#define MAXROLL    1000000
+#define MAXCOMMITS   10
+#define MAXPINGS     10
+#define REPOLEN      80
+#define QUOTELEN     150
+#define DEFAULT_ROLL 100
+#define MAXROLL      1000000
 
 // Irc color codes
 #define COLOR   RESET

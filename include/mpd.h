@@ -10,24 +10,33 @@
  * A helper script will be used (youtube2mp3.sh) to do most of the work
  */
 
-#define CMDLEN 100
-#define SONGLEN 512
+#define OFF 0
+#define ON  1
+#define CMDLEN  100
+#define SONG_INFO_LEN  512
+#define SONG_TITLE_LEN 256
 #define SCRIPTDIR "scripts/" //!< default folder to look for scripts like the youtube one
 
 /** Remove file extension. Works with multiple dots in file as well */
 #define REMOVE_EXTENSION "gawk -F. -v OFS=. '{NF--; print}'"
+
+struct mpd_status_type {
+	bool random;
+	bool announce;
+};
 
 /** Download video from youtube, convert it to mp3, feed it to mpd and start streaming in icecast.
  *  If there is no dot '.' on the argument, then a search will be performed.
  *  If there is a single result it will be added to queue, else up to 3 results will be printed */
 void play(Irc server, Parsed_data pdata);
 
-/** Current playlist. First song is the one playing.
- *  @warning Disabled in random mode */
+/** Auto announce songs as they play (on | off) */
+void announce(Irc server, Parsed_data pdata);
+
+/** Current playlist. First song is the one playing. */
 void playlist(Irc server, Parsed_data pdata);
 
-/** Previous played songs. First hit is the older one
- *  @warning Disabled in random mode */
+/** Previous played songs. First hit is the older one */
 void history(Irc server, Parsed_data pdata);
 
 /** Current song */
@@ -38,6 +47,9 @@ void stop(Irc server, Parsed_data pdata);
 
 /** Skip song and print the title of the next */
 void next(Irc server, Parsed_data pdata);
+
+/** Seek to an absolute (2:53) or relative (+-) time */
+void seek(Irc server, Parsed_data pdata);
 
 /** Queue up all songs and play them in random mode */
 void random_mode(Irc server, Parsed_data pdata);
