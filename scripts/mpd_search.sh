@@ -14,7 +14,7 @@ fi
 if [ $RESULT_LINES -eq 1 ]; then
 	if [ -e $RANDOM_ON ]; then
 		echo "random mode disabled"
-		mpc -q crop && mpc -q random off
+		mpc -q crop
 		rm $RANDOM_ON
 	fi
 	QUEUESIZE=`mpc playlist | wc -l`
@@ -24,7 +24,7 @@ if [ $RESULT_LINES -eq 1 ]; then
 		RESULT=`echo "$RESULT" | gawk -F. -v OFS=. '{NF--; print}'`
 
 		if [ $QUEUESIZE -eq 0 ]; then
-			echo "♪ $RESULT ♪ playing @ http://foss.tesyd.teimes.gr:8000/"
+			echo "♪ $RESULT ♪ playing @ https://foss.tesyd.teimes.gr/~zed/flashplayer"
 		else
 			echo "♪ $RESULT ♪ queued after $QUEUESIZE song(s)..."
 		fi

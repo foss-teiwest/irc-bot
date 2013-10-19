@@ -2,7 +2,7 @@
 
 RANDOM_ON=~/.mpd_random
 
-mpc ls | sort -R | mpc add && mpc -q random on && mpc -q play
+mpc ls | sort -R | mpc add && mpc -q play
 QUEUESIZE=`mpc playlist | wc -l`
-echo "$QUEUESIZE songs queued @ http://foss.tesyd.teimes.gr:8000/"
+echo "$QUEUESIZE songs queued @ https://foss.tesyd.teimes.gr/~zed/flashplayer"
 touch $RANDOM_ON

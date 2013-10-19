@@ -19,7 +19,7 @@ rm "$DIR"/song.info.json
 print_song() {
 	touch "$DIR"/"$TITLE".mp3
 	if [ $QUEUESIZE -eq 0 ]; then
-		echo "♪ $TITLE ♪ playing @ http://foss.tesyd.teimes.gr:8000/"
+		echo "♪ $TITLE ♪ playing @ https://foss.tesyd.teimes.gr/~zed/flashplayer"
 	else
 		echo "♪ $TITLE ♪ queued after $QUEUESIZE song(s)..."
 	fi
@@ -27,7 +27,7 @@ print_song() {
 
 if [ -e $RANDOM_ON ]; then
 	echo "random mode disabled"
-	mpc -q crop && mpc -q random off
+	mpc -q crop
 	rm $RANDOM_ON
 fi
 QUEUESIZE=`mpc playlist | wc -l`

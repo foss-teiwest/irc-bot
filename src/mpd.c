@@ -88,7 +88,6 @@ void stop(Irc server, Parsed_data pdata) {
 		mpd_status->random = OFF;
 		mpd_announce(OFF);
 		remove(cfg.mpd_random_file);
-		print_cmd_output_unsafe(server, pdata.target, "mpc -q random off");
 	}
 	print_cmd_output_unsafe(server, pdata.target, "mpc -q clear");
 }
@@ -153,7 +152,7 @@ int mpd_connect(const char *port) {
 	if (!starts_with(buf, "OK"))
 		goto cleanup;
 
-	if (mpd_status->random)
+	if (mpd_status->announce)
 		if (!mpd_announce(ON))
 			goto cleanup;
 
