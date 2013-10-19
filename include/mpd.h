@@ -10,8 +10,8 @@
  * A helper script will be used (youtube2mp3.sh) to do most of the work
  */
 
-#define OFF 0
-#define ON  1
+#define ON  true
+#define OFF false
 #define CMDLEN  100
 #define SONG_INFO_LEN  512
 #define SONG_TITLE_LEN 256

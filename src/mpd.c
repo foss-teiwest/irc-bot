@@ -13,12 +13,9 @@
 extern int mpdfd;
 extern struct mpd_status_type *mpd_status;
 
-STATIC bool mpd_announce(int set) {
+STATIC bool mpd_announce(bool on) {
 
-	if (set == ON) {
-		if (mpd_status->announce)
-			return true;
-
+	if (on) {
 		mpd_status->announce = ON;
 		return sock_write_non_blocking(mpdfd, "idle player\n", 12) == 12;
 	} else {
@@ -52,6 +49,11 @@ void play(Irc server, Parsed_data pdata) {
 		print_cmd_output(server, pdata.target, (char *[]) { SCRIPTDIR "mpd_search.sh", cfg.mpd_database, pdata.message, NULL });
 }
 
+void current(Irc server, Parsed_data pdata) {
+
+	print_cmd_output_unsafe(server, pdata.target, "mpc current");
+}
+
 void playlist(Irc server, Parsed_data pdata) {
 
 	print_cmd_output_unsafe(server, pdata.target, "mpc playlist | head");
@@ -61,8 +63,34 @@ void history(Irc server, Parsed_data pdata) {
 
 	char cmd[CMDLEN];
 
-	snprintf(cmd, CMDLEN, "ls -t1 %s | head | tac |" REMOVE_EXTENSION, cfg.mpd_database);
-	print_cmd_output_unsafe(server, pdata.target, cmd);
+	if (mpd_status->random)
+		send_message(server, pdata.target, "%s", "history disabled in random mode");
+	else {
+		snprintf(cmd, CMDLEN, "ls -t1 %s | head | tac |" REMOVE_EXTENSION, cfg.mpd_database);
+		print_cmd_output_unsafe(server, pdata.target, cmd);
+	}
+}
+
+void random_mode(Irc server, Parsed_data pdata) {
+
+	if (mpd_status->random)
+		send_message(server, pdata.target, "%s", "already in random mode");
+	else {
+		mpd_announce(ON);
+		mpd_status->random = ON;
+		print_cmd_output_unsafe(server, pdata.target, SCRIPTDIR "mpd_random.sh");
+	}
+}
+
+void stop(Irc server, Parsed_data pdata) {
+
+	if (mpd_status->random) {
+		mpd_status->random = OFF;
+		mpd_announce(OFF);
+		remove(cfg.mpd_random_file);
+		print_cmd_output_unsafe(server, pdata.target, "mpc -q random off");
+	}
+	print_cmd_output_unsafe(server, pdata.target, "mpc -q clear");
 }
 
 void next(Irc server, Parsed_data pdata) {
@@ -87,31 +115,27 @@ void seek(Irc server, Parsed_data pdata) {
 	print_cmd_output(server, pdata.target, (char *[]) { "mpc", "seek", "-q", argv[0], NULL });
 }
 
-void random_mode(Irc server, Parsed_data pdata) {
+void announce(Irc server, Parsed_data pdata) {
 
-	if (mpd_status->random)
-		send_message(server, pdata.target, "%s", "already in random mode");
-	else {
+	char **argv;
+	int argc;
+
+	(void) server; // Silence unused variable warning
+
+	if (!mpd_status->random)
+		return;
+
+	argv = extract_params(pdata.message, &argc);
+	if (argc != 1) {
+		free(argv);
+		return;
+	}
+	if (starts_case_with(argv[0], "on") && !mpd_status->announce)
 		mpd_announce(ON);
-		mpd_status->random = ON;
-		print_cmd_output_unsafe(server, pdata.target, SCRIPTDIR "mpd_random.sh");
-	}
-}
-
-void current(Irc server, Parsed_data pdata) {
-
-	print_cmd_output_unsafe(server, pdata.target, "mpc current");
-}
-
-void stop(Irc server, Parsed_data pdata) {
-
-	if (mpd_status->random) {
-		mpd_status->random = OFF;
+	else if (starts_case_with(argv[0], "off") && mpd_status->announce)
 		mpd_announce(OFF);
-		remove(cfg.mpd_random_file);
-		print_cmd_output_unsafe(server, pdata.target, "mpc -q random off");
-	}
-	print_cmd_output_unsafe(server, pdata.target, "mpc -q clear");
+
+	free(argv);
 }
 
 int mpd_connect(const char *port) {
@@ -139,26 +163,6 @@ int mpd_connect(const char *port) {
 cleanup:
 	close(mpd);
 	return -1;
-}
-
-void announce(Irc server, Parsed_data pdata) {
-
-	char **argv;
-	int argc;
-
-	(void) server; // Silence unused variable warning
-
-	argv = extract_params(pdata.message, &argc);
-	if (argc != 1) {
-		free(argv);
-		return;
-	}
-	if (starts_case_with(argv[0], "on"))
-		mpd_announce(ON);
-	else if (starts_case_with(argv[0], "off"))
-		mpd_announce(OFF);
-
-	free(argv);
 }
 
 STATIC char *get_title(void) {
@@ -223,9 +227,6 @@ bool print_song(Irc server, const char *channel) {
 	if (!streq(old_song, song_title)) {
 		send_message(server, channel, "♪ %s ♪", song_title);
 		snprintf(old_song, SONG_TITLE_LEN, "%s", song_title);
-		strcat(old_song, ".mp3");
-		print_cmd_output(server, channel, (char *[]) { "touch", old_song, NULL });
-		old_song[strlen(old_song) - 4] = '\0';
 	}
 	// Restart query
 	if (mpd_announce(ON))
