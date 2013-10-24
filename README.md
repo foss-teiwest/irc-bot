@@ -43,7 +43,7 @@ Murmur ice | >= 3.4    | [optional] Murmur integration
 youtube-dl | LATEST    | [optional] MPD integration
 MPD        | >= 0.16   | [optional] MPD integration
 MPC        | >= 0.22   | [optional] MPD integration
-id3v2      | >= 0.1.12 | [optional] MPD integration
+mutagen    | >= 1.20   | [optional] MPD integration
 
 Documentation
 -

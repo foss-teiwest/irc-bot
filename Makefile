@@ -13,7 +13,7 @@ CFLAGS-test := $(CFLAGS)
 # Disable assertions, enable compiler optimizations and strip binary for "release" rule
 ifeq "$(MAKECMDGOALS)" "release"
 	CPPFLAGS += -DNDEBUG
-	CFLAGS   += -march=native -O2 -pipe
+	CFLAGS   += -march=x86-64 -mtune=generic -O2 -pipe
 	CFLAGS   := $(filter-out -g, $(CFLAGS))
 	LDFLAGS  = -s
 endif

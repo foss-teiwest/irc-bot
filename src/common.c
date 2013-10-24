@@ -379,14 +379,12 @@ char *iso8859_7_to_utf8(char *iso) {
 			if (uiso[i] < 0xf0) {
 				utf[y] = 0xce;
 				utf[y + 1] = uiso[i] - 48;
-			}
-			else {
+			} else {
 				utf[y] = 0xcf;
 				utf[y + 1] = uiso[i] - 112;
 			}
 			y += 2;
-		}
-		else {
+		} else {
 			utf[y] = uiso[i];
 			y++;
 		}

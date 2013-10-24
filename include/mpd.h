@@ -1,8 +1,8 @@
 #ifndef MPD_H
 #define MPD_H
 
-#include "irc.h"
 #include <stdbool.h>
+#include "irc.h"
 
 /**
  * @file mpd.h
