@@ -37,7 +37,7 @@ void bot_fail(Irc server, Parsed_data pdata) {
 	// We use indexes and lengths since we can't make changes to the array
 	while (sum < maxlen) {
 		len = strcspn(cfg.quotes[r] + sum, "\n");
-		if (len <= 0)
+		if (!len)
 			return;
 
 		snprintf(quote, QUOTELEN, COLOR "%d%.*s", clr_r, (int) len, cfg.quotes[r] + sum);
