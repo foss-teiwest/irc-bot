@@ -186,7 +186,7 @@ void close_write(void) {
 	char **argv;
 	int argc;
 
-	argv = extract_params(msg, &argc);
+	argc = extract_params(msg, &argv);
 	ck_assert_int_eq(argc, 3);
 	ck_assert_str_eq(argv[0], "trolol");
 	ck_assert_str_eq(argv[1], "re");

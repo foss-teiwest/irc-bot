@@ -86,13 +86,14 @@ bool starts_case_with(const char *s1, const char *s2);
 
 /**
  * Extract parameters seperated by space and put them in an array
- * Example: argv = extract_params(pdata.message, &argc);  argv[argc - 1] will contain the last parameter
+ * Example: argc = extract_params(pdata.message, &argv);  argv[argc - 1] will contain the last parameter
  * @warning  The array returned must be freed.
 
  * @param msg   A string containing space seperated arguments. Spaces will be replaced by null terminators
- * @param argc  argc will contain the number of parameters that were successfully saved in the array returned or 0 if none found
+ * @param argv  Pointer to array that parameters will be saved. Memory for the array will be allocated inside the function
+ * @returns     The number of parameters that were successfully saved in the array (0 if none found)
  */
-char **extract_params(char *msg, int *argc);
+int extract_params(char *msg, char **argv[]);
 
 /**
  * Convert string to number

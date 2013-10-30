@@ -150,7 +150,7 @@ int accept_murmur_connection(int murm_listenfd) {
 
 	int murm_acceptfd;
 
-	murm_acceptfd = sock_accept(murm_listenfd, true);
+	murm_acceptfd = sock_accept(murm_listenfd, NONBLOCK);
 	if (murm_acceptfd == -1)
 		return -1;
 

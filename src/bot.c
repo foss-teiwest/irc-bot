@@ -48,10 +48,10 @@ void bot_fail(Irc server, Parsed_data pdata) {
 
 void url(Irc server, Parsed_data pdata) {
 
-	char **argv, *temp, *short_url, *url_title = NULL;
 	int argc;
+	char **argv = NULL, *temp, *short_url, *url_title = NULL;
 
-	argv = extract_params(pdata.message, &argc);
+	argc = extract_params(pdata.message, &argv);
 	if (argc != 1)
 		goto cleanup;
 
@@ -109,10 +109,10 @@ void github(Irc server, Parsed_data pdata) {
 
 	Github *commits;
 	yajl_val root = NULL;
-	char **argv, *short_url, repo[REPOLEN + 1];
 	int argc, i, commit_count = 1;
+	char **argv = NULL, *short_url, repo[REPOLEN + 1];
 
-	argv = extract_params(pdata.message, &argc);
+	argc = extract_params(pdata.message, &argv);
 	if (argc != 1 && argc != 2) {
 		free(argv);
 		return;
@@ -152,10 +152,10 @@ cleanup:
 
 void ping(Irc server, Parsed_data pdata) {
 
-	char **argv, *cmd, count_str[10];
 	int argc, count = 3;
+	char **argv = NULL, *cmd, count_str[10];
 
-	argv = extract_params(pdata.message, &argc);
+	argc = extract_params(pdata.message, &argv);
 	if (argc != 1 && argc != 2)
 		goto cleanup;
 
@@ -179,10 +179,10 @@ cleanup:
 
 void traceroute(Irc server, Parsed_data pdata) {
 
-	char **argv, *cmd;
 	int argc;
+	char **argv = NULL, *cmd;
 
-	argv = extract_params(pdata.message, &argc);
+	argc = extract_params(pdata.message, &argv);
 	if (argc != 1)
 		goto cleanup;
 
@@ -206,10 +206,10 @@ cleanup:
 
 void dns(Irc server, Parsed_data pdata) {
 
-	char **argv;
 	int argc;
+	char **argv = NULL;
 
-	argv = extract_params(pdata.message, &argc);
+	argc = extract_params(pdata.message, &argv);
 	if (argc != 1)
 		goto cleanup;
 
@@ -229,11 +229,11 @@ void uptime(Irc server, Parsed_data pdata) {
 
 void roll(Irc server, Parsed_data pdata) {
 
-	char **argv;
+	char **argv = NULL;
 	int argc, r, roll = DEFAULT_ROLL;
 
 	srand(time(NULL) + getpid());
-	argv = extract_params(pdata.message, &argc);
+	argc = extract_params(pdata.message, &argv);
 	if (argc != 1) {
 		free(argv);
 		return;

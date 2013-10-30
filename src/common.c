@@ -113,35 +113,37 @@ void *_realloc_w(void *buf, size_t size, const char *caller) {
 	return buffer;
 }
 
-char **extract_params(char *msg, int *argc) {
+int extract_params(char *msg, char **argv[]) {
 
-	int size;
-	char *temp, **argv;
-	*argc = 0;
+	int size, argc;
+	char *temp;
 
 	// Make sure we have at least 1 parameter before proceeding
 	if (!msg)
-		return NULL;
+		return 0;
 
 	// Allocate enough starting space for most bot commands
-	argv = malloc_w(STARTSIZE * sizeof(char *));
+	*argv = malloc_w(STARTSIZE * sizeof(char *));
 	size = STARTSIZE;
 
 	// Null terminate the the whole parameters line
-	if (!(temp = strrchr(msg, '\r')))
-		return argv;
+	temp = strrchr(msg, '\r');
+	if (!temp)
+		return 0;
+
 	*temp = '\0';
+	argc = 0;
 
 	// split parameters seperated by space or tab
-	argv[*argc] = strtok(msg, " \t");
-	while (argv[*argc]) {
-		if (*argc == size - 1) { // Double the array if it gets full
-			argv = realloc_w(argv, size * 2 * sizeof(char *));
+	(*argv)[argc] = strtok(msg, " \t");
+	while ((*argv)[argc]) {
+		if (argc == size - 1) { // Double the array if it gets full
+			*argv = realloc_w(*argv, size * 2 * sizeof(char *));
 			size *= 2;
 		}
-		argv[++(*argc)] = strtok(NULL, " \t");
+		(*argv)[++argc] = strtok(NULL, " \t");
 	}
-	return argv;
+	return argc;
 }
 
 int get_int(const char *num, int max) {

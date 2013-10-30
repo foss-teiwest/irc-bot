@@ -103,10 +103,10 @@ void next(Irc server, Parsed_data pdata) {
 
 void seek(Irc server, Parsed_data pdata) {
 
-	char **argv;
 	int argc;
+	char **argv = NULL;
 
-	argv = extract_params(pdata.message, &argc);
+	argc = extract_params(pdata.message, &argv);
 	if (argc != 1) {
 		free(argv);
 		return;
@@ -116,15 +116,15 @@ void seek(Irc server, Parsed_data pdata) {
 
 void announce(Irc server, Parsed_data pdata) {
 
-	char **argv;
 	int argc;
+	char **argv = NULL;
 
 	(void) server; // Silence unused variable warning
 
 	if (!mpd_status->random)
 		return;
 
-	argv = extract_params(pdata.message, &argc);
+	argc = extract_params(pdata.message, &argv);
 	if (argc != 1) {
 		free(argv);
 		return;

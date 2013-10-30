@@ -9,7 +9,10 @@
  * Contains low level read & write operations
  */
 
-#define IRCLEN 512
+#define IRCLEN   512
+#define BLOCK    0
+#define NONBLOCK 1
+
 
 /**
  * Open a connection to a remote location
