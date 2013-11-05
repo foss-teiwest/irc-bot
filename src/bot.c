@@ -234,14 +234,11 @@ void roll(Irc server, Parsed_data pdata) {
 
 	srand(time(NULL) + getpid());
 	argc = extract_params(pdata.message, &argv);
-	if (argc != 1) {
-		free(argv);
-		return;
+	if (argc >= 1) {
+		roll = get_int(argv[0], MAXROLL);
+		if (roll == 1)
+			roll = DEFAULT_ROLL;
 	}
-
-	roll = get_int(argv[0], MAXROLL);
-	if (roll == 1)
-		roll = DEFAULT_ROLL;
 
 	r = rand() % roll + 1;
 	send_message(server, pdata.target, "%s rolls %d", pdata.sender, r);
