@@ -105,7 +105,7 @@ char *fetch_murmur_users(void) {
 		close(murmfd);
 		return NULL;
 	}
-	if (sock_read(murmfd, read_buffer, READ_BUFFER_SIZE) < 0) {
+	if (sock_read(murmfd, read_buffer, USERLIST_BUFFER_SIZE) < 0) {
 		fprintf(stderr, "Error: Failed to receive getUsers_packet reply\n");
 		close(murmfd);
 		return NULL;
