@@ -8,12 +8,19 @@ TESTDIR  = test
 CFLAGS   = -g -Wall -Wextra -std=c99 -pedantic
 LDLIBS   = -lcurl -lyajl
 CPPFLAGS = -D_GNU_SOURCE
-CFLAGS-test := $(CFLAGS)
+CFLAGS-TEST := $(CFLAGS)
+
+# Detect architecture
+ifeq "$(shell uname -m)" "x86_64"
+	ARCH = x86-64
+else
+	ARCH = i686
+endif
 
 # Disable assertions, enable compiler optimizations and strip binary for "release" rule
 ifeq "$(MAKECMDGOALS)" "release"
 	CPPFLAGS += -DNDEBUG
-	CFLAGS   += -march=x86-64 -mtune=generic -O2 -pipe
+	CFLAGS   += -march=$(ARCH) -mtune=generic -O2 -pipe
 	CFLAGS   := $(filter-out -g, $(CFLAGS))
 	LDFLAGS  = -s
 endif
@@ -70,7 +77,7 @@ $(OUTDIR)/$(PROGRAM)-test: $(OBJFILES-TEST)
 
 # Generic rule to build all source files needed for test
 $(OUTDIR)/%.o: $(TESTDIR)/%.c
-	$(CC) $(CFLAGS-test) -I$(INCLDIR) -c $< -o $@
+	$(CC) $(CFLAGS-TEST) -I$(INCLDIR) -c $< -o $@
 
 # Generate .c files from the easier to write .check tests
 $(TESTDIR)/%.c: $(TESTDIR)/%.check

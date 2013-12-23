@@ -76,7 +76,6 @@ void random_mode(Irc server, Parsed_data pdata) {
 	if (mpd_status->random)
 		send_message(server, pdata.target, "%s", "already in random mode");
 	else {
-		mpd_announce(ON);
 		mpd_status->random = ON;
 		print_cmd_output_unsafe(server, pdata.target, SCRIPTDIR "mpd_random.sh");
 	}

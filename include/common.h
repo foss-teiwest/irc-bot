@@ -53,15 +53,16 @@ extern struct config_options cfg; //!< global struct with config's values
 #define SIZE(x) (int) (sizeof(x) / sizeof(x[0]))
 
 //@{
-/** Wrappers for allocating memory. Print the caller function on failure and exit. Will always return a valid pointer */
-#define malloc_w(x) _malloc_w((x), __func__)
-#define calloc_w(x) _calloc_w((x), __func__)
-#define realloc_w(x, y) _realloc_w((x), (y), __func__)
+/** Wrappers for allocating memory. Print the position on failure and exit. Will always return a valid pointer */
+#define malloc_w(x) _malloc_w((x), __func__, __FILE__, __LINE__)
+#define calloc_w(x) _calloc_w((x), __func__, __FILE__, __LINE__)
+#define realloc_w(x, y) _realloc_w((x), (y), __func__, __FILE__, __LINE__)
+#define alloc_error(function, file, line)  exit_msg("Failed to allocate memory in %s() %s:%d", function, file, line);
 //@}
 
-void *_malloc_w(size_t size, const char *caller);
-void *_calloc_w(size_t size, const char *caller);
-void *_realloc_w(void *buf, size_t size, const char *caller);
+void *_malloc_w(size_t size, const char *caller, const char *file, int line);
+void *_calloc_w(size_t size, const char *caller, const char *file, int line);
+void *_realloc_w(void *buf, size_t size, const char *caller, const char *file, int line);
 
 /** Parse arguments, load config, install signal handlers etc
  *  @param argc, argv main's parameters unaltered */

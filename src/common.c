@@ -80,35 +80,35 @@ void exit_msg(const char *format, ...) {
 		_exit(EXIT_FAILURE);
 }
 
-void *_malloc_w(size_t size, const char *caller) {
+void *_malloc_w(size_t size, const char *caller, const char *file, int line) {
 
 	void *buffer;
 
 	buffer = malloc(size);
 	if (!buffer)
-		exit_msg("Error: malloc failed in %s", caller);
+		alloc_error(caller, file, line); // We exit here
 
 	return buffer;
 }
 
-void *_calloc_w(size_t size, const char *caller) {
+void *_calloc_w(size_t size, const char *caller, const char *file, int line) {
 
 	void *buffer;
 
 	buffer = calloc(1, size);
 	if (!buffer)
-		exit_msg("Error: calloc failed in %s", caller);
+		alloc_error(caller, file, line);
 
 	return buffer;
 }
 
-void *_realloc_w(void *buf, size_t size, const char *caller) {
+void *_realloc_w(void *buf, size_t size, const char *caller, const char *file, int line) {
 
 	void *buffer;
 
 	buffer = realloc(buf, size);
 	if (!buffer)
-		exit_msg("Error: realloc failed in %s", caller);
+		alloc_error(caller, file, line);
 
 	return buffer;
 }

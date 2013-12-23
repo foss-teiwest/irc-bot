@@ -68,13 +68,13 @@ void close_write(void) {
 #tcase connection
 #test socket_connection
 
-	sock = sock_connect("chat.freenode.net", "6667");
+	sock = sock_connect("www.google.com", "80");
 	ck_assert_msg(sock >= 0, "Socket creation failed");
 	close(sock);
 
 #test irc_connection
 
-	server = irc_connect("chat.freenode.net", "6667");
+	server = irc_connect("www.google.com", "80");
 	ck_assert_msg(server != NULL, "irc connection failed");
 	quit_server(server, "bye");
 
@@ -168,7 +168,7 @@ void close_write(void) {
 
 #test curl_writeback
 
-	Mem_buffer mem;
+	Mem_buffer mem = {0};
 	char *data = "random stuff ftw!";
 	curl_write_memory(data, strlen(data), 1, &mem);
 	ck_assert_str_eq(data, mem.buffer);
