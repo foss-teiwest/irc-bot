@@ -2,6 +2,7 @@
 #define IRC_H
 
 #include <sys/types.h>
+#include <stdbool.h>
 
 /**
  * @file irc.h
@@ -111,5 +112,8 @@ void _irc_command(Irc server, const char *type, const char *target, const char *
 
 /** Close socket and free resources */
 void quit_server(Irc server, const char *msg);
+
+/** Find out if the user has identified to the NickServ */
+bool user_is_identified(Irc server, const char *nick);
 
 #endif

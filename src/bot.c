@@ -272,7 +272,11 @@ void tweet(Irc server, Parsed_data pdata) {
 			break;
 
 	if (i == cfg.access_list_count) {
-		send_message(server, pdata.target, "%s not found in access list", pdata.sender);
+		send_message(server, pdata.target, "%s is not found in the access list", pdata.sender);
+		return;
+	}
+	if (!user_is_identified(server, pdata.sender)) {
+		send_message(server, pdata.target, "%s is not identified to the NickServ", pdata.sender);
 		return;
 	}
 	// Null terminate the the whole parameters line

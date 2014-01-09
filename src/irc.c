@@ -20,6 +20,7 @@
 
 struct irc_type {
 	int sock;
+	int pipe[2];
 	char line[IRCLEN + 1];
 	size_t line_offset;
 	char address[ADDRLEN];
@@ -43,6 +44,10 @@ Irc irc_connect(const char *address, const char *port) {
 	if (server->sock < 0)
 		return NULL;
 
+	if (pipe(server->pipe) < 0) {
+		perror("pipe");
+		return NULL;
+	}
 	fcntl(server->sock, F_SETFL, O_NONBLOCK); // Set socket to non-blocking mode
 	strncpy(server->address, address, ADDRLEN);
 	strncpy(server->port, port, PORTLEN);
@@ -58,6 +63,18 @@ int get_socket(Irc server) {
 char *default_channel(Irc server) {
 
 	return server->channels[0];
+}
+
+bool user_is_identified(Irc server, const char *nick) {
+
+	int auth_level;
+
+	send_message(server, "NickServ", "ACC %s", nick);
+	read(server->pipe[0], &auth_level, 4);
+	close(server->pipe[1]);
+	close(server->pipe[0]);
+
+	return auth_level == 3;
 }
 
 void set_nick(Irc server, const char *nick) {
@@ -137,6 +154,11 @@ ssize_t parse_irc_line(Irc server) {
 	pdata.sender = strtok(server->line + 1, " ");
 	if (!pdata.sender)
 		return n;
+	
+	// Discard hostname from nickname. "laxanofido!~laxanofid@snf-23545.vm.okeanos.grnet.gr" becomes "laxanofido"
+	test = strchr(pdata.sender, '!');
+	if (test)
+		*test = '\0';
 
 	// Store the server command. Examples: "PRIVMSG", "MODE", "433"
 	pdata.command = strtok(NULL, " ");
@@ -184,11 +206,6 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 
 	Function_list flist;
 	char *test;
-
-	// Discard hostname from nickname. "laxanofido!~laxanofid@snf-23545.vm.okeanos.grnet.gr" becomes "laxanofido"
-	test = strchr(pdata.sender, '!');
-	if (test)
-		*test = '\0';
 
 	// Store message destination. Example channel: "#foss-teimes" or private: "fossbot"
 	pdata.target = strtok(pdata.message, " ");
@@ -239,7 +256,9 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 
 void irc_notice(Irc server, Parsed_data pdata) {
 
+	char *test;
 	bool temp;
+	int auth_level;
 
 	// Notice destination
 	pdata.target = strtok(pdata.message, " ");
@@ -254,10 +273,17 @@ void irc_notice(Irc server, Parsed_data pdata) {
 	// Skip leading ':'
 	pdata.message++;
 
-	if (starts_with(pdata.message, "This nickname is registered")) {
+	if (!streq(pdata.sender, "NickServ"))
+		return;
+	
+	test = strstr(pdata.message, "ACC");
+	if (test) {
+		auth_level = atoi(test + 4);
+		write(server->pipe[1], &auth_level, 4);
+	} else if (starts_with(pdata.message, "This nickname is registered")) {
 		temp = cfg.verbose;
 		cfg.verbose = false;
-		send_message(server, "nickserv", "identify %s", cfg.nick_pwd);
+		send_message(server, pdata.sender, "identify %s", cfg.nick_pwd);
 		memset(cfg.nick_pwd, 0, strlen(cfg.nick_pwd));
 		cfg.verbose = temp;
 	}

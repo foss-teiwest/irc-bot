@@ -98,7 +98,7 @@ STATIC char *prepare_parameter_string(CURL *curl, char **status_msg, char **oaut
 	return parameter_string_url_encoded;
 }
 
-STATIC char *prepare_signature_base_string(CURL *curl, char **resource_url, char *parameter_string) {
+STATIC char *prepare_signature_base_string(CURL *curl, char **resource_url, const char *parameter_string) {
 
 	char *temp;
 	char *signature_base_string = malloc_w(TWTLEN);
@@ -115,7 +115,7 @@ STATIC char *prepare_signature_base_string(CURL *curl, char **resource_url, char
 	return signature_base_string;
 }
 
-STATIC char *generate_oauth_signature(CURL *curl, char *signature_base_string) {
+STATIC char *generate_oauth_signature(CURL *curl, const char *signature_base_string) {
 
 	int len;
 	unsigned char *oauth_signature;
@@ -144,7 +144,7 @@ STATIC size_t discard_response(char *data, size_t size, size_t elements, void *n
 	return size * elements;
 }
 
-STATIC struct curl_slist *prepare_http_post_request(CURL *curl, char **status_msg, char *oauth_signature, char *oauth_nonce, time_t timestamp) {
+STATIC struct curl_slist *prepare_http_post_request(CURL *curl, char **status_msg, const char *oauth_signature, const char *oauth_nonce, time_t timestamp) {
 
 	char *temp, buffer[TWTLEN];
 	struct curl_slist *headers = NULL;
