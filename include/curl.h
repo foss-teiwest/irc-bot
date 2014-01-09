@@ -13,6 +13,12 @@
 #define TITLELEN 300
 #define TESTDIR "file:///home/free/programming/c/irc-bot/test-files/" //!< Run network tests from file instead of actually connecting to a service
 
+/** HTTP status codes */
+enum http_codes {
+    UNAUTHORIZED = 401,
+    FORBIDDEN    = 403
+};
+
 typedef struct {
 	char *buffer;
 	size_t size;

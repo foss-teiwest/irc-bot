@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <yajl/yajl_tree.h>
 #include "irc.h"
+#include "twitter.h"
 
 /**
  * @file common.h
@@ -41,6 +42,12 @@ struct config_options {
 	char *mpd_port;
 	char *mpd_database;
 	char *mpd_random_file;
+	char *oauth_consumer_key;
+	char *oauth_consumer_secret;
+	char *oauth_token;
+	char *oauth_token_secret;
+	char *twitter_access_list[MAXLIST];
+	int access_list_count;
 	char *quotes[MAXQUOTES];
 	int quote_count;
 	bool verbose;
@@ -51,6 +58,9 @@ extern struct config_options cfg; //!< global struct with config's values
 /** Returns array size
  *  @warning  Must ONLY be used for local arrays (same scope) allocated in stack */
 #define SIZE(x) (int) (sizeof(x) / sizeof(x[0]))
+
+/** Alias for struct compound literals */
+#define CFG(x) (const char *[]) { x, NULL }
 
 //@{
 /** Wrappers for allocating memory. Print the position on failure and exit. Will always return a valid pointer */

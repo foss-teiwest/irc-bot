@@ -26,6 +26,15 @@
 	"mpd_database": "~/Music",
 	"mpd_random_file": "~/.mpd_random",
 
+	// Twitter settings
+	"oauth_consumer_key":    "",
+	"oauth_consumer_secret": "",
+	"oauth_token":           "",
+	"oauth_token_secret":    "",
+
+	// Only nicknames on this list are authorized to use twitter commands
+	"twitter_access_list": [ "freestyl3r", "tomkap", "charkost", "ZEDGR", "LouLakos", "erevos" ],
+
 	// Multiline quote sentences must be seperated by the newline character (\n)
 	// Newline char is optional if the sentence is the last OR the only one from a quote
 	// If a color is provided to a quote starting with a number, a space must be added to avoid messing with the escape sequence

@@ -9,12 +9,13 @@
 #include "bot.h"
 #include "irc.h"
 #include "curl.h"
+#include "twitter.h"
 #include "common.h"
 
 
 void help(Irc server, Parsed_data pdata) {
 
-	send_message(server, pdata.target, "%s", "url, mumble, fail, github, ping, traceroute, dns, uptime, roll");
+	send_message(server, pdata.target, "%s", "url, mumble, fail, github, ping, traceroute, dns, uptime, roll, tweet, marker");
 	send_message(server, pdata.target, "%s", "MPD: play, playlist, history, current, next, random, stop, seek, announce");
 }
 
@@ -244,4 +245,50 @@ void roll(Irc server, Parsed_data pdata) {
 	send_message(server, pdata.target, "%s rolls %d", pdata.sender, r);
 
 	free(argv);
+}
+
+void marker(Irc server, Parsed_data pdata) {
+
+	send_message(server, pdata.target, "%s", "tweet max length. URL's not accounted for:  -  -  -  -  -  60  -  -  -  -  -  "
+		"80  -  -  -  -  -  -  100  -  -  -  -  -  120  -  -  -  -  -  140");
+}
+
+void tweet(Irc server, Parsed_data pdata) {
+
+	int i;
+	char *test;
+	long http_status;
+
+	if (!pdata.message)
+		return;
+
+	if (!*cfg.oauth_consumer_key || !*cfg.oauth_consumer_secret || !*cfg.oauth_token || !*cfg.oauth_token_secret) {
+		send_message(server, pdata.target, "%s", "twitter account details not set");
+		return;
+	}
+
+	for (i = 0; i < cfg.access_list_count; i++)
+		if (streq(pdata.sender, cfg.twitter_access_list[i]))
+			break;
+
+	if (i == cfg.access_list_count) {
+		send_message(server, pdata.target, "%s not found in access list", pdata.sender);
+		return;
+	}
+	// Null terminate the the whole parameters line
+	test = strrchr(pdata.message, '\r');
+	if (!test)
+		return;
+
+	*test = '\0';
+	
+	http_status = send_tweet(pdata.message);
+	if (!http_status)
+		send_message(server, pdata.target, "%s", "unknown error");		
+	else if (http_status == FORBIDDEN)
+		send_message(server, pdata.target, "%s", "message too long or duplicate");
+	else if (http_status == UNAUTHORIZED)
+		send_message(server, pdata.target, "%s", "authentication error");
+	else
+		send_message(server, pdata.target, "%s", "message sent!");
 }

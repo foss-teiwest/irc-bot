@@ -135,7 +135,7 @@ char *fetch_murmur_users(void) {
 STATIC ssize_t validate_murmur_connection(int murm_acceptfd) {
 
 	ssize_t n;
-	const unsigned char validate_packet[] =	{
+	const unsigned char validate_packet[] = {
 		0x49, 0x63, 0x65, 0x50, 0x01, 0x00, 0x01, 0x00, 0x03, 0x00, 0x0e, 0x00, 0x00, 0x00
 	};
 

@@ -4,6 +4,7 @@
 #include "irc.h"
 #include "bot.h"
 #include "mpd.h"
+#include "twitter.h"
 
 /**
  * @file gperf.h

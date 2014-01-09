@@ -34,3 +34,5 @@ struct function_list;
 "roll", roll
 "seek", seek
 "announce", announce
+"tweet", tweet
+"marker", marker

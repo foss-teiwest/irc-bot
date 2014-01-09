@@ -81,4 +81,10 @@ void uptime(Irc server, Parsed_data pdata);
 /** Rolls a random number (optional maximum roll number) */
 void roll(Irc server, Parsed_data pdata);
 
+/** Marker to help measuring tweet's max length (140 chars) */
+void marker(Irc server, Parsed_data pdata);
+
+/** Send tweet */
+void tweet(Irc server, Parsed_data pdata);
+
 #endif
