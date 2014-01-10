@@ -7,7 +7,7 @@
 /**
  * @file mpd.h
  * Contains the functions to interact with MPD
- * A helper script will be used (youtube2mp3.sh) to do most of the work
+ * External helper scripts will be used to do most of the work
  */
 
 #define ON  true
