@@ -1,6 +1,6 @@
 {
 	"server": "chat.freenode.net",
-	"port": 6667,
+	"port": "6667",
 	"nick": "fossbot",
 	"nick_pwd": "",
 	"user": "bot",

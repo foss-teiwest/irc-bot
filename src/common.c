@@ -262,11 +262,41 @@ cleanup:
 	return n;
 }
 
+STATIC char *get_json_field(yajl_val root, const char *field_name) {
+	
+	yajl_val val = yajl_tree_get(root, CFG(field_name), yajl_t_string);
+	if (!val)
+		exit_msg("%s: missing / wrong type", field_name);
+
+	return YAJL_GET_STRING(val);
+}
+
+STATIC int get_json_array(yajl_val root, const char *array_name, char **array_to_fill, int max_entries) {
+
+	yajl_val val, array;
+	int i, array_size;
+
+	array = yajl_tree_get(root, CFG(array_name), yajl_t_array);
+	if (!array)
+		exit_msg("%s: missing / wrong type", array_name);
+
+	array_size = YAJL_GET_ARRAY(array)->len;
+	if (array_size > max_entries) {
+		array_size = max_entries;
+		fprintf(stderr, "%s limit (%d) reached. Ignoring rest\n", array_name,  max_entries);
+	}
+	for (i = 0; i < array_size; i++) {
+		val = YAJL_GET_ARRAY(array)->values[i];
+		array_to_fill[i] = YAJL_GET_STRING(val);
+	}
+	
+	return array_size;
+}
+
 void parse_config(yajl_val root, const char *config_file) {
 
+	yajl_val val;
 	char errbuf[1024], *buf = NULL, *mpd_path, *mpd_random_file_path, *HOME;
-	yajl_val val, array;
-	int i;
 
 	if (!read_file(&buf, config_file))
 		exit_msg(config_file);
@@ -278,69 +308,22 @@ void parse_config(yajl_val root, const char *config_file) {
 	// Free original buffer since we have a duplicate in root now
 	free(buf);
 
-	val = yajl_tree_get(root, CFG("server"),       yajl_t_string);
-	if (!val) exit_msg("server: missing / wrong type");
-	cfg.server = YAJL_GET_STRING(val);
-
-	val = yajl_tree_get(root, CFG("port"),         yajl_t_number);
-	if (!val) exit_msg("port: missing / wrong type");
-	cfg.port = YAJL_GET_NUMBER(val);
-
-	val = yajl_tree_get(root, CFG("nick"),         yajl_t_string);
-	if (!val) exit_msg("nick: missing / wrong type");
-	cfg.nick = YAJL_GET_STRING(val);
-
-	val = yajl_tree_get(root, CFG("user"),         yajl_t_string);
-	if (!val) exit_msg("user: missing / wrong type");
-	cfg.user = YAJL_GET_STRING(val);
-
-	val = yajl_tree_get(root, CFG("nick_pwd"),     yajl_t_string);
-	if (!val) exit_msg("nick_pwd: missing / wrong type");
-	cfg.nick_pwd = YAJL_GET_STRING(val);
-
-	val = yajl_tree_get(root, CFG("bot_version"),  yajl_t_string);
-	if (!val) exit_msg("bot_version: missing / wrong type");
-	cfg.bot_version = YAJL_GET_STRING(val);
-
-	val = yajl_tree_get(root, CFG("github_repo"),  yajl_t_string);
-	if (!val) exit_msg("github_repo: missing / wrong type");
-	cfg.github_repo = YAJL_GET_STRING(val);
-
-	val = yajl_tree_get(root, CFG("quit_message"), yajl_t_string);
-	if (!val) exit_msg("quit_message: missing / wrong type");
-	cfg.quit_msg = YAJL_GET_STRING(val);
-
-	val = yajl_tree_get(root, CFG("mpd_database"), yajl_t_string);
-	if (!val) exit_msg("mpd_database: missing / wrong type");
-	cfg.mpd_database = YAJL_GET_STRING(val);
-
-	val = yajl_tree_get(root, CFG("murmur_port"),  yajl_t_string);
-	if (!val) exit_msg("murmur_port: missing / wrong type");
-	cfg.murmur_port = YAJL_GET_STRING(val);
-
-	val = yajl_tree_get(root, CFG("mpd_port"),     yajl_t_string);
-	if (!val) exit_msg("mpd_port: missing / wrong type");
-	cfg.mpd_port = YAJL_GET_STRING(val);
-
-	val = yajl_tree_get(root, CFG("mpd_random_file"), yajl_t_string);
-	if (!val) exit_msg("mpd_random_file: missing / wrong type");
-	cfg.mpd_random_file = YAJL_GET_STRING(val);
-
-	val = yajl_tree_get(root, CFG("oauth_consumer_key"),    yajl_t_string);
-	if (!val) exit_msg("oauth_consumer_key: missing / wrong type");
-	cfg.oauth_consumer_key = YAJL_GET_STRING(val);
-	
-	val = yajl_tree_get(root, CFG("oauth_consumer_secret"), yajl_t_string);
-	if (!val) exit_msg("oauth_consumer_secret: missing / wrong type");
-	cfg.oauth_consumer_secret = YAJL_GET_STRING(val);
-	
-	val = yajl_tree_get(root, CFG("oauth_token"),           yajl_t_string);
-	if (!val) exit_msg("oauth_token: missing / wrong type");
-	cfg.oauth_token = YAJL_GET_STRING(val);
-
-	val = yajl_tree_get(root, CFG("oauth_token_secret"),    yajl_t_string);
-	if (!val) exit_msg("oauth_token_secret: missing / wrong type");
-	cfg.oauth_token_secret = YAJL_GET_STRING(val);
+	cfg.server = get_json_field(root,       "server");
+	cfg.port = get_json_field(root,         "port");
+	cfg.nick = get_json_field(root,         "nick");
+	cfg.user = get_json_field(root,         "user");
+	cfg.nick_pwd = get_json_field(root,     "nick_pwd");
+	cfg.bot_version = get_json_field(root,  "bot_version");
+	cfg.github_repo = get_json_field(root,  "github_repo");
+	cfg.quit_msg = get_json_field(root,     "quit_message");
+	cfg.mpd_database = get_json_field(root, "mpd_database");
+	cfg.murmur_port = get_json_field(root,  "murmur_port");
+	cfg.mpd_port = get_json_field(root,     "mpd_port");
+	cfg.mpd_random_file = get_json_field(root,       "mpd_random_file");
+	cfg.oauth_consumer_key = get_json_field(root,    "oauth_consumer_key");
+	cfg.oauth_consumer_secret = get_json_field(root, "oauth_consumer_secret");
+	cfg.oauth_token = get_json_field(root,           "oauth_token");
+	cfg.oauth_token_secret = get_json_field(root,    "oauth_token_secret");
 	
 	// Expand tilde '~' by reading the HOME enviroment variable
 	HOME = getenv("HOME");
@@ -357,50 +340,13 @@ void parse_config(yajl_val root, const char *config_file) {
 	// Only accept true or false value
 	val = yajl_tree_get(root, CFG("verbose"), yajl_t_any);
 	if (!val) exit_msg("verbose: missing");
-
 	if (val->type != yajl_t_true && val->type != yajl_t_false) exit_msg("verbose: wrong type");
- 	cfg.verbose = YAJL_IS_TRUE(val);
+	cfg.verbose = YAJL_IS_TRUE(val);
 
-	// Get the array of channels
-	array = yajl_tree_get(root, CFG("channels"), yajl_t_array);
-	if (!array) exit_msg("channels: missing / wrong type");
-	cfg.channels_set = YAJL_GET_ARRAY(array)->len;
-
-	if (cfg.channels_set > MAXCHANS) {
-		cfg.channels_set = MAXCHANS;
-		fprintf(stderr, "Channel limit (%d) reached. Ignoring rest\n", MAXCHANS);
-	}
-	for (i = 0; i < cfg.channels_set; i++) {
-		val = YAJL_GET_ARRAY(array)->values[i];
-		cfg.channels[i] = YAJL_GET_STRING(val);
-	}
-	// Get the array of quotes
-	array = yajl_tree_get(root, CFG("fail_quotes"), yajl_t_array);
-	if (!array) exit_msg("fail_quotes: missing / wrong type");
-	cfg.quote_count = YAJL_GET_ARRAY(array)->len;
-
-	if (cfg.quote_count > MAXQUOTES) {
-		cfg.quote_count = MAXQUOTES;
-		fprintf(stderr, "Quote limit (%d) reached. Ignoring rest\n", MAXQUOTES);
-	}
-	for (i = 0; i < cfg.quote_count; i++) {
-		val = YAJL_GET_ARRAY(array)->values[i];
-		cfg.quotes[i] = YAJL_GET_STRING(val);
-	}
-
-	// Get the array of twitter access list
-	array = yajl_tree_get(root, CFG("twitter_access_list"), yajl_t_array);
-	if (!array) exit_msg("twitter_access_list: missing / wrong type");
-	cfg.access_list_count = YAJL_GET_ARRAY(array)->len;
-
-	if (cfg.access_list_count > MAXLIST) {
-		cfg.access_list_count = MAXLIST;
-		fprintf(stderr, "Access list limit (%d) reached. Ignoring rest\n", MAXLIST);
-	}
-	for (i = 0; i < cfg.access_list_count; i++) {
-		val = YAJL_GET_ARRAY(array)->values[i];
-		cfg.twitter_access_list[i] = YAJL_GET_STRING(val);
-	}
+	// Fill arrays
+	cfg.channels_set = get_json_array(root, "channels", cfg.channels, MAXCHANS);
+	cfg.quote_count = get_json_array(root, "fail_quotes", cfg.quotes, MAXQUOTES);
+	cfg.access_list_count = get_json_array(root, "twitter_access_list", cfg.twitter_access_list, MAXLIST);
 }
 
 char *iso8859_7_to_utf8(char *iso) {
