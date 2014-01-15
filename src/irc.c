@@ -67,10 +67,12 @@ char *default_channel(Irc server) {
 
 bool user_is_identified(Irc server, const char *nick) {
 
-	int auth_level;
+	int auth_level = 0;
 
 	send_message(server, "NickServ", "ACC %s", nick);
-	read(server->pipe[0], &auth_level, 4);
+	if (read(server->pipe[0], &auth_level, 4) != 4)
+		perror(__func__);
+
 	close(server->pipe[1]);
 	close(server->pipe[0]);
 
@@ -279,12 +281,13 @@ void irc_notice(Irc server, Parsed_data pdata) {
 	test = strstr(pdata.message, "ACC");
 	if (test) {
 		auth_level = atoi(test + 4);
-		write(server->pipe[1], &auth_level, 4);
+		if (write(server->pipe[1], &auth_level, 4) != 4)
+			perror(__func__);
 	} else if (starts_with(pdata.message, "This nickname is registered")) {
 		temp = cfg.verbose;
 		cfg.verbose = false;
-		send_message(server, pdata.sender, "identify %s", cfg.nick_pwd);
-		memset(cfg.nick_pwd, 0, strlen(cfg.nick_pwd));
+		send_message(server, pdata.sender, "identify %s", cfg.nick_password);
+		memset(cfg.nick_password, 0, strlen(cfg.nick_password));
 		cfg.verbose = temp;
 	}
 }

@@ -117,3 +117,4 @@ void quit_server(Irc server, const char *msg);
 bool user_is_identified(Irc server, const char *nick);
 
 #endif
+

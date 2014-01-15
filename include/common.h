@@ -31,13 +31,13 @@ struct config_options {
 	char *server;
 	char *port;
 	char *nick;
-	char *nick_pwd;
+	char *nick_password;
 	char *user;
 	char *channels[MAXCHANS];
 	int channels_set;
 	char *bot_version;
 	char *github_repo;
-	char *quit_msg;
+	char *quit_message;
 	char *murmur_port;
 	char *mpd_port;
 	char *mpd_database;
@@ -46,6 +46,7 @@ struct config_options {
 	char *oauth_consumer_secret;
 	char *oauth_token;
 	char *oauth_token_secret;
+	char *twitter_profile_url;
 	char *twitter_access_list[MAXLIST];
 	int access_list_count;
 	char *quotes[MAXQUOTES];
@@ -59,8 +60,9 @@ extern struct config_options cfg; //!< global struct with config's values
  *  @warning  Must ONLY be used for local arrays (same scope) allocated in stack */
 #define SIZE(x) (int) (sizeof(x) / sizeof(x[0]))
 
-/** Alias for struct compound literals */
+/** Little macros to help reduce boilerplate code */
 #define CFG(x) (const char *[]) { x, NULL }
+#define CFG_GET(struct_name, root, field) struct_name.field = get_json_field(root, #field)
 
 //@{
 /** Wrappers for allocating memory. Print the position on failure and exit. Will always return a valid pointer */
@@ -137,3 +139,4 @@ void parse_config(yajl_val root, const char *config_file);
 char *iso8859_7_to_utf8(char *iso);
 
 #endif
+

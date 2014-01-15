@@ -2,7 +2,7 @@
 	"server": "chat.freenode.net",
 	"port": "6667",
 	"nick": "fossbot",
-	"nick_pwd": "",
+	"nick_password": "",
 	"user": "bot",
 	"quit_message": "segfault",
 
@@ -27,6 +27,7 @@
 	"mpd_random_file": "~/.mpd_random",
 
 	// Twitter settings
+	"twitter_profile_url":   "",
 	"oauth_consumer_key":    "",
 	"oauth_consumer_secret": "",
 	"oauth_token":           "",

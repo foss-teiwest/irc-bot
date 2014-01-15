@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
 	else
 		fprintf(stderr, "%d minutes passed without getting a message, exiting...\n", TIMEOUT / 1000 / 60);
 
-	quit_server(irc_server, cfg.quit_msg);
+	quit_server(irc_server, cfg.quit_message);
 	cleanup();
 	return 1;
 }

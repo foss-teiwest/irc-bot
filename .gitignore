@@ -1,6 +1,4 @@
 bin/
 test/*.c
-*sublime*
 cscope*
-.clang_complete
-
+*ycm_extra_conf*

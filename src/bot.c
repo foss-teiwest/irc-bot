@@ -294,5 +294,5 @@ void tweet(Irc server, Parsed_data pdata) {
 	else if (http_status == UNAUTHORIZED)
 		send_message(server, pdata.target, "%s", "authentication error");
 	else
-		send_message(server, pdata.target, "%s", "message sent!");
+		send_message(server, pdata.target, "message posted @ %s", cfg.twitter_profile_url);
 }

@@ -308,22 +308,23 @@ void parse_config(yajl_val root, const char *config_file) {
 	// Free original buffer since we have a duplicate in root now
 	free(buf);
 
-	cfg.server = get_json_field(root,       "server");
-	cfg.port = get_json_field(root,         "port");
-	cfg.nick = get_json_field(root,         "nick");
-	cfg.user = get_json_field(root,         "user");
-	cfg.nick_pwd = get_json_field(root,     "nick_pwd");
-	cfg.bot_version = get_json_field(root,  "bot_version");
-	cfg.github_repo = get_json_field(root,  "github_repo");
-	cfg.quit_msg = get_json_field(root,     "quit_message");
-	cfg.mpd_database = get_json_field(root, "mpd_database");
-	cfg.murmur_port = get_json_field(root,  "murmur_port");
-	cfg.mpd_port = get_json_field(root,     "mpd_port");
-	cfg.mpd_random_file = get_json_field(root,       "mpd_random_file");
-	cfg.oauth_consumer_key = get_json_field(root,    "oauth_consumer_key");
-	cfg.oauth_consumer_secret = get_json_field(root, "oauth_consumer_secret");
-	cfg.oauth_token = get_json_field(root,           "oauth_token");
-	cfg.oauth_token_secret = get_json_field(root,    "oauth_token_secret");
+	CFG_GET(cfg, root, server);	
+	CFG_GET(cfg, root, port);
+	CFG_GET(cfg, root, nick);
+	CFG_GET(cfg, root, user);
+	CFG_GET(cfg, root, nick_password);
+	CFG_GET(cfg, root, bot_version);
+	CFG_GET(cfg, root, quit_message);
+	CFG_GET(cfg, root, github_repo);
+	CFG_GET(cfg, root, murmur_port);
+	CFG_GET(cfg, root, mpd_port);
+	CFG_GET(cfg, root, mpd_database);
+	CFG_GET(cfg, root, mpd_random_file);
+	CFG_GET(cfg, root, twitter_profile_url);
+	CFG_GET(cfg, root, oauth_consumer_key);
+	CFG_GET(cfg, root, oauth_consumer_secret);
+	CFG_GET(cfg, root, oauth_token);
+	CFG_GET(cfg, root, oauth_token_secret);
 	
 	// Expand tilde '~' by reading the HOME enviroment variable
 	HOME = getenv("HOME");
