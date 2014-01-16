@@ -60,6 +60,7 @@ char *fetch_mumble_users(void);
  * @param root     yajl handle to store the json reply
  * @returns        An array of commits and maybe NULL on failure. commits will be updated with the actual number returned or 0 for error
  */
-Github *fetch_github_commits(const char *repo, int *commits, yajl_val root);
+Github *fetch_github_commits(yajl_val *root, const char *repo, int *commits);
 
 #endif
+

@@ -340,8 +340,12 @@ void parse_config(yajl_val root, const char *config_file) {
 	}
 	// Only accept true or false value
 	val = yajl_tree_get(root, CFG("verbose"), yajl_t_any);
-	if (!val) exit_msg("verbose: missing");
-	if (val->type != yajl_t_true && val->type != yajl_t_false) exit_msg("verbose: wrong type");
+	if (!val)
+		exit_msg("verbose: missing");
+
+	if (val->type != yajl_t_true && val->type != yajl_t_false)
+		exit_msg("verbose: wrong type");
+
 	cfg.verbose = YAJL_IS_TRUE(val);
 
 	// Fill arrays

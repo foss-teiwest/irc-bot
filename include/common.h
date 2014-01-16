@@ -60,8 +60,9 @@ extern struct config_options cfg; //!< global struct with config's values
  *  @warning  Must ONLY be used for local arrays (same scope) allocated in stack */
 #define SIZE(x) (int) (sizeof(x) / sizeof(x[0]))
 
-/** Little macros to help reduce boilerplate code */
-#define CFG(x) (const char *[]) { x, NULL }
+/** Macros to help reduce boilerplate code */
+#define CMD(...) (char *[]) { __VA_ARGS__, NULL }
+#define CFG(...) (const char *[]) { __VA_ARGS__, NULL }
 #define CFG_GET(struct_name, root, field) struct_name.field = get_json_field(root, #field)
 
 //@{

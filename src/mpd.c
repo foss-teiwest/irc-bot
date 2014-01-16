@@ -29,24 +29,26 @@ STATIC bool mpd_announce(bool on) {
 
 void play(Irc server, Parsed_data pdata) {
 
-	char *test;
+	char *prog;
 
 	if (!pdata.message)
 		return;
 
 	// Null terminate the the whole parameters line
-	test = strrchr(pdata.message, '\r');
-	if (!test)
+	prog = strrchr(pdata.message, '\r');
+	if (!prog)
 		return;
 
-	*test = '\0';
+	*prog = '\0';
 	mpd_announce(OFF);
 	mpd_status->random = OFF;
 
 	if (strstr(pdata.message, "youtu"))
-		print_cmd_output(server, pdata.target, (char *[]) { SCRIPTDIR "youtube2mp3.sh", cfg.mpd_database, pdata.message, NULL });
+		prog = SCRIPTDIR "youtube2mp3.sh";
 	else
-		print_cmd_output(server, pdata.target, (char *[]) { SCRIPTDIR "mpd_search.sh", cfg.mpd_database, pdata.message, NULL });
+		prog = SCRIPTDIR "mpd_search.sh";
+	
+	print_cmd_output(server, pdata.target, CMD(prog, cfg.mpd_database, pdata.message));
 }
 
 void current(Irc server, Parsed_data pdata) {
@@ -110,7 +112,7 @@ void seek(Irc server, Parsed_data pdata) {
 		free(argv);
 		return;
 	}
-	print_cmd_output(server, pdata.target, (char *[]) { "mpc", "seek", "-q", argv[0], NULL });
+	print_cmd_output(server, pdata.target, CMD("mpc", "seek", "-q", argv[0]));
 }
 
 void announce(Irc server, Parsed_data pdata) {

@@ -16,7 +16,7 @@
 	"verbose": true,
 
 	// Default repo to substitute when not provided for the github command
-	"github_repo": "foss-teimes",
+	"github_repo": "foss-teiwest",
 
 	// Murmur port
 	"murmur_port": "6502",
@@ -27,7 +27,7 @@
 	"mpd_random_file": "~/.mpd_random",
 
 	// Twitter settings
-	"twitter_profile_url":   "",
+	"twitter_profile_url":   "https://twitter.com/fossteiwest",
 	"oauth_consumer_key":    "",
 	"oauth_consumer_secret": "",
 	"oauth_token":           "",

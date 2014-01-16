@@ -130,19 +130,15 @@ void github(Irc server, Parsed_data pdata) {
 	if (argc == 2)
 		commit_count = get_int(argv[1], MAXCOMMITS);
 
-	commits = fetch_github_commits(repo, &commit_count, root);
+	commits = fetch_github_commits(&root, repo, &commit_count);
 	if (!commit_count)
 		goto cleanup;
 
 	// Print each commit info with it's short url in a seperate colorized line
 	for (i = 0; i < commit_count; i++) {
 		short_url = shorten_url(commits[i].url);
-		send_message(server, pdata.target,
-					PURPLE "[%.7s]"
-					RESET " %.120s"
-					ORANGE " --%s"
-					BLUE " - %s",
-					commits[i].sha, commits[i].msg, commits[i].name, (short_url ? short_url : ""));
+		send_message(server, pdata.target, PURPLE "[%.7s]" RESET " %.120s" ORANGE " --%s" BLUE " - %s",
+			commits[i].sha, commits[i].msg, commits[i].name, (short_url ? short_url : ""));
 		free(short_url);
 	}
 cleanup:
@@ -172,7 +168,7 @@ void ping(Irc server, Parsed_data pdata) {
 		count = get_int(argv[1], MAXPINGS);
 
 	sprintf(count_str, "%d", count);
-	print_cmd_output(server, pdata.target, (char *[]) { cmd, "-c", count_str, argv[0], NULL });
+	print_cmd_output(server, pdata.target, CMD(cmd, "-c", count_str, argv[0]));
 
 cleanup:
 	free(argv);
@@ -199,7 +195,7 @@ void traceroute(Irc server, Parsed_data pdata) {
 		send_message(server, pdata.target, "Printing results privately to %s", pdata.sender);
 
 	// Limit max hops to 18
-	print_cmd_output(server, pdata.sender, (char *[]) { cmd, "-m 18", argv[0], NULL });
+	print_cmd_output(server, pdata.sender, CMD(cmd, "-m 18", argv[0]));
 
 cleanup:
 	free(argv);
@@ -217,7 +213,7 @@ void dns(Irc server, Parsed_data pdata) {
 	if (!strchr(argv[0], '.'))
 		goto cleanup;
 
-	print_cmd_output(server, pdata.target, (char *[]) { "nslookup", argv[0], NULL });
+	print_cmd_output(server, pdata.target, CMD("nslookup", argv[0]));
 
 cleanup:
 	free(argv);

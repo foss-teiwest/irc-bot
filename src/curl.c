@@ -84,7 +84,7 @@ cleanup:
 	return short_url;
 }
 
-Github *fetch_github_commits(const char *repo, int *commit_count, yajl_val root) {
+Github *fetch_github_commits(yajl_val *root, const char *repo, int *commit_count) {
 
 	CURL *curl;
 	CURLcode code;
@@ -117,33 +117,37 @@ Github *fetch_github_commits(const char *repo, int *commit_count, yajl_val root)
 		fprintf(stderr, "Error: %s\n", curl_easy_strerror(code));
 		goto cleanup;
 	}
-	root = yajl_tree_parse(mem.buffer, errbuf, sizeof(errbuf));
-	if (!root) {
+	*root = yajl_tree_parse(mem.buffer, errbuf, sizeof(errbuf));
+	if (!*root) {
 		fprintf(stderr, "%s\n", errbuf);
 		goto cleanup;
 	}
 	free(mem.buffer);
-	*commit_count = YAJL_GET_ARRAY(root)->len;
+	*commit_count = YAJL_IS_ARRAY(*root) ? YAJL_GET_ARRAY(*root)->len : 0;
 	commits = malloc_w(*commit_count * sizeof(*commits));
 
 	// Find the field we are interested in the json reply, save a reference to it & null terminate
 	for (i = 0; i < *commit_count; i++) {
-		val = yajl_tree_get(YAJL_GET_ARRAY(root)->values[i], (const char *[]) { "sha", NULL },                      yajl_t_string);
-		if (!val) break;
+		val = yajl_tree_get(YAJL_GET_ARRAY(*root)->values[i], CFG("sha"),                      yajl_t_string);
+		if (!val)
+			break;
+
 		commits[i].sha  = YAJL_GET_STRING(val);
+		val = yajl_tree_get(YAJL_GET_ARRAY(*root)->values[i], CFG("commit", "author", "name"), yajl_t_string);
+		if (!val)
+			break;
 
-		val = yajl_tree_get(YAJL_GET_ARRAY(root)->values[i], (const char *[]) { "commit", "author", "name", NULL }, yajl_t_string);
-		if (!val) break;
 		commits[i].name = YAJL_GET_STRING(val);
+		val = yajl_tree_get(YAJL_GET_ARRAY(*root)->values[i], CFG("commit", "message"),        yajl_t_string);
+		if (!val)
+			break;
 
-		val = yajl_tree_get(YAJL_GET_ARRAY(root)->values[i], (const char *[]) { "commit", "message", NULL },        yajl_t_string);
-		if (!val) break;
 		commits[i].msg  = YAJL_GET_STRING(val);
+		val = yajl_tree_get(YAJL_GET_ARRAY(*root)->values[i], CFG("html_url"),                 yajl_t_string);
+		if (!val)
+			break;
 
-		val = yajl_tree_get(YAJL_GET_ARRAY(root)->values[i], (const char *[]) { "html_url", NULL },                 yajl_t_string);
-		if (!val) break;
 		commits[i].url  = YAJL_GET_STRING(val);
-
 
 		// Cut commit message at newline character if present
 		test = strchr(commits[i].msg, '\n');
