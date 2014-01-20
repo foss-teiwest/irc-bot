@@ -50,11 +50,11 @@ void bot_fail(Irc server, Parsed_data pdata) {
 void url(Irc server, Parsed_data pdata) {
 
 	int argc;
-	char **argv = NULL, *temp, *short_url, *url_title = NULL;
+	char *temp, **argv, *short_url, *url_title = NULL;
 
 	argc = extract_params(pdata.message, &argv);
-	if (argc != 1)
-		goto cleanup;
+	if (!argc)
+		return;
 
 	// Check first parameter for a URL that contains at least one dot.
 	if (!strchr(argv[0], '.'))
@@ -88,11 +88,12 @@ void url(Irc server, Parsed_data pdata) {
 		// Only print short_url / title if they are not empty
 		send_message(server, pdata.target, "%s -- %s", (*short_url ? short_url : ""), (url_title ? url_title : ""));
 	}
+
+	free(url_title);
 	munmap(short_url, ADDRLEN + 1); // Unmap pages from parent as well
 
 cleanup:
 	free(argv);
-	free(url_title);
 }
 
 void mumble(Irc server, Parsed_data pdata) {
@@ -111,13 +112,12 @@ void github(Irc server, Parsed_data pdata) {
 	Github *commits;
 	yajl_val root = NULL;
 	int argc, i, commit_count = 1;
-	char **argv = NULL, *short_url, repo[REPOLEN + 1];
+	char **argv, *short_url, repo[REPOLEN + 1];
 
 	argc = extract_params(pdata.message, &argv);
-	if (argc != 1 && argc != 2) {
-		free(argv);
+	if (!argc)
 		return;
-	}
+
 	// If user is not supplied, substitute with a default one
 	if (!strchr(argv[0], '/'))
 		snprintf(repo, REPOLEN, "%s/%s", cfg.github_repo, argv[0]);
@@ -127,7 +127,7 @@ void github(Irc server, Parsed_data pdata) {
 	}
 
 	// Do not return more than MAXCOMMITS
-	if (argc == 2)
+	if (argc >= 2)
 		commit_count = get_int(argv[1], MAXCOMMITS);
 
 	commits = fetch_github_commits(&root, repo, &commit_count);
@@ -141,6 +141,7 @@ void github(Irc server, Parsed_data pdata) {
 			commits[i].sha, commits[i].msg, commits[i].name, (short_url ? short_url : ""));
 		free(short_url);
 	}
+
 cleanup:
 	yajl_tree_free(root);
 	free(commits);
@@ -150,72 +151,69 @@ cleanup:
 void ping(Irc server, Parsed_data pdata) {
 
 	int argc, count = 3;
-	char **argv = NULL, *cmd, count_str[10];
+	char **argv, *cmd, count_str[10];
 
 	argc = extract_params(pdata.message, &argv);
-	if (argc != 1 && argc != 2)
-		goto cleanup;
+	if (!argc)
+		return;
 
 	// Find if the IP is an v4 or v6. Weak parsing
 	if (strchr(argv[0], '.'))
 		cmd = "ping";
 	else if (strchr(argv[0], ':'))
 		cmd = "ping6";
-	else
-		goto cleanup;
+	else {
+		free(argv);
+		return;
+	}
 
-	if (argc == 2)
+	if (argc >= 2)
 		count = get_int(argv[1], MAXPINGS);
 
 	sprintf(count_str, "%d", count);
 	print_cmd_output(server, pdata.target, CMD(cmd, "-c", count_str, argv[0]));
-
-cleanup:
 	free(argv);
 }
 
 void traceroute(Irc server, Parsed_data pdata) {
 
 	int argc;
-	char **argv = NULL, *cmd;
+	char **argv, *cmd;
 
 	argc = extract_params(pdata.message, &argv);
-	if (argc != 1)
-		goto cleanup;
+	if (!argc)
+		return;
 
 	if (strchr(argv[0], '.'))
 		cmd = "traceroute";
 	else if (strchr(argv[0], ':'))
 		cmd = "traceroute6";
-	else
-		goto cleanup;
+	else {
+		free(argv);
+		return;
+	}
 
 	// Don't send the following msg if the request was initiated in private
-	if (strchr(pdata.target, '#'))
+	if (*pdata.target == '#')
 		send_message(server, pdata.target, "Printing results privately to %s", pdata.sender);
 
 	// Limit max hops to 18
 	print_cmd_output(server, pdata.sender, CMD(cmd, "-m 18", argv[0]));
-
-cleanup:
 	free(argv);
 }
 
 void dns(Irc server, Parsed_data pdata) {
 
 	int argc;
-	char **argv = NULL;
+	char **argv;
 
 	argc = extract_params(pdata.message, &argv);
-	if (argc != 1)
-		goto cleanup;
+	if (!argc)
+		return;
 
-	if (!strchr(argv[0], '.'))
-		goto cleanup;
+	if (strchr(argv[0], '.'))
+		print_cmd_output(server, pdata.target, CMD("nslookup", argv[0]));
 
-	print_cmd_output(server, pdata.target, CMD("nslookup", argv[0]));
-
-cleanup:
 	free(argv);
 }
 
@@ -226,21 +224,23 @@ void uptime(Irc server, Parsed_data pdata) {
 
 void roll(Irc server, Parsed_data pdata) {
 
-	char **argv = NULL;
-	int argc, r, roll = DEFAULT_ROLL;
+	char **argv;
+	int argc, r, roll;
 
+	roll = DEFAULT_ROLL;
 	srand(time(NULL) + getpid());
+
 	argc = extract_params(pdata.message, &argv);
 	if (argc >= 1) {
 		roll = get_int(argv[0], MAXROLL);
 		if (roll == 1)
 			roll = DEFAULT_ROLL;
+
+		free(argv);
 	}
 
 	r = rand() % roll + 1;
 	send_message(server, pdata.target, "%s rolls %d", pdata.sender, r);
-
-	free(argv);
 }
 
 void marker(Irc server, Parsed_data pdata) {
@@ -262,18 +262,13 @@ STATIC bool user_in_twitter_access_list(const char *user) {
 
 void tweet(Irc server, Parsed_data pdata) {
 
-	char *test;
+	int argc;
+	char **argv;
 	long http_status;
 
-	if (!pdata.message)
+	argc = extract_params(pdata.message, &argv);
+	if (!argc)
 		return;
-
-	// Null terminate the message 
-	test = strrchr(pdata.message, '\r');
-	if (!test)
-		return;
-
-	*test = '\0';
 
 	if (!cfg.twitter_details_set) {
 		send_message(server, pdata.target, "%s", "twitter account details not set");
@@ -297,4 +292,6 @@ void tweet(Irc server, Parsed_data pdata) {
 		send_message(server, pdata.target, "%s", "authentication error");
 	else
 		send_message(server, pdata.target, "message posted @ %s", cfg.twitter_profile_url);
+
+	free(argv);
 }

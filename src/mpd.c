@@ -29,17 +29,13 @@ STATIC bool mpd_announce(bool on) {
 
 void play(Irc server, Parsed_data pdata) {
 
-	char *prog;
+	int argc;
+	char *prog, **argv;
 
-	if (!pdata.message)
+	argc = extract_params(pdata.message, &argv);
+	if (!argc)
 		return;
 
-	// Null terminate the message
-	prog = strrchr(pdata.message, '\r');
-	if (!prog)
-		return;
-
-	*prog = '\0';
 	mpd_announce(OFF);
 	mpd_status->random = OFF;
 
@@ -49,6 +45,7 @@ void play(Irc server, Parsed_data pdata) {
 		prog = SCRIPTDIR "mpd_search.sh";
 	
 	print_cmd_output(server, pdata.target, CMD(prog, cfg.mpd_database, pdata.message));
+	free(argv);
 }
 
 void current(Irc server, Parsed_data pdata) {
@@ -106,21 +103,21 @@ void next(Irc server, Parsed_data pdata) {
 void seek(Irc server, Parsed_data pdata) {
 
 	int argc;
-	char **argv = NULL;
+	char **argv;
 
 	argc = extract_params(pdata.message, &argv);
 	if (!argc)
 		send_message(server, pdata.target, "%s", "usage: [+-][HH:MM:SS]|<0-100>%");
-	else if (argc == 1)
+	else if (argc == 1) {
 		print_cmd_output(server, pdata.target, CMD(SCRIPTDIR "mpd_seek.sh", argv[0]));
-
-	free(argv);
+		free(argv);
+	}	
 }
 
 void announce(Irc server, Parsed_data pdata) {
 
 	int argc;
-	char **argv = NULL;
+	char **argv;
 
 	(void) server; // Silence unused variable warning
 
@@ -128,10 +125,9 @@ void announce(Irc server, Parsed_data pdata) {
 		return;
 
 	argc = extract_params(pdata.message, &argv);
-	if (argc != 1) {
-		free(argv);
+	if (!argc)
 		return;
-	}
+
 	if (starts_case_with(argv[0], "on") && !mpd_status->announce)
 		mpd_announce(ON);
 	else if (starts_case_with(argv[0], "off") && mpd_status->announce)

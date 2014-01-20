@@ -118,16 +118,12 @@ void *_realloc_w(void *buf, size_t size, const char *caller, const char *file, i
 
 int extract_params(char *msg, char **argv[]) {
 
-	int size, argc;
+	int size, argc = 0;
 	char *temp;
 
 	// Make sure we have at least 1 parameter before proceeding
 	if (!msg)
 		return 0;
-
-	// Allocate enough starting space for most bot commands
-	*argv = malloc_w(STARTSIZE * sizeof(char *));
-	size = STARTSIZE;
 
 	// Null terminate the whole parameters line
 	temp = strrchr(msg, '\r');
@@ -135,7 +131,10 @@ int extract_params(char *msg, char **argv[]) {
 		return 0;
 
 	*temp = '\0';
-	argc = 0;
+
+	// Allocate enough starting space for most bot commands
+	*argv = malloc_w(STARTSIZE * sizeof(char *));
+	size = STARTSIZE;
 
 	// split parameters seperated by space or tab
 	(*argv)[argc] = strtok(msg, " \t");
@@ -146,6 +145,10 @@ int extract_params(char *msg, char **argv[]) {
 		}
 		(*argv)[++argc] = strtok(NULL, " \t");
 	}
+
+	if (!argc)
+		free(*argv);
+
 	return argc;
 }
 
