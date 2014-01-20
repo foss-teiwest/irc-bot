@@ -15,7 +15,6 @@
 #define CMDLEN  100
 #define SONG_INFO_LEN  512
 #define SONG_TITLE_LEN 256
-#define SCRIPTDIR "scripts/" //!< default folder to look for scripts like the youtube one
 
 /** Remove file extension. Works with multiple dots in file as well */
 #define REMOVE_EXTENSION "gawk -F. -v OFS=. '{NF--; print}'"

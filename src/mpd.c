@@ -34,7 +34,7 @@ void play(Irc server, Parsed_data pdata) {
 	if (!pdata.message)
 		return;
 
-	// Null terminate the the whole parameters line
+	// Null terminate the message
 	prog = strrchr(pdata.message, '\r');
 	if (!prog)
 		return;
@@ -90,6 +90,7 @@ void stop(Irc server, Parsed_data pdata) {
 		mpd_announce(OFF);
 		remove(cfg.mpd_random_file);
 	}
+
 	print_cmd_output_unsafe(server, pdata.target, "mpc -q clear");
 }
 
@@ -108,11 +109,12 @@ void seek(Irc server, Parsed_data pdata) {
 	char **argv = NULL;
 
 	argc = extract_params(pdata.message, &argv);
-	if (argc != 1) {
-		free(argv);
-		return;
-	}
-	print_cmd_output(server, pdata.target, CMD("mpc", "seek", "-q", argv[0]));
+	if (!argc)
+		send_message(server, pdata.target, "%s", "usage: [+-][HH:MM:SS]|<0-100>%");
+	else if (argc == 1)
+		print_cmd_output(server, pdata.target, CMD(SCRIPTDIR "mpd_seek.sh", argv[0]));
+
+	free(argv);
 }
 
 void announce(Irc server, Parsed_data pdata) {

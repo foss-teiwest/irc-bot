@@ -28,7 +28,11 @@ void initialize(int argc, char *argv[]) {
 	else if (argc == 2)
 		parse_config(root, argv[1]);
 	else
-		parse_config(root, "config.json");
+		parse_config(root, DEFAULT_CONFIG_NAME);
+
+	cfg.twitter_details_set = false;
+	if (*cfg.oauth_consumer_key && *cfg.oauth_consumer_secret && *cfg.oauth_token && *cfg.oauth_token_secret)
+		cfg.twitter_details_set = true;
 
 	signal(SIGCHLD, SIG_IGN); // Make child processes not leave zombies behind when killed
 	signal(SIGPIPE, SIG_IGN); // Handle writing on closed sockets on our own
@@ -38,10 +42,8 @@ void initialize(int argc, char *argv[]) {
 	if (mpd_status == MAP_FAILED)
 		perror("mmap");
 
-	mpd_status->random = OFF;
 	mpd_status->announce = OFF;
-	if (!access(cfg.mpd_random_file, F_OK))
-		mpd_status->random = ON;
+	mpd_status->random = access(cfg.mpd_random_file, F_OK) ? OFF : ON;
 }
 
 void cleanup(void) {
@@ -127,7 +129,7 @@ int extract_params(char *msg, char **argv[]) {
 	*argv = malloc_w(STARTSIZE * sizeof(char *));
 	size = STARTSIZE;
 
-	// Null terminate the the whole parameters line
+	// Null terminate the whole parameters line
 	temp = strrchr(msg, '\r');
 	if (!temp)
 		return 0;

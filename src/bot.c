@@ -245,29 +245,41 @@ void roll(Irc server, Parsed_data pdata) {
 
 void marker(Irc server, Parsed_data pdata) {
 
-	send_message(server, pdata.target, "%s", "tweet max length. URL's not accounted for:  -  -  -  -  -  60  -  -  -  -  -  "
-		"80  -  -  -  -  -  -  100  -  -  -  -  -  120  -  -  -  -  -  140");
+	send_message(server, pdata.target, "%s", "tweet max length. URL's not accounted for:  -  -  -  -  -  60  -  - "
+			" -  -  -  80  -  -  -  -  -  -  100  -  -  -  -  -  120  -  -  -  -  -  140");
+}
+
+STATIC bool user_in_twitter_access_list(const char *user) {
+
+	int i;
+
+	for (i = 0; i < cfg.access_list_count; i++)
+		if (streq(user, cfg.twitter_access_list[i]))
+			break;
+
+	return i != cfg.access_list_count;
 }
 
 void tweet(Irc server, Parsed_data pdata) {
 
-	int i;
 	char *test;
 	long http_status;
 
 	if (!pdata.message)
 		return;
 
-	if (!*cfg.oauth_consumer_key || !*cfg.oauth_consumer_secret || !*cfg.oauth_token || !*cfg.oauth_token_secret) {
+	// Null terminate the message 
+	test = strrchr(pdata.message, '\r');
+	if (!test)
+		return;
+
+	*test = '\0';
+
+	if (!cfg.twitter_details_set) {
 		send_message(server, pdata.target, "%s", "twitter account details not set");
 		return;
 	}
-
-	for (i = 0; i < cfg.access_list_count; i++)
-		if (streq(pdata.sender, cfg.twitter_access_list[i]))
-			break;
-
-	if (i == cfg.access_list_count) {
+	if (!user_in_twitter_access_list(pdata.sender)) {
 		send_message(server, pdata.target, "%s is not found in the access list", pdata.sender);
 		return;
 	}
@@ -275,12 +287,6 @@ void tweet(Irc server, Parsed_data pdata) {
 		send_message(server, pdata.target, "%s is not identified to the NickServ", pdata.sender);
 		return;
 	}
-	// Null terminate the the whole parameters line
-	test = strrchr(pdata.message, '\r');
-	if (!test)
-		return;
-
-	*test = '\0';
 	
 	http_status = send_tweet(pdata.message);
 	if (!http_status)

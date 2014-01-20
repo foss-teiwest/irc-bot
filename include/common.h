@@ -26,6 +26,8 @@
 #define CONFSIZE    4096
 #define TIMEOUT     300000 //!< Timeout in milliseconds for the poll function
 #define LOCALHOST  "127.0.0.1"
+#define SCRIPTDIR "scripts/" //!< default folder to look for scripts like the youtube one
+#define DEFAULT_CONFIG_NAME "config.json"
 
 struct config_options {
 	char *server;
@@ -48,6 +50,7 @@ struct config_options {
 	char *oauth_token_secret;
 	char *twitter_profile_url;
 	char *twitter_access_list[MAXLIST];
+	bool twitter_details_set;
 	int access_list_count;
 	char *quotes[MAXQUOTES];
 	int quote_count;
