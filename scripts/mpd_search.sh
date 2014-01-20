@@ -24,7 +24,7 @@ if [ $RESULT_LINES -eq 1 ]; then
 		RESULT=`echo "$RESULT" | gawk -F. -v OFS=. '{NF--; print}'`
 
 		if [ $QUEUESIZE -eq 0 ]; then
-			echo "♪ $RESULT ♪ playing @ https://foss.tesyd.teimes.gr/~zed/flashplayer"
+			echo "♪ $RESULT ♪ playing @ https://foss.tesyd.teimes.gr/radio"
 		else
 			echo "♪ $RESULT ♪ queued after $QUEUESIZE song(s)..."
 		fi

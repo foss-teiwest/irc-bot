@@ -19,7 +19,7 @@ rm "$DIR"/song.info.json
 print_song() {
 	touch "$DIR"/"$TITLE".mp3
 	if [ $QUEUESIZE -eq 0 ]; then
-		echo "♪ $TITLE ♪ playing @ https://foss.tesyd.teimes.gr/~zed/flashplayer"
+		echo "♪ $TITLE ♪ playing @ https://foss.tesyd.teimes.gr/radio"
 	else
 		echo "♪ $TITLE ♪ queued after $QUEUESIZE song(s)..."
 	fi
