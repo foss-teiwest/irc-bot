@@ -262,13 +262,18 @@ STATIC bool user_in_twitter_access_list(const char *user) {
 
 void tweet(Irc server, Parsed_data pdata) {
 
-	int argc;
-	char **argv;
+	char *test;
 	long http_status;
 
-	argc = extract_params(pdata.message, &argv);
-	if (!argc)
+	if (!pdata.message)
 		return;
+
+	// Null terminate message
+	test = strchr(pdata.message, '\r');
+	if (!test)
+		return;
+
+	*test = '\0';
 
 	if (!cfg.twitter_details_set) {
 		send_message(server, pdata.target, "%s", "twitter account details not set");
@@ -294,6 +299,4 @@ void tweet(Irc server, Parsed_data pdata) {
 	default:
 		send_message(server, pdata.target, "message posted @ %s", cfg.twitter_profile_url);
 	}
-
-	free(argv);
 }

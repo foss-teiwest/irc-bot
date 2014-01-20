@@ -29,13 +29,14 @@ STATIC bool mpd_announce(bool on) {
 
 void play(Irc server, Parsed_data pdata) {
 
-	int argc;
-	char *prog, **argv;
+	char *test, *prog;
 
-	argc = extract_params(pdata.message, &argv);
-	if (!argc)
+	// Null terminate message
+	test = strchr(pdata.message, '\r');
+	if (!test)
 		return;
 
+	*test = '\0';
 	mpd_announce(OFF);
 	mpd_status->random = OFF;
 
@@ -45,7 +46,6 @@ void play(Irc server, Parsed_data pdata) {
 		prog = SCRIPTDIR "mpd_search.sh";
 	
 	print_cmd_output(server, pdata.target, CMD(prog, cfg.mpd_database, pdata.message));
-	free(argv);
 }
 
 void current(Irc server, Parsed_data pdata) {
