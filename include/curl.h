@@ -15,8 +15,9 @@
 
 /** HTTP status codes */
 enum http_codes {
-    UNAUTHORIZED = 401,
-    FORBIDDEN    = 403
+	UNKNOWN      = 0, 
+	UNAUTHORIZED = 401,
+	FORBIDDEN    = 403
 };
 
 typedef struct {

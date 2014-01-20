@@ -284,14 +284,16 @@ void tweet(Irc server, Parsed_data pdata) {
 	}
 	
 	http_status = send_tweet(pdata.message);
-	if (!http_status)
-		send_message(server, pdata.target, "%s", "unknown error");		
-	else if (http_status == FORBIDDEN)
-		send_message(server, pdata.target, "%s", "message too long or duplicate");
-	else if (http_status == UNAUTHORIZED)
-		send_message(server, pdata.target, "%s", "authentication error");
-	else
+	switch (http_status) {
+	case UNKNOWN:
+		send_message(server, pdata.target, "%s", "unknown error"); break;
+	case FORBIDDEN:
+		send_message(server, pdata.target, "%s", "message too long or duplicate"); break;
+	case UNAUTHORIZED:
+		send_message(server, pdata.target, "%s", "authentication error"); break;
+	default:
 		send_message(server, pdata.target, "message posted @ %s", cfg.twitter_profile_url);
+	}
 
 	free(argv);
 }
