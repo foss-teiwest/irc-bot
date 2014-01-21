@@ -70,10 +70,10 @@ extern struct config_options cfg; //!< global struct with config's values
 
 //@{
 /** Wrappers for allocating memory. Print the position on failure and exit. Will always return a valid pointer */
-#define malloc_w(x) _malloc_w((x), __func__, __FILE__, __LINE__)
-#define calloc_w(x) _calloc_w((x), __func__, __FILE__, __LINE__)
-#define realloc_w(x, y) _realloc_w((x), (y), __func__, __FILE__, __LINE__)
-#define alloc_error(function, file, line)  exit_msg("Failed to allocate memory in %s() %s:%d", function, file, line);
+#define MALLOC_W(x) _malloc_w((x), __func__, __FILE__, __LINE__)
+#define CALLOC_W(x) _calloc_w((x), __func__, __FILE__, __LINE__)
+#define REALLOC_W(x, y) _realloc_w((x), (y), __func__, __FILE__, __LINE__)
+#define ALLOC_ERROR(function, file, line)  exit_msg("Failed to allocate memory in %s() %s:%d", function, file, line);
 //@}
 
 void *_malloc_w(size_t size, const char *caller, const char *file, int line);
@@ -100,6 +100,10 @@ bool starts_with(const char *s1, const char *s2);
 
 /** Case insensitive version */
 bool starts_case_with(const char *s1, const char *s2);
+
+/** Terminate buffer on the delim character 
+ *  @returns false if something went wrong */
+bool null_terminate(char *buf, char delim);
 
 /**
  * Extract parameters seperated by space and put them in an array

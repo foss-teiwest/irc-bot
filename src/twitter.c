@@ -33,7 +33,7 @@ STATIC char *base64_encode(const unsigned char *src, int size) {
 	if (!size)
 		size = strlen((char *) src);
 
-	out = calloc_w(size * 4 / 3 + 4);
+	out = CALLOC_W(size * 4 / 3 + 4);
 	p = out;
 
 	for (i = 0; i < size; i += 3) {
@@ -73,7 +73,7 @@ STATIC char *generate_nonce(int len) {
 	max = strlen(chars);
 	srand(time(NULL) + getpid());
 
-	nonce = malloc_w(len + 1);
+	nonce = MALLOC_W(len + 1);
 	for (i = 0; i < len; i++)
 		nonce[i] = chars[rand() % max];
 
@@ -98,17 +98,14 @@ STATIC char *prepare_parameter_string(CURL *curl, char **status_msg, char **oaut
 	return parameter_string_url_encoded;
 }
 
-STATIC char *prepare_signature_base_string(CURL *curl, char **resource_url, const char *parameter_string) {
+STATIC char *prepare_signature_base_string(CURL *curl, char **resource_url, char *parameter_string) {
 
-	char *temp;
-	char *signature_base_string = malloc_w(TWTLEN);
+	char *signature_base_string = MALLOC_W(TWTLEN);
 
 	*resource_url = curl_easy_escape(curl, *resource_url, 0);
-	temp = strchr(parameter_string, '6');
-	if (!temp)
+	if (!null_terminate(parameter_string, '6'))
 		return NULL;
-	
-	*temp = '\0';
+
 	parameter_string += strlen(parameter_string) + 1;
 	snprintf(signature_base_string, TWTLEN, "POST&%s&%s", *resource_url, parameter_string);
 
@@ -122,7 +119,7 @@ STATIC char *generate_oauth_signature(CURL *curl, const char *signature_base_str
 	char *temp, *signing_key, *oauth_signature_encoded;
 	
 	len = strlen(cfg.oauth_consumer_secret) + strlen(cfg.oauth_token_secret) + 2;
-	signing_key = malloc_w(len);
+	signing_key = MALLOC_W(len);
 	len = snprintf(signing_key, len, "%s&%s", cfg.oauth_consumer_secret, cfg.oauth_token_secret);
 	oauth_signature = HMAC(EVP_sha1(), signing_key, len, (unsigned char *) signature_base_string,
 		strlen(signature_base_string), NULL, NULL);
@@ -156,7 +153,7 @@ STATIC struct curl_slist *prepare_http_post_request(CURL *curl, char **status_ms
 	headers = curl_slist_append(headers, buffer);
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
-	temp = malloc_w(TWTLEN);
+	temp = MALLOC_W(TWTLEN);
 	snprintf(temp, TWTLEN, "status=%s", *status_msg);
 	free(*status_msg);
 	*status_msg = temp;

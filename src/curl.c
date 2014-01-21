@@ -31,7 +31,7 @@ char *shorten_url(const char *long_url) {
 
 	CURL *curl;
 	CURLcode code;
-	char *test, url_formatted[URLLEN], *short_url = NULL;
+	char url_formatted[URLLEN], *short_url = NULL;
 	Mem_buffer mem = { NULL, 0 };
 	struct curl_slist *headers = NULL;
 
@@ -65,14 +65,8 @@ char *shorten_url(const char *long_url) {
 	}
 	// Find the short url in the reply and null terminate it
 	short_url = strstr(mem.buffer, "http");
-	if (!short_url)
+	if (!null_terminate(short_url, '"'))
 		goto cleanup;
-
-	test = strchr(short_url, '"');
-	if (!test)
-		goto cleanup;
-
-	*test = '\0';
 
 	// short_url must be freed to avoid memory leak
 	short_url = strndup(short_url, ADDRLEN);
@@ -91,7 +85,7 @@ Github *fetch_github_commits(yajl_val *root, const char *repo, int *commit_count
 	yajl_val val;
 	Mem_buffer mem = { NULL, 0 };
 	Github *commits = NULL;
-	char *test, API_URL[URLLEN], errbuf[1024];
+	char API_URL[URLLEN], errbuf[1024];
 	int i;
 
 	curl = curl_easy_init();
@@ -124,7 +118,7 @@ Github *fetch_github_commits(yajl_val *root, const char *repo, int *commit_count
 	}
 	free(mem.buffer);
 	*commit_count = YAJL_IS_ARRAY(*root) ? YAJL_GET_ARRAY(*root)->len : 0;
-	commits = malloc_w(*commit_count * sizeof(*commits));
+	commits = MALLOC_W(*commit_count * sizeof(*commits));
 
 	// Find the field we are interested in the json reply, save a reference to it & null terminate
 	for (i = 0; i < *commit_count; i++) {
@@ -150,10 +144,9 @@ Github *fetch_github_commits(yajl_val *root, const char *repo, int *commit_count
 		commits[i].url  = YAJL_GET_STRING(val);
 
 		// Cut commit message at newline character if present
-		test = strchr(commits[i].msg, '\n');
-		if (test)
-			*test = '\0';
+		null_terminate(commits[i].msg, '\n');
 	}
+
 cleanup:
 	curl_easy_cleanup(curl);
 	return commits;

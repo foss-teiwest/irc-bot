@@ -110,7 +110,7 @@ char *fetch_murmur_users(void) {
 		close(murmfd);
 		return NULL;
 	}
-	user_list = malloc_w(READ_BUFFER_SIZE);
+	user_list = MALLOC_W(READ_BUFFER_SIZE);
 
 	/* read_buffer[25] = number of users */
 	bytes_written = snprintf(user_list, READ_BUFFER_SIZE, "%u Online Client%s%s", read_buffer[25],

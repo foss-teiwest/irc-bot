@@ -89,7 +89,7 @@ void *_malloc_w(size_t size, const char *caller, const char *file, int line) {
 
 	buffer = malloc(size);
 	if (!buffer)
-		alloc_error(caller, file, line); // We exit here
+		ALLOC_ERROR(caller, file, line); // We exit here
 
 	return buffer;
 }
@@ -100,7 +100,7 @@ void *_calloc_w(size_t size, const char *caller, const char *file, int line) {
 
 	buffer = calloc(1, size);
 	if (!buffer)
-		alloc_error(caller, file, line);
+		ALLOC_ERROR(caller, file, line);
 
 	return buffer;
 }
@@ -111,36 +111,42 @@ void *_realloc_w(void *buf, size_t size, const char *caller, const char *file, i
 
 	buffer = realloc(buf, size);
 	if (!buffer)
-		alloc_error(caller, file, line);
+		ALLOC_ERROR(caller, file, line);
 
 	return buffer;
+}
+
+bool null_terminate(char *buf, char delim) {
+
+	char *test;
+
+	if (!buf)
+		return false;
+
+	test = strrchr(buf, delim);
+	if (!test)
+		return false;
+
+	*test = '\0';
+	return true;
 }
 
 int extract_params(char *msg, char **argv[]) {
 
 	int size, argc = 0;
-	char *temp;
 
-	// Make sure we have at least 1 parameter before proceeding
-	if (!msg)
+	if (!null_terminate(msg, '\r'))
 		return 0;
-
-	// Null terminate the whole parameters line
-	temp = strrchr(msg, '\r');
-	if (!temp)
-		return 0;
-
-	*temp = '\0';
 
 	// Allocate enough starting space for most bot commands
-	*argv = malloc_w(STARTSIZE * sizeof(char *));
+	*argv = MALLOC_W(STARTSIZE * sizeof(char *));
 	size = STARTSIZE;
 
 	// split parameters seperated by space or tab
 	(*argv)[argc] = strtok(msg, " \t");
 	while ((*argv)[argc]) {
 		if (argc == size - 1) { // Double the array if it gets full
-			*argv = realloc_w(*argv, size * 2 * sizeof(char *));
+			*argv = REALLOC_W(*argv, size * 2 * sizeof(char *));
 			size *= 2;
 		}
 		(*argv)[++argc] = strtok(NULL, " \t");
@@ -253,7 +259,7 @@ STATIC size_t read_file(char **buf, const char *filename) {
 		fprintf(stderr, "File too small/big: ");
 		goto cleanup;
 	}
-	*buf = malloc_w(st.st_size + 1);
+	*buf = MALLOC_W(st.st_size + 1);
 	n = fread(*buf, sizeof(char), st.st_size, file);
 	if (n != (unsigned) st.st_size) {
 		fprintf(stderr, "fread error: ");
@@ -334,12 +340,12 @@ void parse_config(yajl_val root, const char *config_file) {
 	// Expand tilde '~' by reading the HOME enviroment variable
 	HOME = getenv("HOME");
 	if (cfg.mpd_database[0] == '~') {
-		mpd_path = malloc_w(PATHLEN);
+		mpd_path = MALLOC_W(PATHLEN);
 		snprintf(mpd_path, PATHLEN, "%s%s", HOME, cfg.mpd_database + 1);
 		cfg.mpd_database = mpd_path;
 	}
 	if (cfg.mpd_random_file[0] == '~') {
-		mpd_random_file_path = malloc_w(PATHLEN);
+		mpd_random_file_path = MALLOC_W(PATHLEN);
 		snprintf(mpd_random_file_path, PATHLEN, "%s%s", HOME, cfg.mpd_random_file + 1);
 		cfg.mpd_random_file = mpd_random_file_path;
 	}
@@ -365,7 +371,7 @@ char *iso8859_7_to_utf8(char *iso) {
 	unsigned int i = 0, y = 0;
 
 	uiso = (unsigned char *) iso;
-	utf = malloc_w(strlen(iso) * 2);
+	utf = MALLOC_W(strlen(iso) * 2);
 
 	while (uiso[i] != '\0') {
 		if (uiso[i] > 0xa0) {

@@ -262,18 +262,10 @@ STATIC bool user_in_twitter_access_list(const char *user) {
 
 void tweet(Irc server, Parsed_data pdata) {
 
-	char *test;
 	long http_status;
 
-	if (!pdata.message)
+	if (!null_terminate(pdata.command, '\r'))
 		return;
-
-	// Null terminate message
-	test = strchr(pdata.message, '\r');
-	if (!test)
-		return;
-
-	*test = '\0';
 
 	if (!cfg.twitter_details_set) {
 		send_message(server, pdata.target, "%s", "twitter account details not set");

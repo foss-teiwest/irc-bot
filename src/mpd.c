@@ -29,14 +29,12 @@ STATIC bool mpd_announce(bool on) {
 
 void play(Irc server, Parsed_data pdata) {
 
-	char *test, *prog;
+	char *prog;
 
 	// Null terminate message
-	test = strchr(pdata.message, '\r');
-	if (!test)
+	if (!null_terminate(pdata.message, '\r'))
 		return;
 
-	*test = '\0';
 	mpd_announce(OFF);
 	mpd_status->random = OFF;
 
@@ -165,7 +163,7 @@ cleanup:
 
 STATIC char *get_title(void) {
 
-	char *test, *song_title, buf[SONG_INFO_LEN + 1];
+	char *song_title, buf[SONG_INFO_LEN + 1];
 	struct pollfd pfd;
 	ssize_t n = 0;
 	int ready;
@@ -194,11 +192,9 @@ STATIC char *get_title(void) {
 		return NULL;
 
 	song_title += 7; // advance to song_title start
-	test = strchr(song_title, '\n');
-	if (!test)
+	if (!null_terminate(song_title, '\n'))
 		return NULL;
 
-	*test = '\0'; // terminate line
 	return song_title;
 }
 
