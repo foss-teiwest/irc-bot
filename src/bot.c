@@ -264,7 +264,7 @@ void tweet(Irc server, Parsed_data pdata) {
 
 	long http_status;
 
-	if (!null_terminate(pdata.command, '\r'))
+	if (!pdata.message)
 		return;
 
 	if (!cfg.twitter_details_set) {

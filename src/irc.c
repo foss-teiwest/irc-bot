@@ -140,12 +140,11 @@ ssize_t parse_irc_line(Irc server) {
 	server->line_offset = 0; // Clear offset if the read was successful
 
 	if (cfg.verbose)
-		fputs(server->line, stdout);
+		puts(server->line);
 
 	// Check for server ping request. Example: "PING :wolfe.freenode.net"
 	// If we match PING then change the 2nd char to 'O' and terminate the argument before sending back
 	if (starts_with(server->line, "PING")) {
-		null_terminate(server->line, '\r');
 		irc_ping_command(server, server->line + 5);
 		return n;
 	}
@@ -224,8 +223,6 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 
 	// Make sure BOT command / CTCP request gets null terminated if there are no parameters
 	pdata.message = strtok(NULL, "");
-	if (!pdata.message)
-		null_terminate(pdata.command, '\r');
 
 	// Bot commands must begin with '!'
 	if (*pdata.command == '!') {

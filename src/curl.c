@@ -83,8 +83,8 @@ Github *fetch_github_commits(yajl_val *root, const char *repo, int *commit_count
 	CURL *curl;
 	CURLcode code;
 	yajl_val val;
-	Mem_buffer mem = { NULL, 0 };
 	Github *commits = NULL;
+	Mem_buffer mem = { NULL, 0 };
 	char API_URL[URLLEN], errbuf[1024];
 	int i;
 

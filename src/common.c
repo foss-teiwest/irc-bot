@@ -133,14 +133,13 @@ bool null_terminate(char *buf, char delim) {
 
 int extract_params(char *msg, char **argv[]) {
 
-	int size, argc = 0;
+	int argc = 0, size = STARTSIZE;
 
-	if (!null_terminate(msg, '\r'))
+	if (!msg)
 		return 0;
 
 	// Allocate enough starting space for most bot commands
-	*argv = MALLOC_W(STARTSIZE * sizeof(char *));
-	size = STARTSIZE;
+	*argv = MALLOC_W(size * sizeof(char *));
 
 	// split parameters seperated by space or tab
 	(*argv)[argc] = strtok(msg, " \t");

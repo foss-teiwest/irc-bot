@@ -31,8 +31,7 @@ void play(Irc server, Parsed_data pdata) {
 
 	char *prog;
 
-	// Null terminate message
-	if (!null_terminate(pdata.message, '\r'))
+	if (!pdata.message)
 		return;
 
 	mpd_announce(OFF);
