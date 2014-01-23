@@ -211,7 +211,7 @@ void print_cmd_output(Irc server, const char *target, char *cmd_args[]) {
 	while (fgets(line, LINELEN, prog)) {
 		len = strlen(line);
 		if (len > 2) { // Only print if line is not empty
-			line[len] = '\0'; // Remove last newline char (\n) since we add it inside send_message()
+			line[len - 1] = '\0'; // Remove last newline char (\n) since we add it inside send_message()
 			send_message(server, target, "%s", line); // The %s is needed to avoid interpeting format specifiers in output
 		}
 	}
@@ -232,7 +232,7 @@ void print_cmd_output_unsafe(Irc server, const char *target, const char *cmd) {
 	while (fgets(line, LINELEN, prog)) {
 		len = strlen(line);
 		if (len > 2) {
-			line[len] = '\0';
+			line[len - 1] = '\0';
 			send_message(server, target, "%s", line);
 		}
 	}

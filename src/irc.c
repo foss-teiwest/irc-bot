@@ -328,11 +328,12 @@ void _irc_command(Irc server, const char *type, const char *target, const char *
 	va_list args;
 	char msg[IRCLEN - 50], irc_msg[IRCLEN];
 
-	va_start(args, format);
-	vsnprintf(msg, IRCLEN - 50, format, args);
-	if (*msg)
+	if (format) {
+		va_start(args, format);
+		vsnprintf(msg, IRCLEN - 50, format, args);
 		snprintf(irc_msg, IRCLEN, "%s %s :%s\r\n", type, target, msg);
-	else
+		va_end(args);
+	} else
 		snprintf(irc_msg, IRCLEN, "%s %s\r\n", type, target);
 
 	// Send message & print it on stdout
@@ -341,8 +342,6 @@ void _irc_command(Irc server, const char *type, const char *target, const char *
 
 	if (cfg.verbose)
 		fputs(irc_msg, stdout);
-
-	va_end(args);
 }
 
 void quit_server(Irc server, const char *msg) {
