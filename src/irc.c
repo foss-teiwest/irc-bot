@@ -305,7 +305,8 @@ void irc_kick(Irc server, Parsed_data pdata) {
 
 	// Who got kicked
 	victim = strtok(NULL, " ");
-	null_terminate(victim, ' ');
+	if (!victim)
+		return;
 
 	// Rejoin and send a message back to the one who kicked us
 	if (streq(victim, server->nick)) {

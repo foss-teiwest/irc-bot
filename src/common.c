@@ -123,7 +123,7 @@ bool null_terminate(char *buf, char delim) {
 	if (!buf)
 		return false;
 
-	test = strrchr(buf, delim);
+	test = strchr(buf, delim);
 	if (!test)
 		return false;
 

@@ -26,7 +26,7 @@
 #define CONFSIZE    4096
 #define TIMEOUT     300000 //!< Timeout in milliseconds for the poll function
 #define LOCALHOST  "127.0.0.1"
-#define SCRIPTDIR "scripts/" //!< default folder to look for scripts like the youtube one
+#define SCRIPTDIR  "scripts/" //!< default folder to look for scripts like the youtube one
 #define DEFAULT_CONFIG_NAME "config.json"
 
 struct config_options {
@@ -58,10 +58,6 @@ struct config_options {
 };
 
 extern struct config_options cfg; //!< global struct with config's values
-
-/** Returns array size
- *  @warning  Must ONLY be used for local arrays (same scope) allocated in stack */
-#define SIZE(x) (int) (sizeof(x) / sizeof(x[0]))
 
 /** Macros to help reduce boilerplate code */
 #define CMD(...) (char *[]) { __VA_ARGS__, NULL }

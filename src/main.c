@@ -6,22 +6,23 @@
 #include "mpd.h"
 #include "common.h"
 
-enum { IRC, MURM_LISTEN, MURM_ACCEPT, MPD };
+enum { IRC, MURM_LISTEN, MURM_ACCEPT, MPD, PFDS };
 
 int mpdfd;
 
 int main(int argc, char *argv[]) {
 
 	Irc irc_server;
-	struct pollfd pfd[4];
 	int i, ready, murm_listenfd = -1;
+	struct pollfd pfd[PFDS] = {
+		{ .fd = -1, .events = POLLIN },
+		{ .fd = -1, .events = POLLIN },
+		{ .fd = -1, .events = POLLIN },
+		{ .fd = -1, .events = POLLIN }
+	};
 
 	initialize(argc, argv);
 
-	for (i = 0; i < SIZE(pfd); i++) {
-		pfd[i].fd = -1;
-		pfd[i].events = POLLIN;
-	}
 	if (add_murmur_callbacks(cfg.murmur_port))
 		murm_listenfd = pfd[MURM_LISTEN].fd = sock_listen(LOCALHOST, CB_LISTEN_PORT_S);
 	else
@@ -42,7 +43,7 @@ int main(int argc, char *argv[]) {
 	for (i = 0; i < cfg.channels_set; i++)
 		join_channel(irc_server, cfg.channels[i]);
 
-	while ((ready = poll(pfd, SIZE(pfd), TIMEOUT)) > 0) {
+	while ((ready = poll(pfd, PFDS, TIMEOUT)) > 0) {
 		// Keep reading & parsing lines as long the connection is active and act on any registered actions found
 		if (pfd[IRC].revents & POLLIN)
 			while (parse_irc_line(irc_server) > 0);

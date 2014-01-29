@@ -103,7 +103,7 @@ STATIC char *prepare_signature_base_string(CURL *curl, char **resource_url, char
 	char *signature_base_string = MALLOC_W(TWTLEN);
 
 	*resource_url = curl_easy_escape(curl, *resource_url, 0);
-	if (!null_terminate(parameter_string, '6'))
+	if (!null_terminate(parameter_string, '6')) // Cut the "include_entities%3Dtrue%26" part
 		return NULL;
 
 	parameter_string += strlen(parameter_string) + 1;
