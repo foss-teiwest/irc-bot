@@ -194,7 +194,8 @@ STATIC char *get_title(void) {
 	if (!null_terminate(song_title, '\n'))
 		return NULL;
 
-	return song_title;
+	// Don't forget to free
+	return strdup(song_title);
 }
 
 bool print_song(Irc server, const char *channel) {
@@ -221,7 +222,9 @@ bool print_song(Irc server, const char *channel) {
 		send_message(server, channel, "♪ %s ♪", song_title);
 		snprintf(old_song, SONG_TITLE_LEN, "%s", song_title);
 	}
-	// Restart query
+
+	// Free title and restart query
+	free(song_title);
 	if (mpd_announce(ON))
 		return true;
 

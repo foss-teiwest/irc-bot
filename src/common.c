@@ -73,7 +73,7 @@ void exit_msg(const char *format, ...) {
 	va_list args;
 
 	va_start(args, format);
-	sprintf(buf, "%s\n", format);
+	snprintf(buf, EXIT_MSGLEN, "%s\n", format);
 	vfprintf(stderr, buf, args);
 	va_end(args);
 

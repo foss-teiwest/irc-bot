@@ -151,7 +151,7 @@ cleanup:
 void ping(Irc server, Parsed_data pdata) {
 
 	int argc, count = 3;
-	char **argv, *cmd, count_str[10];
+	char **argv, *cmd, count_str[5];
 
 	argc = extract_params(pdata.message, &argv);
 	if (!argc)
@@ -170,7 +170,7 @@ void ping(Irc server, Parsed_data pdata) {
 	if (argc >= 2)
 		count = get_int(argv[1], MAXPINGS);
 
-	sprintf(count_str, "%d", count);
+	snprintf(count_str, sizeof(count_str), "%d", count);
 	print_cmd_output(server, pdata.target, CMD(cmd, "-c", count_str, argv[0]));
 	free(argv);
 }
