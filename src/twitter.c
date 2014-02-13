@@ -82,18 +82,18 @@ STATIC char *generate_nonce(int len) {
 }
 
 STATIC char *prepare_parameter_string(CURL *curl, char **status_msg, char **oauth_nonce, time_t *timestamp) {
-	
+
 	int len;
 	char parameter_string[TWTLEN];
 	char *parameter_string_url_encoded;
-	
+
 	*timestamp = time(NULL);
 	*oauth_nonce = generate_nonce(DEFNONCE);
 	*status_msg = curl_easy_escape(curl, *status_msg, 0);
 	len = snprintf(parameter_string, TWTLEN, "include_entities=true&oauth_consumer_key=%s&oauth_nonce=%s"
 		"&oauth_signature_method=HMAC-SHA1&oauth_timestamp=%zd&oauth_token=%s&oauth_version=1.0&status=%s",
 			cfg.oauth_consumer_key, *oauth_nonce, *timestamp, cfg.oauth_token, *status_msg);
-	
+
 	parameter_string_url_encoded = curl_easy_escape(curl, parameter_string, len);
 	return parameter_string_url_encoded;
 }
@@ -117,7 +117,7 @@ STATIC char *generate_oauth_signature(CURL *curl, const char *signature_base_str
 	int len;
 	unsigned char *oauth_signature;
 	char *temp, *signing_key, *oauth_signature_encoded;
-	
+
 	len = strlen(cfg.oauth_consumer_secret) + strlen(cfg.oauth_token_secret) + 2;
 	signing_key = MALLOC_W(len);
 	len = snprintf(signing_key, len, "%s&%s", cfg.oauth_consumer_secret, cfg.oauth_token_secret);
@@ -127,14 +127,14 @@ STATIC char *generate_oauth_signature(CURL *curl, const char *signature_base_str
 	oauth_signature_encoded = base64_encode(oauth_signature, 20);
 	temp = oauth_signature_encoded;
 	oauth_signature_encoded = curl_easy_escape(curl, oauth_signature_encoded, 0);
-	
+
 	free(temp);
 	free(signing_key);
 	return oauth_signature_encoded;
 }
 
 STATIC size_t discard_response(char *data, size_t size, size_t elements, void *null) {
-	
+
 	// Silence unused warnings
 	(void) data;
 	(void) null;
@@ -171,11 +171,11 @@ long send_tweet(char *status_msg) {
 
 	CURL *curl;
 	CURLcode code;
-	struct curl_slist *request = NULL; 
+	struct curl_slist *request = NULL;
 	char *parameter_string;
 	char *signature_base_string;
 	char *oauth_signature = NULL;
-	char *resource_url; 
+	char *resource_url;
 	char *oauth_nonce;
 	time_t timestamp;
 	long http_status = 0;

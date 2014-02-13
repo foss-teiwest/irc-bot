@@ -25,7 +25,6 @@
 #define LINELEN     300
 #define CONFSIZE    4096
 #define TIMEOUT     300000 //!< Timeout in milliseconds for the poll function
-#define LOCALHOST  "127.0.0.1"
 #define SCRIPTDIR  "scripts/" //!< default folder to look for scripts like the youtube one
 #define DEFAULT_CONFIG_NAME "config.json"
 
@@ -97,7 +96,7 @@ bool starts_with(const char *s1, const char *s2);
 /** Case insensitive version */
 bool starts_case_with(const char *s1, const char *s2);
 
-/** Terminate buffer on the delim character 
+/** Terminate buffer on the delim character
  *  @returns false if something went wrong */
 bool null_terminate(char *buf, char delim);
 

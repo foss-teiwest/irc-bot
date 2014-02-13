@@ -68,3 +68,4 @@ int mpd_connect(const char *port);
 bool print_song(Irc server, const char *channel);
 
 #endif
+

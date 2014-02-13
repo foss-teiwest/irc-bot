@@ -154,7 +154,7 @@ ssize_t parse_irc_line(Irc server) {
 	pdata.sender = strtok(server->line + 1, " ");
 	if (!pdata.sender)
 		return n;
-	
+
 	// Store the server command. Examples: "PRIVMSG", "MODE", "433"
 	pdata.command = strtok(NULL, " ");
 	if (!pdata.command)
@@ -274,7 +274,7 @@ void irc_notice(Irc server, Parsed_data pdata) {
 
 	if (!streq(pdata.sender, "NickServ"))
 		return;
-	
+
 	test = strstr(pdata.message, "ACC");
 	if (test) {
 		auth_level = atoi(test + 4);

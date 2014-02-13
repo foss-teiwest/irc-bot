@@ -12,7 +12,7 @@
 #define IRCLEN   512
 #define BLOCK    0
 #define NONBLOCK 1
-
+#define LOCALHOST "127.0.0.1"
 
 /**
  * Open a connection to a remote location
@@ -75,7 +75,7 @@ ssize_t sock_read_non_blocking(int sock, void *buffer, size_t len);
  * @warning NOT thread safe. Mantains it's own buffer internally to avoid calling single byte read's()
  *
  * @param sock         Non blocking socket
- * @param line_buffer  Buffer to store the line
+ * @param line_buffer  Buffer to store the line (\r\n not included)
  * @param len          Will fill the buffer up to len bytes
  * @returns            On success: line length, -1 on error and -EAGAIN if the operation would block
  */
@@ -83,3 +83,4 @@ ssize_t sock_readline(int sock, char *line_buffer, size_t len);
 
 
 #endif
+

@@ -273,7 +273,7 @@ cleanup:
 }
 
 STATIC char *get_json_field(yajl_val root, const char *field_name) {
-	
+
 	yajl_val val = yajl_tree_get(root, CFG(field_name), yajl_t_string);
 	if (!val)
 		exit_msg("%s: missing / wrong type", field_name);
@@ -299,7 +299,7 @@ STATIC int get_json_array(yajl_val root, const char *array_name, char **array_to
 		val = YAJL_GET_ARRAY(array)->values[i];
 		array_to_fill[i] = YAJL_GET_STRING(val);
 	}
-	
+
 	return array_size;
 }
 
@@ -318,7 +318,7 @@ void parse_config(yajl_val root, const char *config_file) {
 	// Free original buffer since we have a duplicate in root now
 	free(buf);
 
-	CFG_GET(cfg, root, server);	
+	CFG_GET(cfg, root, server);
 	CFG_GET(cfg, root, port);
 	CFG_GET(cfg, root, nick);
 	CFG_GET(cfg, root, user);
@@ -335,7 +335,7 @@ void parse_config(yajl_val root, const char *config_file) {
 	CFG_GET(cfg, root, oauth_consumer_secret);
 	CFG_GET(cfg, root, oauth_token);
 	CFG_GET(cfg, root, oauth_token_secret);
-	
+
 	// Expand tilde '~' by reading the HOME enviroment variable
 	HOME = getenv("HOME");
 	if (cfg.mpd_database[0] == '~') {

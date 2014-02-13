@@ -279,7 +279,7 @@ void tweet(Irc server, Parsed_data pdata) {
 		send_message(server, pdata.target, "%s is not identified to the NickServ", pdata.sender);
 		return;
 	}
-	
+
 	http_status = send_tweet(pdata.message);
 	switch (http_status) {
 	case UNKNOWN:

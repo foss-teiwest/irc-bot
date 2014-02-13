@@ -15,7 +15,7 @@
 
 /** HTTP status codes */
 enum http_codes {
-	UNKNOWN      = 0, 
+	UNKNOWN      = 0,
 	UNAUTHORIZED = 401,
 	FORBIDDEN    = 403
 };

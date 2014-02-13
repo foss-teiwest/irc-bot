@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <unistd.h>
-#include <string.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
@@ -14,14 +13,15 @@
 int sock_connect(const char *address, const char *port) {
 
 	int retval, sock = -1;
-	struct addrinfo addr_filter, *addr_holder, *addr_iterator;
+	struct addrinfo *addr_holder, *addr_iterator;
 
 	// Create filter for getaddrinfo()
-	memset(&addr_filter, 0, sizeof(addr_filter));
-	addr_filter.ai_family   = AF_UNSPEC;      // IPv4 or IPv6
-	addr_filter.ai_socktype = SOCK_STREAM;    // Stream socket
-	addr_filter.ai_protocol = IPPROTO_TCP;    // TCP protocol
-	addr_filter.ai_flags    = AI_NUMERICSERV; // Don't resolve service -> port, since we already provide it in numeric form
+	struct addrinfo addr_filter = {
+		.ai_family   = AF_UNSPEC,      // IPv4 or IPv6
+		.ai_socktype = SOCK_STREAM,    // Stream socket
+		.ai_protocol = IPPROTO_TCP,    // TCP protocol
+		.ai_flags    = AI_NUMERICSERV  // Don't resolve service -> port, since we already provide it in numeric form
+	};
 
 	// Return addresses according to the filter criteria
 	retval = getaddrinfo(address, port, &addr_filter, &addr_holder);
@@ -29,6 +29,7 @@ int sock_connect(const char *address, const char *port) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(retval));
 		return sock;
 	}
+
 	for (addr_iterator = addr_holder; addr_iterator; addr_iterator = addr_iterator->ai_next) {
 
 		sock = socket(addr_iterator->ai_family, addr_iterator->ai_socktype, addr_iterator->ai_protocol);
@@ -51,18 +52,21 @@ int sock_connect(const char *address, const char *port) {
 int sock_listen(const char *address, const char *port) {
 
 	int retval, sock = -1;
-	struct addrinfo addr_filter, *addr_holder, *addr_iterator;
+	struct addrinfo *addr_holder, *addr_iterator;
 
-	addr_filter.ai_family   = AF_UNSPEC;
-	addr_filter.ai_socktype = SOCK_STREAM;
-	addr_filter.ai_protocol = IPPROTO_TCP;
-	addr_filter.ai_flags    = AI_NUMERICSERV;
+	struct addrinfo addr_filter = {
+		.ai_family   = AF_UNSPEC,
+		.ai_socktype = SOCK_STREAM,
+		.ai_protocol = IPPROTO_TCP,
+		.ai_flags    = AI_NUMERICSERV
+	};
 
 	retval = getaddrinfo(address, port, &addr_filter, &addr_holder);
 	if (retval) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(retval));
 		return sock;
 	}
+
 	for (addr_iterator = addr_holder; addr_iterator; addr_iterator = addr_iterator->ai_next) {
 
 		sock = socket(addr_iterator->ai_family, addr_iterator->ai_socktype, addr_iterator->ai_protocol);

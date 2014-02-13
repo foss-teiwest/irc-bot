@@ -37,3 +37,4 @@ int accept_murmur_connection(int murm_listenfd);
 bool listen_murmur_callbacks(Irc server, int murm_acceptfd);
 
 #endif
+

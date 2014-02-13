@@ -41,7 +41,7 @@ void play(Irc server, Parsed_data pdata) {
 		prog = SCRIPTDIR "youtube2mp3.sh";
 	else
 		prog = SCRIPTDIR "mpd_search.sh";
-	
+
 	print_cmd_output(server, pdata.target, CMD(prog, cfg.mpd_database, pdata.message));
 }
 
@@ -108,7 +108,7 @@ void seek(Irc server, Parsed_data pdata) {
 	else if (argc == 1) {
 		print_cmd_output(server, pdata.target, CMD(SCRIPTDIR "mpd_seek.sh", argv[0]));
 		free(argv);
-	}	
+	}
 }
 
 void announce(Irc server, Parsed_data pdata) {
