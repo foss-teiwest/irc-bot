@@ -5,7 +5,6 @@
 #include <netdb.h>
 #include <fcntl.h>
 #include <errno.h>
-#include <assert.h>
 #include "socket.h"
 #include "common.h"
 

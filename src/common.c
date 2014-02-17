@@ -110,7 +110,7 @@ void *_realloc_w(void *buf, size_t size, const char *caller, const char *file, i
 	void *buffer;
 
 	buffer = realloc(buf, size);
-	if (!buffer)
+	if (!buffer) // Exit instead of returning the old memory back to the program
 		ALLOC_ERROR(caller, file, line);
 
 	return buffer;

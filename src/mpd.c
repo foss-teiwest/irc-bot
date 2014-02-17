@@ -47,7 +47,7 @@ void play(Irc server, Parsed_data pdata) {
 
 void current(Irc server, Parsed_data pdata) {
 
-	print_cmd_output_unsafe(server, pdata.target, "mpc current");
+	print_cmd_output_unsafe(server, pdata.target, "mpc | head -2");
 }
 
 void playlist(Irc server, Parsed_data pdata) {

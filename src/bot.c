@@ -138,7 +138,8 @@ void github(Irc server, Parsed_data pdata) {
 	for (i = 0; i < commit_count; i++) {
 		short_url = shorten_url(commits[i].url);
 		send_message(server, pdata.target, PURPLE "[%.7s]" RESET " %.120s" ORANGE " --%s" BLUE " - %s",
-			commits[i].sha, commits[i].msg, commits[i].name, (short_url ? short_url : ""));
+				commits[i].sha, commits[i].msg, commits[i].name, (short_url ? short_url : ""));
+
 		free(short_url);
 	}
 
@@ -245,8 +246,8 @@ void roll(Irc server, Parsed_data pdata) {
 
 void marker(Irc server, Parsed_data pdata) {
 
-	send_message(server, pdata.target, "%s", "tweet max length. URL's not accounted for:  -  -  -  -  -  60  -  - "
-			" -  -  -  80  -  -  -  -  -  -  100  -  -  -  -  -  120  -  -  -  -  -  140");
+	send_message(server, pdata.target, "%s", "tweet max length. URL's not accounted for:  -  -  -  -  -  60"
+			"  -  -  -  -  -  80  -  -  -  -  -  -  100  -  -  -  -  -  120  -  -  -  -  -  140");
 }
 
 STATIC bool user_in_twitter_access_list(const char *user) {

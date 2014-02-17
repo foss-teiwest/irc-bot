@@ -179,6 +179,7 @@ ssize_t parse_irc_line(Irc server) {
 		if (flist)
 			flist->function(server, pdata);
 	}
+
 	return n;
 }
 
@@ -194,6 +195,7 @@ int numeric_reply(Irc server, int reply) {
 		join_channel(server, NULL);
 		break;
 	}
+
 	return reply;
 }
 
