@@ -25,8 +25,9 @@ struct mpd_status_type {
 };
 
 /** Download video from youtube, convert it to mp3, feed it to mpd and start streaming in icecast.
- *  If there is no dot '.' on the argument, then a search will be performed.
- *  If there is a single result it will be added to queue, else up to 3 results will be printed */
+ *  If a youtube url is detected, download the video, convert it to mp3, feed it to mpd and start streaming in icecast.
+ *  If there are no arguments, queue up all local songs and play them in random mode
+ *  If a song name is entered a search will be performed. If it's a single result it will be added to queue, else up to 3 results will be printed */
 void play(Irc server, Parsed_data pdata);
 
 /** Auto announce songs as they play (on | off) */
@@ -49,9 +50,6 @@ void next(Irc server, Parsed_data pdata);
 
 /** Seek to an absolute (2:53) or relative (+-) time */
 void seek(Irc server, Parsed_data pdata);
-
-/** Queue up all songs and play them in random mode */
-void random_mode(Irc server, Parsed_data pdata);
 
 /** Connect to mpd daemon and verify the reply
  *

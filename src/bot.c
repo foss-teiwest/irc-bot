@@ -16,7 +16,7 @@
 void help(Irc server, Parsed_data pdata) {
 
 	send_message(server, pdata.target, "%s", "url, mumble, fail, github, ping, traceroute, dns, uptime, roll, tweet, marker");
-	send_message(server, pdata.target, "%s", "MPD: play, playlist, history, current, next, random, stop, seek, announce");
+	send_message(server, pdata.target, "%s", "MPD: play, playlist, history, current, next, stop, seek, announce");
 }
 
 void bot_fail(Irc server, Parsed_data pdata) {
@@ -244,17 +244,6 @@ void marker(Irc server, Parsed_data pdata) {
 
 	send_message(server, pdata.target, "%s", "tweet max length. URL's not accounted for:  -  -  -  -  -  60"
 			"  -  -  -  -  -  80  -  -  -  -  -  -  100  -  -  -  -  -  120  -  -  -  -  -  140");
-}
-
-STATIC bool user_in_access_list(const char *user) {
-
-	int i;
-
-	for (i = 0; i < cfg.access_list_count; i++)
-		if (streq(user, cfg.access_list[i]))
-			break;
-
-	return i != cfg.access_list_count;
 }
 
 void tweet(Irc server, Parsed_data pdata) {

@@ -29,7 +29,6 @@ struct function_list;
 "history", history
 "current", current
 "next", next
-"random", random_mode
 "stop", stop
 "roll", roll
 "seek", seek
