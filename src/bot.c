@@ -61,11 +61,7 @@ void url(Irc server, Parsed_data pdata) {
 		goto cleanup;
 
 	// Map shared memory for inter-process communication
-	short_url = mmap(NULL, ADDRLEN + 1, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-	if (short_url == MAP_FAILED) {
-		perror("mmap");
-		goto cleanup;
-	}
+	short_url = MMAP_W(ADDRLEN + 1);
 
 	switch (fork()) {
 	case -1:
@@ -250,12 +246,12 @@ void marker(Irc server, Parsed_data pdata) {
 			"  -  -  -  -  -  80  -  -  -  -  -  -  100  -  -  -  -  -  120  -  -  -  -  -  140");
 }
 
-STATIC bool user_in_twitter_access_list(const char *user) {
+STATIC bool user_in_access_list(const char *user) {
 
 	int i;
 
 	for (i = 0; i < cfg.access_list_count; i++)
-		if (streq(user, cfg.twitter_access_list[i]))
+		if (streq(user, cfg.access_list[i]))
 			break;
 
 	return i != cfg.access_list_count;
@@ -272,7 +268,7 @@ void tweet(Irc server, Parsed_data pdata) {
 		send_message(server, pdata.target, "%s", "twitter account details not set");
 		return;
 	}
-	if (!user_in_twitter_access_list(pdata.sender)) {
+	if (!user_in_access_list(pdata.sender)) {
 		send_message(server, pdata.target, "%s is not found in the access list", pdata.sender);
 		return;
 	}

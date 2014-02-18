@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <pthread.h>
 #include <fcntl.h>
 #include <stdarg.h>
 #include <errno.h>
@@ -31,6 +32,8 @@ struct irc_type {
 	int channels_set;
 	bool isConnected;
 };
+
+extern pthread_mutex_t *mtx;
 
 Irc irc_connect(const char *address, const char *port) {
 
@@ -69,12 +72,14 @@ bool user_is_identified(Irc server, const char *nick) {
 
 	int auth_level = 0;
 
+	pthread_mutex_lock(mtx);
 	send_message(server, "NickServ", "ACC %s", nick);
 	if (read(server->pipe[0], &auth_level, 4) != 4)
 		perror(__func__);
 
 	close(server->pipe[1]);
 	close(server->pipe[0]);
+	pthread_mutex_unlock(mtx);
 
 	return auth_level == 3;
 }

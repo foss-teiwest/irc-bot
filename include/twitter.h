@@ -7,7 +7,6 @@
  * The base64 and nonce functions are taken from liboauth (http://liboauth.sourceforge.net/)
  */
 
-#define MAXLIST  10
 #define DEFNONCE 32
 #define TWTLEN 2560
 #define TWTURL "https://api.twitter.com/1.1/statuses/update.json"

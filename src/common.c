@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <signal.h>
+#include <pthread.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <curl/curl.h>
@@ -15,6 +16,7 @@
 
 pid_t main_pid;
 yajl_val root;
+pthread_mutex_t *mtx;
 struct config_options cfg;
 struct mpd_status_type *mpd_status;
 
@@ -38,16 +40,24 @@ void initialize(int argc, char *argv[]) {
 	signal(SIGPIPE, SIG_IGN); // Handle writing on closed sockets on our own
 	curl_global_init(CURL_GLOBAL_ALL); // Initialize curl library
 
-	mpd_status = mmap(NULL, sizeof(*mpd_status), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-	if (mpd_status == MAP_FAILED)
-		perror("mmap");
+	// Set up a mutex that works across processes
+	mtx = MMAP_W(sizeof(pthread_mutex_t));
+	pthread_mutexattr_t mtx_attr;
+	pthread_mutexattr_init(&mtx_attr);
+	pthread_mutexattr_setpshared(&mtx_attr, PTHREAD_PROCESS_SHARED);
+	pthread_mutex_init(mtx, &mtx_attr);
+	pthread_mutexattr_destroy(&mtx_attr);
 
+	mpd_status = MMAP_W(sizeof(*mpd_status));
 	mpd_status->announce = OFF;
 	mpd_status->random = access(cfg.mpd_random_file, F_OK) ? OFF : ON;
 }
 
 void cleanup(void) {
 
+	pthread_mutex_destroy(mtx);
+	munmap(mtx, sizeof(pthread_mutex_t));
+	munmap(mpd_status, sizeof(*mpd_status));
 	yajl_tree_free(root);
 	curl_global_cleanup();
 }
@@ -111,6 +121,17 @@ void *_realloc_w(void *buf, size_t size, const char *caller, const char *file, i
 
 	buffer = realloc(buf, size);
 	if (!buffer) // Exit instead of returning the old memory back to the program
+		ALLOC_ERROR(caller, file, line);
+
+	return buffer;
+}
+
+void *_mmap_w(size_t size, const char *caller, const char *file, int line) {
+
+	void *buffer;
+
+	buffer = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+	if (buffer == MAP_FAILED)
 		ALLOC_ERROR(caller, file, line);
 
 	return buffer;
@@ -361,7 +382,7 @@ void parse_config(yajl_val root, const char *config_file) {
 	// Fill arrays
 	cfg.channels_set = get_json_array(root, "channels", cfg.channels, MAXCHANS);
 	cfg.quote_count = get_json_array(root, "fail_quotes", cfg.quotes, MAXQUOTES);
-	cfg.access_list_count = get_json_array(root, "twitter_access_list", cfg.twitter_access_list, MAXLIST);
+	cfg.access_list_count = get_json_array(root, "access_list", cfg.access_list, MAXACCLIST);
 }
 
 char *iso8859_7_to_utf8(char *iso) {

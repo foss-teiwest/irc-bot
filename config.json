@@ -33,8 +33,8 @@
 	"oauth_token":           "",
 	"oauth_token_secret":    "",
 
-	// Only nicknames on this list are authorized to use twitter commands
-	"twitter_access_list": [ ],
+	// Only nicknames on this list are authorized to use certain commands (like tweet)
+	"access_list": [ ],
 
 	// Multiline quote sentences must be seperated by the newline character (\n)
 	// Newline char is optional if the sentence is the last OR the only one from a quote

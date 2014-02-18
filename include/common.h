@@ -19,6 +19,7 @@
 #endif
 
 #define STARTSIZE   5
+#define MAXACCLIST  10
 #define MAXQUOTES   20
 #define PATHLEN     120
 #define EXIT_MSGLEN 128
@@ -48,8 +49,8 @@ struct config_options {
 	char *oauth_token;
 	char *oauth_token_secret;
 	char *twitter_profile_url;
-	char *twitter_access_list[MAXLIST];
 	bool twitter_details_set;
+	char *access_list[MAXACCLIST];
 	int access_list_count;
 	char *quotes[MAXQUOTES];
 	int quote_count;
@@ -65,12 +66,14 @@ extern struct config_options cfg; //!< global struct with config's values
 
 //@{
 /** Wrappers for allocating memory. Print the position on failure and exit. Will always return a valid pointer */
+#define MMAP_W(x) _mmap_w((x), __func__, __FILE__, __LINE__)
 #define MALLOC_W(x) _malloc_w((x), __func__, __FILE__, __LINE__)
 #define CALLOC_W(x) _calloc_w((x), __func__, __FILE__, __LINE__)
 #define REALLOC_W(x, y) _realloc_w((x), (y), __func__, __FILE__, __LINE__)
 #define ALLOC_ERROR(function, file, line)  exit_msg("Failed to allocate memory in %s() %s:%d", function, file, line);
 //@}
 
+void *_mmap_w(size_t size, const char *caller, const char *file, int line);
 void *_malloc_w(size_t size, const char *caller, const char *file, int line);
 void *_calloc_w(size_t size, const char *caller, const char *file, int line);
 void *_realloc_w(void *buf, size_t size, const char *caller, const char *file, int line);

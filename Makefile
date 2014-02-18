@@ -6,7 +6,7 @@ INCLDIR  = include
 SRCDIR   = src
 TESTDIR  = test
 CFLAGS   = -g -Wall -Wextra -std=c99 -pedantic
-LDLIBS   = -lcurl -lcrypto -lyajl
+LDLIBS   = -lcurl -lcrypto -lyajl -pthread
 CPPFLAGS = -D_GNU_SOURCE
 CFLAGS-TEST := $(CFLAGS)
 
