@@ -140,6 +140,9 @@ void print_cmd_output_unsafe(Irc server, const char *target, const char *cmd);
 /** Parse json config_file and update cfg global struct with the values read */
 void parse_config(yajl_val root, const char *config_file);
 
+/** Check if the user is in the access list specified in the config file */
+bool user_in_access_list(const char *user);
+
 /** Convert string's encoding from ISO 8859-7 to UTF-8
  *  @warning  Return value must be freed to avoid memory leak */
 char *iso8859_7_to_utf8(char *iso);

@@ -246,17 +246,6 @@ void marker(Irc server, Parsed_data pdata) {
 			"  -  -  -  -  -  80  -  -  -  -  -  -  100  -  -  -  -  -  120  -  -  -  -  -  140");
 }
 
-STATIC bool user_in_access_list(const char *user) {
-
-	int i;
-
-	for (i = 0; i < cfg.access_list_count; i++)
-		if (streq(user, cfg.access_list[i]))
-			break;
-
-	return i != cfg.access_list_count;
-}
-
 void tweet(Irc server, Parsed_data pdata) {
 
 	long http_status;

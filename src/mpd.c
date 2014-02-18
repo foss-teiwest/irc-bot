@@ -31,8 +31,15 @@ void play(Irc server, Parsed_data pdata) {
 
 	char *prog;
 
-	if (!pdata.message)
+	if (!pdata.message) {
+		if (mpd_status->random)
+			send_message(server, pdata.target, "%s", "already in random mode");
+		else {
+			mpd_status->random = ON;
+			print_cmd_output_unsafe(server, pdata.target, SCRIPTDIR "mpd_random.sh");
+		}
 		return;
+	}
 
 	mpd_announce(OFF);
 	mpd_status->random = OFF;
@@ -64,16 +71,6 @@ void history(Irc server, Parsed_data pdata) {
 	else {
 		snprintf(cmd, CMDLEN, "ls -t1 %s | head | tac |" REMOVE_EXTENSION, cfg.mpd_database);
 		print_cmd_output_unsafe(server, pdata.target, cmd);
-	}
-}
-
-void random_mode(Irc server, Parsed_data pdata) {
-
-	if (mpd_status->random)
-		send_message(server, pdata.target, "%s", "already in random mode");
-	else {
-		mpd_status->random = ON;
-		print_cmd_output_unsafe(server, pdata.target, SCRIPTDIR "mpd_random.sh");
 	}
 }
 
