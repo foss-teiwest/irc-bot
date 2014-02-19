@@ -8,7 +8,7 @@
 
 enum { IRC, MURM_LISTEN, MURM_ACCEPT, MPD, PFDS };
 
-int mpdfd;
+extern struct mpd_info *mpd;
 
 int main(int argc, char *argv[]) {
 
@@ -28,8 +28,8 @@ int main(int argc, char *argv[]) {
 	else
 		fprintf(stderr, "Could not connect to Murmur\n");
 
-	mpdfd = pfd[MPD].fd = mpd_connect(cfg.mpd_port);
-	if (mpdfd < 0)
+	mpd->fd = pfd[MPD].fd = mpd_connect(cfg.mpd_port);
+	if (mpd->fd < 0)
 		fprintf(stderr, "Could not connect to MPD\n");
 
 	// Connect to server and set IRC details
@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
 		}
 		if (pfd[MPD].revents & POLLIN)
 			if (!print_song(irc_server, default_channel(irc_server)))
-				pfd[MPD].fd = mpdfd = mpd_connect(cfg.mpd_port);
+				pfd[MPD].fd = mpd->fd = mpd_connect(cfg.mpd_port);
 	}
 	// If we reach here, it means we got disconnected from server. Exit with error (1)
 	if (ready == -1)

@@ -19,7 +19,8 @@
 /** Remove file extension. Works with multiple dots in file as well */
 #define REMOVE_EXTENSION "gawk -F. -v OFS=. '{NF--; print}'"
 
-struct mpd_status_type {
+struct mpd_info {
+	int fd;
 	bool random;
 	bool announce;
 };

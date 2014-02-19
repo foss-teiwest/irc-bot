@@ -10,20 +10,19 @@
 #include "mpd.h"
 #include "common.h"
 
-extern int mpdfd;
-extern struct mpd_status_type *mpd_status;
+extern struct mpd_info *mpd;
 
 STATIC bool mpd_announce(bool on) {
 
 	if (on) {
-		mpd_status->announce = ON;
-		return sock_write_non_blocking(mpdfd, "idle player\n", 12) == 12;
+		mpd->announce = ON;
+		return sock_write_non_blocking(mpd->fd, "idle player\n", 12) == 12;
 	} else {
-		if (!mpd_status->announce)
+		if (!mpd->announce)
 			return true;
 
-		mpd_status->announce = OFF;
-		return sock_write_non_blocking(mpdfd, "noidle\n", 7) == 7;
+		mpd->announce = OFF;
+		return sock_write_non_blocking(mpd->fd, "noidle\n", 7) == 7;
 	}
 }
 
@@ -32,17 +31,17 @@ void play(Irc server, Parsed_data pdata) {
 	char *prog;
 
 	if (!pdata.message) {
-		if (mpd_status->random)
+		if (mpd->random)
 			send_message(server, pdata.target, "%s", "already in random mode");
 		else {
-			mpd_status->random = ON;
+			mpd->random = ON;
 			print_cmd_output_unsafe(server, pdata.target, SCRIPTDIR "mpd_random.sh");
 		}
 		return;
 	}
 
 	mpd_announce(OFF);
-	mpd_status->random = OFF;
+	mpd->random = OFF;
 
 	if (strstr(pdata.message, "youtu"))
 		prog = SCRIPTDIR "youtube2mp3.sh";
@@ -66,7 +65,7 @@ void history(Irc server, Parsed_data pdata) {
 
 	char cmd[CMDLEN];
 
-	if (mpd_status->random)
+	if (mpd->random)
 		send_message(server, pdata.target, "%s", "history disabled in random mode");
 	else {
 		snprintf(cmd, CMDLEN, "ls -t1 %s | head | tac |" REMOVE_EXTENSION, cfg.mpd_database);
@@ -76,8 +75,8 @@ void history(Irc server, Parsed_data pdata) {
 
 void stop(Irc server, Parsed_data pdata) {
 
-	if (mpd_status->random) {
-		mpd_status->random = OFF;
+	if (mpd->random) {
+		mpd->random = OFF;
 		mpd_announce(OFF);
 		remove(cfg.mpd_random_file);
 	}
@@ -88,7 +87,7 @@ void stop(Irc server, Parsed_data pdata) {
 void next(Irc server, Parsed_data pdata) {
 
 	// TODO Only print the result to the one who send the command on channel / prive
-	if (mpd_status->announce)
+	if (mpd->announce)
 		print_cmd_output_unsafe(server, pdata.target, "mpc -q next");
 	else
 		print_cmd_output_unsafe(server, pdata.target, "mpc next | head -n1");
@@ -115,16 +114,16 @@ void announce(Irc server, Parsed_data pdata) {
 
 	(void) server; // Silence unused variable warning
 
-	if (!mpd_status->random)
+	if (!mpd->random)
 		return;
 
 	argc = extract_params(pdata.message, &argv);
 	if (!argc)
 		return;
 
-	if (starts_case_with(argv[0], "on") && !mpd_status->announce)
+	if (starts_case_with(argv[0], "on") && !mpd->announce)
 		mpd_announce(ON);
-	else if (starts_case_with(argv[0], "off") && mpd_status->announce)
+	else if (starts_case_with(argv[0], "off") && mpd->announce)
 		mpd_announce(OFF);
 
 	free(argv);
@@ -132,45 +131,45 @@ void announce(Irc server, Parsed_data pdata) {
 
 int mpd_connect(const char *port) {
 
-	int mpd;
+	int mpdfd;
 	char buf[64];
 
-	mpd = sock_connect(LOCALHOST, port);
-	if (mpd < 0)
+	mpdfd = sock_connect(LOCALHOST, port);
+	if (mpdfd < 0)
 		return -1;
 
-	if (sock_read(mpd, buf, sizeof(buf) - 1) <= 0)
+	if (sock_read(mpdfd, buf, sizeof(buf) - 1) <= 0)
 		goto cleanup;
 
 	if (!starts_with(buf, "OK"))
 		goto cleanup;
 
-	if (mpd_status->announce)
+	if (mpd->announce)
 		if (!mpd_announce(ON))
 			goto cleanup;
 
-	fcntl(mpd, F_SETFL, O_NONBLOCK);
-	return mpd; // Success
+	fcntl(mpdfd, F_SETFL, O_NONBLOCK);
+	return mpdfd; // Success
 
 cleanup:
-	close(mpd);
+	close(mpdfd);
 	return -1;
 }
 
 STATIC char *get_title(void) {
 
-	char *song_title, buf[SONG_INFO_LEN + 1];
-	struct pollfd pfd;
-	ssize_t n = 0;
 	int ready;
-
-	pfd.fd = mpdfd;
-	pfd.events = POLLIN;
+	ssize_t n = 0;
+	char *song_title, buf[SONG_INFO_LEN + 1];
+	struct pollfd pfd = {
+		.fd = mpd->fd,
+		.events = POLLIN
+	};
 
 	ready = poll(&pfd, 1, 4000);
 	if (ready == 1) {
 		if (pfd.revents & POLLIN) {
-			n = sock_read_non_blocking(mpdfd, buf, SONG_INFO_LEN);
+			n = sock_read_non_blocking(mpd->fd, buf, SONG_INFO_LEN);
 			if (n <= 0)
 				return NULL;
 		}
@@ -200,7 +199,7 @@ bool print_song(Irc server, const char *channel) {
 	static char old_song[SONG_TITLE_LEN];
 	char *song_title, buf[128 + 1];
 
-	if (sock_read_non_blocking(mpdfd, buf, 128) <= 0)
+	if (sock_read_non_blocking(mpd->fd, buf, 128) <= 0)
 		goto cleanup;
 
 	// Preserve the connection if "noidle" was issued
@@ -208,7 +207,7 @@ bool print_song(Irc server, const char *channel) {
 		return true;
 
 	// Ask for current song
-	if (sock_write_non_blocking(mpdfd, "currentsong\n", 12) < 0)
+	if (sock_write_non_blocking(mpd->fd, "currentsong\n", 12) < 0)
 		goto cleanup;
 
 	song_title = get_title();
@@ -226,6 +225,6 @@ bool print_song(Irc server, const char *channel) {
 		return true;
 
 cleanup:
-	close(mpdfd);
+	close(mpd->fd);
 	return false;
 }

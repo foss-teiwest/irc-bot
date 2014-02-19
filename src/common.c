@@ -14,25 +14,22 @@
 #include "twitter.h"
 #include "common.h"
 
-pid_t main_pid;
 yajl_val root;
+pid_t main_pid;
 pthread_mutex_t *mtx;
+struct mpd_info *mpd;
 struct config_options cfg;
-struct mpd_status_type *mpd_status;
 
 void initialize(int argc, char *argv[]) {
 
 	main_pid = getpid(); // store our process id to help exit_msg function exit appropriately
 
 	// Accept config path as an optional argument
-	if (argc > 2)
-		exit_msg("Usage: %s [path_to_config]\n", argv[0]);
-	else if (argc == 2)
-		parse_config(root, argv[1]);
-	else
+	if (argc == 1)
 		parse_config(root, DEFAULT_CONFIG_NAME);
+	else
+		parse_config(root, argv[1]);
 
-	cfg.twitter_details_set = false;
 	if (*cfg.oauth_consumer_key && *cfg.oauth_consumer_secret && *cfg.oauth_token && *cfg.oauth_token_secret)
 		cfg.twitter_details_set = true;
 
@@ -48,17 +45,17 @@ void initialize(int argc, char *argv[]) {
 	pthread_mutex_init(mtx, &mtx_attr);
 	pthread_mutexattr_destroy(&mtx_attr);
 
-	mpd_status = MMAP_W(sizeof(*mpd_status));
-	mpd_status->announce = OFF;
-	mpd_status->random = access(cfg.mpd_random_file, F_OK) ? OFF : ON;
+	mpd = MMAP_W(sizeof(*mpd));
+	if (!access(cfg.mpd_random_file, F_OK))
+		mpd->random = ON;
 }
 
 void cleanup(void) {
 
-	pthread_mutex_destroy(mtx);
-	munmap(mtx, sizeof(pthread_mutex_t));
-	munmap(mpd_status, sizeof(*mpd_status));
 	yajl_tree_free(root);
+	pthread_mutex_destroy(mtx);
+	munmap(mpd, sizeof(*mpd));
+	munmap(mtx, sizeof(pthread_mutex_t));
 	curl_global_cleanup();
 }
 
