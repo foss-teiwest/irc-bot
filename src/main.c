@@ -6,9 +6,10 @@
 #include "mpd.h"
 #include "common.h"
 
-enum { IRC, MURM_LISTEN, MURM_ACCEPT, MPD, PFDS };
+#define TIMEOUT 300000 // Timeout in milliseconds for the poll function
 
 extern struct mpd_info *mpd;
+enum { IRC, MURM_LISTEN, MURM_ACCEPT, MPD, PFDS };
 
 int main(int argc, char *argv[]) {
 

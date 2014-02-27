@@ -81,7 +81,7 @@ $(OUTDIR)/%.o: $(TESTDIR)/%.c
 
 # Generate .c files from the easier to write .check tests
 $(TESTDIR)/%.c: $(TESTDIR)/%.check
-	~/bin/checkmk $< >$@
+	checkmk $< >$@
 
 release: outdir $(OUTDIR)/$(PROGRAM) $(OUTDIR)/json_value
 

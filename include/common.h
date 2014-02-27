@@ -25,7 +25,6 @@
 #define EXIT_MSGLEN 128
 #define LINELEN     300
 #define CONFSIZE    4096
-#define TIMEOUT     300000 //!< Timeout in milliseconds for the poll function
 #define SCRIPTDIR  "scripts/" //!< default folder to look for scripts like the youtube one
 #define DEFAULT_CONFIG_NAME "config.json"
 
