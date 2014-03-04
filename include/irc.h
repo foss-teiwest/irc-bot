@@ -62,6 +62,9 @@ void set_nick(Irc server, const char *nick);
  *  Can only be set during server connection so it should only be called once */
 void set_user(Irc server, const char *user);
 
+/** Find out if the user is in config access list and has identified to the NickServ */
+bool user_has_access(Irc server, const char *nick);
+
 /**
  * Set channel but do not try to join if we are not connected yet
  *
@@ -112,9 +115,6 @@ void _irc_command(Irc server, const char *type, const char *target, const char *
 
 /** Close socket and free resources */
 void quit_server(Irc server, const char *msg);
-
-/** Find out if the user has identified to the NickServ */
-bool user_is_identified(Irc server, const char *nick);
 
 #endif
 

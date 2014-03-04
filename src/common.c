@@ -382,17 +382,6 @@ void parse_config(yajl_val root, const char *config_file) {
 	cfg.access_list_count = get_json_array(root, "access_list", cfg.access_list, MAXACCLIST);
 }
 
-bool user_in_access_list(const char *user) {
-
-	int i;
-
-	for (i = 0; i < cfg.access_list_count; i++)
-		if (streq(user, cfg.access_list[i]))
-			break;
-
-	return i != cfg.access_list_count;
-}
-
 char *iso8859_7_to_utf8(char *iso) {
 
 	unsigned char *uiso, *utf;

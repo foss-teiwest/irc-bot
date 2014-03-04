@@ -257,12 +257,8 @@ void tweet(Irc server, Parsed_data pdata) {
 		send_message(server, pdata.target, "%s", "twitter account details not set");
 		return;
 	}
-	if (!user_in_access_list(pdata.sender)) {
-		send_message(server, pdata.target, "%s is not found in the access list", pdata.sender);
-		return;
-	}
-	if (!user_is_identified(server, pdata.sender)) {
-		send_message(server, pdata.target, "%s is not identified to the NickServ", pdata.sender);
+	if (!user_has_access(server, pdata.sender)) {
+		send_message(server, pdata.target, "%s is not found in access list or identified to the NickServ", pdata.sender);
 		return;
 	}
 

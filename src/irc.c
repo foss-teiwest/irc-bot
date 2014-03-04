@@ -68,7 +68,18 @@ char *default_channel(Irc server) {
 	return server->channels[0];
 }
 
-bool user_is_identified(Irc server, const char *nick) {
+STATIC bool user_in_access_list(const char *nick) {
+
+	int i;
+
+	for (i = 0; i < cfg.access_list_count; i++)
+		if (streq(nick, cfg.access_list[i]))
+			break;
+
+	return i != cfg.access_list_count;
+}
+
+STATIC bool user_is_identified(Irc server, const char *nick) {
 
 	int auth_level = 0;
 
@@ -82,6 +93,14 @@ bool user_is_identified(Irc server, const char *nick) {
 	pthread_mutex_unlock(mtx);
 
 	return auth_level == 3;
+}
+
+bool user_has_access(Irc server, const char *nick) {
+
+	if (user_in_access_list(nick) && user_is_identified(server, nick))
+		return true;
+
+	return false;
 }
 
 void set_nick(Irc server, const char *nick) {
@@ -291,7 +310,7 @@ void irc_notice(Irc server, Parsed_data pdata) {
 		temp = cfg.verbose;
 		cfg.verbose = false;
 		send_message(server, pdata.sender, "identify %s", cfg.nick_password);
-		memset(cfg.nick_password, 0, strlen(cfg.nick_password));
+		memset(cfg.nick_password, '\0', strlen(cfg.nick_password));
 		cfg.verbose = temp;
 	}
 }
