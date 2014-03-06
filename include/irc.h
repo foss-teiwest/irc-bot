@@ -62,7 +62,8 @@ void set_nick(Irc server, const char *nick);
  *  Can only be set during server connection so it should only be called once */
 void set_user(Irc server, const char *user);
 
-/** Find out if the user is in config access list and has identified to the NickServ */
+/** Find out if the user is in config access list and has identified to the NickServ
+ *  @warning  Calling this function from the main proccess will return false without actually checking, in order to avoid deadlock */
 bool user_has_access(Irc server, const char *nick);
 
 /**

@@ -34,6 +34,7 @@ struct irc_type {
 };
 
 extern pthread_mutex_t *mtx;
+extern pid_t main_pid;
 
 Irc irc_connect(const char *address, const char *port) {
 
@@ -88,14 +89,18 @@ STATIC bool user_is_identified(Irc server, const char *nick) {
 	if (read(server->pipe[0], &auth_level, 4) != 4)
 		perror(__func__);
 
-	close(server->pipe[1]);
 	close(server->pipe[0]);
+	close(server->pipe[1]);
 	pthread_mutex_unlock(mtx);
 
 	return auth_level == 3;
 }
 
 bool user_has_access(Irc server, const char *nick) {
+
+	// Avoid deadlock
+	if (getpid() == main_pid)
+		return false;
 
 	if (user_in_access_list(nick) && user_is_identified(server, nick))
 		return true;
