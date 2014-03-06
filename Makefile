@@ -33,7 +33,6 @@ ifeq "$(MAKECMDGOALS)" "test"
 	LDLIBS   += -lcheck
 endif
 
-############################# Do not edit below this line #############################
 
 # Prepend output directory and add object extension on main program source files
 SRCFILES := $(shell ls $(SRCDIR))
@@ -44,9 +43,10 @@ SRCFILES-TEST := $(shell ls $(TESTDIR))
 OBJFILES-TEST := $(SRCFILES-TEST:.c=.o)
 OBJFILES-TEST := $(addprefix $(OUTDIR)/, $(OBJFILES-TEST))
 OBJFILES-TEST += $(OBJFILES)
-OBJFILES-TEST := $(filter-out %/main.o %.check, $(OBJFILES-TEST))
+OBJFILES-TEST := $(filter-out %/main.o %/test_check.h, $(OBJFILES-TEST))
 
 all: $(OUTDIR)/$(PROGRAM) $(OUTDIR)/json_value
+release: all
 
 # Build main program
 $(OUTDIR)/$(PROGRAM): $(OBJFILES)
@@ -63,11 +63,12 @@ $(OUTDIR)/%.o: $(SRCDIR)/%.c
 $(OUTDIR)/json_value: scripts/json_value.c
 	$(CC) $(LDFLAGS) $(CFLAGS) $< -o $@ -lyajl
 
+
 # Run test program and produce coverage stats in html
 test: $(OUTDIR)/$(PROGRAM)-test
 	./$<
-	lcov --capture --directory $(OUTDIR)/ --output-file $(OUTDIR)/coverage.info >/dev/null
-	genhtml $(OUTDIR)/coverage.info --output-directory $(OUTDIR)/lcov >/dev/null
+	# lcov --capture --directory $(OUTDIR)/ --output-file $(OUTDIR)/coverage.info >/dev/null
+	# genhtml $(OUTDIR)/coverage.info --output-directory $(OUTDIR)/lcov >/dev/null
 
 # Build test program
 $(OUTDIR)/$(PROGRAM)-test: $(OBJFILES-TEST)
@@ -76,16 +77,6 @@ $(OUTDIR)/$(PROGRAM)-test: $(OBJFILES-TEST)
 # Generic rule to build all source files needed for test
 $(OUTDIR)/%.o: $(TESTDIR)/%.c
 	$(CC) $(CFLAGS-TEST) -I$(INCLDIR) -c $< -o $@
-
-# Generate .c files from the easier to write .check tests
-$(TESTDIR)/%.c: $(TESTDIR)/%.check
-	checkmk $< >$@
-
-release: outdir $(OUTDIR)/$(PROGRAM) $(OUTDIR)/json_value
-
-# Create output directory
-outdir:
-	mkdir -p $(OUTDIR)
 
 doc:
 	doxygen Doxyfile

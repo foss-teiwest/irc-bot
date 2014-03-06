@@ -1,4 +1,2 @@
-bin/
-test/*.c
 cscope*
-*ycm_extra_conf*
+.ycm_extra_conf*
