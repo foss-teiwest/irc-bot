@@ -1,11 +1,11 @@
-#ifndef BOT_H
-#define BOT_H
+#ifndef COMMANDS_H
+#define COMMANDS_H
 
 #include "irc.h"
 #include "murmur.h"
 
 /**
- * @file bot.h
+ * @file commands.h
  * Data available to all bot functions through pdata structure:
  * sender: the one initiated the request
  * target: the channel or the query it was requested on

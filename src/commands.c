@@ -6,7 +6,7 @@
 #include <sys/mman.h>
 #include <time.h>
 #include <yajl/yajl_tree.h>
-#include "bot.h"
+#include "commands.h"
 #include "irc.h"
 #include "curl.h"
 #include "twitter.h"

@@ -2,7 +2,7 @@
 #define GPERF_H
 
 #include "irc.h"
-#include "bot.h"
+#include "commands.h"
 #include "mpd.h"
 #include "twitter.h"
 
