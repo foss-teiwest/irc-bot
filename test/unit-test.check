@@ -13,6 +13,7 @@
 
 struct irc_type {
 	int sock;
+	int pipe[2];
 	char line[IRCLEN + 1];
 	size_t line_offset;
 	char address[ADDRLEN];
@@ -24,19 +25,17 @@ struct irc_type {
 	bool isConnected;
 };
 
-pid_t main_pid = 500;
 Irc server;
+Parsed_data pdata;
 char test_buffer[IRCLEN + 1];
 int sock, status;
-Parsed_data pdata;
-int mpdfd = 5;
 
 ssize_t sock_readbyte(int sock, char *byte);
 size_t curl_write_memory(char *data, size_t size, size_t elements, void *membuf);
 
 void open_read(void) {
 
-	server = malloc_w(sizeof(*server));
+	server = MALLOC_W(sizeof(*server));
 	server->sock = open("test-files/input.txt", O_RDONLY);
 	if (server->sock < 0)
 		exit_msg("Failed to open file");
@@ -49,7 +48,7 @@ void close_read(void) {
 
 void open_write(void) {
 
-	server = malloc_w(sizeof(*server));
+	server = MALLOC_W(sizeof(*server));
 	server->sock = open("test-files/output.txt", O_RDWR);
 	if (server->sock < 0)
 		exit_msg("Failed to open file");
@@ -100,10 +99,10 @@ void close_write(void) {
 	while (sock_readline(server->sock, test_buffer, IRCLEN) > 0)
 		strcat(test_buffer2, test_buffer);
 
-	ck_assert_str_eq("lol\r\ntroll\r\n", test_buffer2);
+	ck_assert_str_eq("loltroll", test_buffer2);
 
 //#test parseline
-//
+
 //	ck_assert_int_eq(parse_irc_line(server), 0);
 //	lseek(server->sock, 0, SEEK_SET);
 //	ck_assert_int_eq(parse_irc_line(server), 5);
@@ -146,7 +145,7 @@ void close_write(void) {
 	pdata.message = &msg[20];
 
 	irc_privmsg(server, pdata);
-	if (memcmp(msg, "freestyl3r\0PRIVMSG\0freestylerbot\0:!bot\0lol re", sizeof(msg)))
+	if (strcmp(msg, "freestyl3r"))
 		ck_abort_msg("privemsg parsing failed");
 
 #test numeric_replies
@@ -182,7 +181,7 @@ void close_write(void) {
 
 #test parameter_extraction
 
-	char msg[] = " 	trolol  re noob  	\r\n";
+	char msg[] = " 	trolol  re noob  	";
 	char **argv;
 	int argc;
 
@@ -207,8 +206,8 @@ void close_write(void) {
 
 #test titleurl
 
-	char *url_title = get_url_title("https://www.archlinux.org/");
-	ck_assert_str_eq(url_title, "Arch Linux");
+	char *url_title = get_url_title("https://www.ntua.gr/");
+	ck_assert_str_eq(url_title, "ΕΘΝΙΚΟ ΜΕΤΣΟΒΙΟ ΠΟΛΥΤΕΧΝΕΙΟ");
 
 #test github_commits
 
@@ -216,7 +215,7 @@ void close_write(void) {
 	yajl_val root = NULL;
 	int n = 10;
 
-	commits = fetch_github_commits("foss-teimes/irc-bot", &n, root);
+	commits = fetch_github_commits(&root, "foss-teimes/irc-bot", &n);
 
 	ck_assert_str_eq(commits[0].sha,  "de7579c08e35f232af4938dc7dc325b9809d63bf");
 	ck_assert_str_eq(commits[0].name, "Bill Kolokithas");
@@ -232,7 +231,7 @@ void close_write(void) {
 #test cmd_command
 
 	char buf[IRCLEN];
-	server = malloc_w(sizeof(*server));
+	server = MALLOC_W(sizeof(*server));
 	server->sock = open("test-files/cmd_output.txt", O_RDWR | O_CREAT, 0755);
 	if (server->sock < 0)
 		exit_msg("Failed to open file");
@@ -249,7 +248,7 @@ void close_write(void) {
 #test channels_joined
 
 	int i;
-	server = malloc_w(sizeof(*server));
+	server = MALLOC_W(sizeof(*server));
 	server->sock = open("test-files/channels.txt", O_RDWR | O_CREAT | O_TRUNC, 0755);
 	if (server->sock < 0)
 		exit_msg("Failed to open file");
@@ -263,7 +262,7 @@ void close_write(void) {
 	lseek(server->sock, 0, SEEK_SET);
 
 	sock_readline(server->sock, test_buffer, IRCLEN);
-	test_buffer[strlen(test_buffer) - 2] = '\0';
+	test_buffer[strlen(test_buffer)] = '\0';
 
 	ck_assert_str_eq(test_buffer, "JOIN #foss-teimes");
 

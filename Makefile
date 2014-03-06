@@ -37,14 +37,12 @@ endif
 
 # Prepend output directory and add object extension on main program source files
 SRCFILES := $(shell ls $(SRCDIR))
-TMPFILES  = $(SRCFILES:.c=.o)
-OBJFILES  = $(addprefix $(OUTDIR)/, $(TMPFILES))
+OBJFILES := $(SRCFILES:.c=.o)
+OBJFILES := $(addprefix $(OUTDIR)/, $(OBJFILES))
 
-# Do the same for the test program but don't link main.c or .check files
-# Check framework provides it's own main() function.
 SRCFILES-TEST := $(shell ls $(TESTDIR))
-TMPFILES-TEST  = $(SRCFILES-TEST:.c=.o)
-OBJFILES-TEST  = $(addprefix $(OUTDIR)/, $(TMPFILES-TEST))
+OBJFILES-TEST := $(SRCFILES-TEST:.c=.o)
+OBJFILES-TEST := $(addprefix $(OUTDIR)/, $(OBJFILES-TEST))
 OBJFILES-TEST += $(OBJFILES)
 OBJFILES-TEST := $(filter-out %/main.o %.check, $(OBJFILES-TEST))
 
@@ -54,7 +52,7 @@ all: $(OUTDIR)/$(PROGRAM) $(OUTDIR)/json_value
 $(OUTDIR)/$(PROGRAM): $(OBJFILES)
 	$(CC) $(LDFLAGS) $^ -o $@ $(LDLIBS)
 
-# Build a lookup table to quickly match string commands -> function pointers
+# Build a lookup table to quickly match strings -> bot commands
 $(SRCDIR)/gperf.c: $(INCLDIR)/gperf-input.txt
 	gperf $< >$@
 
@@ -68,8 +66,8 @@ $(OUTDIR)/json_value: scripts/json_value.c
 # Run test program and produce coverage stats in html
 test: $(OUTDIR)/$(PROGRAM)-test
 	./$<
-	# lcov --capture --directory $(OUTDIR)/ --output-file $(OUTDIR)/coverage.info >/dev/null
-	# genhtml $(OUTDIR)/coverage.info --output-directory $(OUTDIR)/lcov >/dev/null
+	lcov --capture --directory $(OUTDIR)/ --output-file $(OUTDIR)/coverage.info >/dev/null
+	genhtml $(OUTDIR)/coverage.info --output-directory $(OUTDIR)/lcov >/dev/null
 
 # Build test program
 $(OUTDIR)/$(PROGRAM)-test: $(OBJFILES-TEST)
