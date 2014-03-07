@@ -7,7 +7,7 @@
 
 ssize_t sock_readbyte(int sock, char *byte);
 
-extern int fd[2];
+extern int mock[2];
 char test_buffer[IRCLEN + 1];
 
 
@@ -34,8 +34,8 @@ START_TEST(socket_readbytes) {
 	char c;
 	const char *msg = "lol\r\ntroll\r\n";
 
-	mock_write(fd, msg, strlen(msg));
-	for (i = 0; sock_readbyte(fd[READ], &c) > 0; i++)
+	mock_write(msg, strlen(msg));
+	for (i = 0; sock_readbyte(mock[READ], &c) > 0; i++)
 		test_buffer[i] = c;
 
 	test_buffer[i] = '\0';
@@ -49,11 +49,11 @@ START_TEST(socket_readline) {
 	char buffer[IRCLEN + 1] = { 0 };
 	const char *msg = "lol\r\ntroll\r\n";
 
-	mock_write(fd, msg, strlen(msg));
-	while (sock_readline(fd[READ], buffer, IRCLEN) > 0)
-		strcat(test_buffer, buffer);
+	mock_write(msg, strlen(msg));
+	while (sock_readline(mock[READ], test_buffer, IRCLEN) > 0)
+		strcat(buffer, test_buffer);
 
-	ck_assert_str_eq("loltroll", test_buffer);
+	ck_assert_str_eq("loltroll", buffer);
 
 } END_TEST
 
@@ -69,7 +69,7 @@ Suite *socket_suite(void) {
 	tcase_add_test(core, irc_connection);
 
 	suite_add_tcase(suite, sread);
-	tcase_add_checked_fixture(sread, socketpair_open, socketpair_close);
+	tcase_add_checked_fixture(sread, mock_start, mock_stop);
 	tcase_add_test(sread, socket_readbytes);
 	tcase_add_test(sread, socket_readline);
 

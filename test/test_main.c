@@ -12,6 +12,7 @@ int main(void) {
 	tests_failed = srunner_ntests_failed(sr);
 	srunner_free(sr);
 
-	return tests_failed ? 1 : 0;
+	// 0 or 1 only
+	return !!tests_failed;
 }
 

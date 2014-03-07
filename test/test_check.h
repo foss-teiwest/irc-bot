@@ -6,9 +6,9 @@
 #define READ  0
 #define WRITE 1
 
-void socketpair_open(void);
-void socketpair_close(void);
-void mock_write(int fd[2], const void *buffer, size_t len);
+void mock_start(void);
+void mock_stop(void);
+void mock_write(const void *buffer, size_t len);
 Suite *socket_suite(void);
 
 #endif

@@ -4,32 +4,32 @@
 #include <sys/socket.h>
 #include "test_check.h"
 
-int fd[2];
+int mock[2];
 
-void socketpair_open(void) {
+void mock_start(void) {
 
-	if (socketpair(AF_UNIX, SOCK_STREAM, 0, fd))
+	if (socketpair(AF_UNIX, SOCK_STREAM, 0, mock))
 		ck_abort_msg("socketpair failed");
 }
 
-void socketpair_close(void) {
+void mock_stop(void) {
 
-	close(fd[READ]);
+	close(mock[READ]);
 }
 
-void mock_write(int fd[2], const void *buffer, size_t len) {
+void mock_write(const void *buffer, size_t len) {
 
 	switch(fork()) {
 	case -1:
 		ck_abort_msg("fork failed");
 	case 0:
-		close(fd[READ]);
-		if (write(fd[WRITE], buffer, len) != (int) len)
+		close(mock[READ]);
+		if (write(mock[WRITE], buffer, len) != (int) len)
 			ck_abort_msg("write failed");
 
-		close(fd[WRITE]);
+		close(mock[WRITE]);
 		_exit(0);
 	}
-	close(fd[WRITE]);
+	close(mock[WRITE]);
 }
 
