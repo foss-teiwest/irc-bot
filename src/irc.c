@@ -41,7 +41,7 @@ Irc irc_connect(const char *address, const char *port) {
 	Irc server = CALLOC_W(sizeof(*server));
 
 	// Minimum validity checks
-	if (!strchr(address, '.') || atoi(port) > 65535)
+	if (!strchr(address, '.') || atoi(port) > MAXPORT)
 		return NULL;
 
 	server->sock = sock_connect(address, port);

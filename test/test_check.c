@@ -15,21 +15,6 @@ void mock_start(void) {
 void mock_stop(void) {
 
 	close(mock[READ]);
-}
-
-void mock_write(const void *buffer, size_t len) {
-
-	switch(fork()) {
-	case -1:
-		ck_abort_msg("fork failed");
-	case 0:
-		close(mock[READ]);
-		if (write(mock[WRITE], buffer, len) != (int) len)
-			ck_abort_msg("write failed");
-
-		close(mock[WRITE]);
-		_exit(0);
-	}
 	close(mock[WRITE]);
 }
 

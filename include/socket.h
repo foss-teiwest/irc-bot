@@ -9,9 +9,10 @@
  * Contains low level read & write operations
  */
 
-#define IRCLEN   512
 #define BLOCK    0
 #define NONBLOCK 1
+#define IRCLEN   512
+#define MAXPORT  65535
 #define LOCALHOST "127.0.0.1"
 
 /**

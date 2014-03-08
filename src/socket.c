@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -22,11 +23,14 @@ int sock_connect(const char *address, const char *port) {
 		.ai_flags    = AI_NUMERICSERV  // Don't resolve service -> port, since we already provide it in numeric form
 	};
 
+	if (atoi(port) > MAXPORT)
+		return -1;
+
 	// Return addresses according to the filter criteria
 	retval = getaddrinfo(address, port, &addr_filter, &addr_holder);
 	if (retval) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(retval));
-		return sock;
+		return -1;
 	}
 
 	for (addr_iterator = addr_holder; addr_iterator; addr_iterator = addr_iterator->ai_next) {
@@ -60,10 +64,13 @@ int sock_listen(const char *address, const char *port) {
 		.ai_flags    = AI_NUMERICSERV
 	};
 
+	if (atoi(port) > MAXPORT)
+		return -1;
+
 	retval = getaddrinfo(address, port, &addr_filter, &addr_holder);
 	if (retval) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(retval));
-		return sock;
+		return -1;
 	}
 
 	for (addr_iterator = addr_holder; addr_iterator; addr_iterator = addr_iterator->ai_next) {
