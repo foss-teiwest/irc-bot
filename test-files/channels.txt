@@ -1,6 +1,0 @@
-JOIN #foss-teimes
-JOIN #trolltown
-JOIN #noobs
-JOIN #foss-teimes
-JOIN #trolltown
-JOIN #noobs

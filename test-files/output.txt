@@ -1,4 +1,0 @@
-roflNICK trololol
-USER trololol 0 * :trololol
-NICK _
-QUIT  :bye

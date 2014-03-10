@@ -10,6 +10,7 @@ void mock_start(void);
 void mock_stop(void);
 void mock_write(const void *buffer, size_t len);
 Suite *socket_suite(void);
+Suite *irc_suite(void);
 
 #endif
 

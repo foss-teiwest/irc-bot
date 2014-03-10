@@ -6,7 +6,7 @@ int main(void) {
 	int tests_failed;
 
 	SRunner *sr = srunner_create(socket_suite());
-	// srunner_add_suite(sr, );
+	srunner_add_suite(sr, irc_suite());
 
 	srunner_run_all(sr, CK_ENV);
 	tests_failed = srunner_ntests_failed(sr);

@@ -9,7 +9,6 @@
  * Contains low level read & write operations
  */
 
-#define BLOCK    0
 #define NONBLOCK 1
 #define IRCLEN   512
 #define MAXPORT  65535
@@ -76,7 +75,7 @@ ssize_t sock_read_non_blocking(int sock, void *buffer, size_t len);
  * @warning NOT thread safe. Mantains it's own buffer internally to avoid calling single byte read's()
  *
  * @param sock         Non blocking socket
- * @param line_buffer  Buffer to store the line (\r\n not included)
+ * @param line_buffer  Buffer to store the line
  * @param len          Will fill the buffer up to len bytes
  * @returns            On success: line length, -1 on error and -EAGAIN if the operation would block
  */

@@ -33,7 +33,7 @@
 
 #include "gperf.h"
 #line 13 "include/gperf-input.txt"
-struct function_list;
+struct command_list;
 #include <string.h>
 
 #define TOTAL_KEYWORDS 23
@@ -136,10 +136,10 @@ __inline
 __attribute__ ((__gnu_inline__))
 #endif
 #endif
-const struct function_list *
-function_lookup (register const char *str, register unsigned int len)
+const struct command_list *
+command_lookup (register const char *str, register unsigned int len)
 {
-  static const struct function_list wordlist[] =
+  static const struct command_list wordlist[] =
     {
 #line 21 "include/gperf-input.txt"
       {"url", url},
@@ -195,7 +195,7 @@ function_lookup (register const char *str, register unsigned int len)
 
       if (key <= MAX_HASH_VALUE && key >= MIN_HASH_VALUE)
         {
-          register const struct function_list *resword;
+          register const struct command_list *resword;
 
           switch (key - 3)
             {
@@ -364,7 +364,7 @@ function_lookup (register const char *str, register unsigned int len)
           return 0;
         compare:
           {
-            register const char *s = resword->command;
+            register const char *s = resword->name;
 
             if ((((unsigned char)*str ^ (unsigned char)*s) & ~32) == 0 && !gperf_case_memcmp (str, s, len))
               return resword;

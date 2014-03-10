@@ -128,13 +128,13 @@ void set_user(Irc server, const char *user) {
 
 int join_channel(Irc server, const char *channel) {
 
-	int i = 0;
+	int i;
 
 	if (channel) {
 		assert(channel[0] == '#' && "Missing # in channel");
 		if (server->channels_set == MAXCHANS) {
 			fprintf(stderr, "Channel limit reached (%d)\n", MAXCHANS);
-			return -1;
+			return 0;
 		}
 		strncpy(server->channels[server->channels_set++], channel, CHANLEN);
 		if (server->isConnected)
@@ -143,6 +143,7 @@ int join_channel(Irc server, const char *channel) {
 		return 1;
 	}
 
+	i = 0;
 	if (server->isConnected)
 		while (i < server->channels_set)
 			irc_channel_command(server, server->channels[i++]);
@@ -153,7 +154,7 @@ int join_channel(Irc server, const char *channel) {
 ssize_t parse_irc_line(Irc server) {
 
 	Parsed_data pdata;
-	Function_list flist;
+	Command command;
 	int reply;
 	ssize_t n;
 
@@ -166,13 +167,13 @@ ssize_t parse_irc_line(Irc server) {
 		server->line_offset = strlen(server->line);
 		return n;
 	}
-	server->line_offset = 0; // Clear offset if the read was successful
+	server->line_offset = 0;    // Clear offset if the read was successful
+	server->line[n - 2] = '\0'; // Remove IRC protocol terminators \r\n
 
 	if (cfg.verbose)
 		puts(server->line);
 
 	// Check for server ping request. Example: "PING :wolfe.freenode.net"
-	// If we match PING then change the 2nd char to 'O' and terminate the argument before sending back
 	if (starts_with(server->line, "PING")) {
 		irc_ping_command(server, server->line + 5);
 		return n;
@@ -204,9 +205,9 @@ ssize_t parse_irc_line(Irc server) {
 		numeric_reply(server, reply);
 	else {
 		// Find & launch any functions registered to IRC commands
-		flist = function_lookup(pdata.command, strlen(pdata.command));
-		if (flist)
-			flist->function(server, pdata);
+		command = command_lookup(pdata.command, strlen(pdata.command));
+		if (command)
+			command->function(server, pdata);
 	}
 
 	return n;
@@ -230,7 +231,7 @@ int numeric_reply(Irc server, int reply) {
 
 void irc_privmsg(Irc server, Parsed_data pdata) {
 
-	Function_list flist;
+	Command command;
 
 	// Discard hostname from nickname. "laxanofido!~laxanofid@snf-23545.vm.okeanos.grnet.gr" becomes "laxanofido"
 	if (!null_terminate(pdata.sender, '!'))
@@ -260,14 +261,14 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 		pdata.command++; // Skip leading '!' before passing the command
 
 		// Query our hash table for any functions registered to BOT commands
-		flist = function_lookup(pdata.command, strlen(pdata.command));
-		if (!flist)
+		command = command_lookup(pdata.command, strlen(pdata.command));
+		if (!command)
 			return;
 
 		// Launch the function in a new process
 		switch (fork()) {
 		case 0:
-			flist->function(server, pdata);
+			command->function(server, pdata);
 			_exit(EXIT_SUCCESS);
 		case -1:
 			perror("fork");

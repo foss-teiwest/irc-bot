@@ -13,19 +13,20 @@
 
 typedef void (*func_ptr)(Irc, Parsed_data);
 
-/** Key / value pair for a hash table */
-typedef const struct function_list {
-	char *command; //!< String containing the command
-	func_ptr function; //!< Function pointer to corresponding function
-} *Function_list;
+/** Key / value pair */
+typedef const struct command_list {
+	char *name;        //!< String containing the command
+	func_ptr function; //!< Function pointer to corresponding command
+} *Command;
 
 /**
- * Query the hash table
+ * Query the lookup table
  *
  * @param str  String containing a command to search for
  * @param len  String's len
- * @returns a pointer to the struct that matched "str" or NULL for no match.
+ * @returns    Pointer to the struct that matched "str" or NULL for no match.
  */
-const struct function_list *function_lookup (register const char *str, register unsigned int len);
+const struct command_list *command_lookup(register const char *str, register unsigned int len);
 
 #endif
+

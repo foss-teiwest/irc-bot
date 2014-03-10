@@ -216,6 +216,6 @@ ssize_t sock_readline(int sock, char *line_buf, size_t len) {
 		if (byte == '\n' && *(line_buf - 2) == '\r')
 			break; // Message complete, we found irc protocol terminators
 	}
-	*(line_buf - 2) = '\0';
+	*line_buf = '\0';
 	return n_read;
 }

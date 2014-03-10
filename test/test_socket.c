@@ -1,9 +1,12 @@
 #include <check.h>
 #include <string.h>
 #include <unistd.h>
+#include <signal.h>
+#include <errno.h>
+#include <fcntl.h>
+#include "test_check.h"
 #include "socket.h"
 #include "irc.h"
-#include "test_check.h"
 
 ssize_t sock_readbyte(int sock, char *byte);
 
@@ -33,30 +36,33 @@ START_TEST(socket_accept) {
 	int listenfd = sock_listen(LOCALHOST, "12345");
 	int fd, acceptfd;
 
-	switch(fork()) {
-	case -1:
-		ck_abort_msg("fork failed");
-	case 0:
+	if (fork() == 0) {
+		fd = sock_connect(LOCALHOST, "12345");
+		ck_assert_int_gt(fd, 0);
 		fd = sock_connect(LOCALHOST, "12345");
 		ck_assert_int_gt(fd, 0);
 		_exit(0);
 	}
-	acceptfd = sock_accept(listenfd, BLOCK);
+	acceptfd = sock_accept(listenfd, 0);
 	ck_assert_int_gt(acceptfd, 0);
+	ck_assert_int_eq(fcntl(acceptfd, F_GETFL, 0) & O_NONBLOCK, 0);
+
+	acceptfd = sock_accept(listenfd, NONBLOCK);
+	ck_assert_int_gt(acceptfd, 0);
+	ck_assert_int_ne(fcntl(acceptfd, F_GETFL, 0) & O_NONBLOCK, 0);
 
 } END_TEST
 
 
 START_TEST(socket_write) {
 
-	char buf[65] = {0};
 	const char *msg = "rofl";
 	ssize_t sent, received;
 
 	sent = sock_write(mock[WRITE], msg, strlen(msg));
-	received = read(mock[READ], buf, 64);
+	received = read(mock[READ], test_buffer, IRCLEN);
 	ck_assert_int_eq(sent, received);
-	ck_assert_str_eq(msg, buf);
+	ck_assert_str_eq(msg, test_buffer);
 
 	sent = sock_write(mock[WRITE], msg, 0);
 	ck_assert_int_eq(sent, 0);
@@ -136,18 +142,63 @@ START_TEST(socket_readbytes) {
 } END_TEST
 
 
-START_TEST(socket_readline) {
+START_TEST(socket_readline_blocking) {
 
-	char buffer[IRCLEN + 1] = {0};
-	const char *msg = "lol\r\ntroll\r\n";
+	const char *msg = "lol";
 
 	sock_write(mock[WRITE], msg, strlen(msg));
-	close(mock[WRITE]);
+	alarm(1);
+	sock_readline(mock[READ], test_buffer, IRCLEN);
+	alarm(0);
+	ck_abort();
 
-	while (sock_readline(mock[READ], test_buffer, IRCLEN) > 0)
-		strcat(buffer, test_buffer);
+} END_TEST
 
-	ck_assert_str_eq("loltroll", buffer);
+
+START_TEST(socket_readline_blocking2) {
+
+	const char *msg = "lol\r\n";
+
+	sock_write(mock[WRITE], msg, strlen(msg));
+	ssize_t n = sock_readline(mock[READ], test_buffer, IRCLEN);
+	ck_assert_int_eq(n, 5);
+
+} END_TEST
+
+
+START_TEST(socket_readline_non_blocking) {
+
+	const char *msg = "yo\r\n";
+
+	fcntl(mock[WRITE], F_SETFL, O_NONBLOCK);
+	sock_write(mock[WRITE], msg, strlen(msg));
+	ssize_t n = sock_readline(mock[READ], test_buffer, IRCLEN);
+	ck_assert_int_eq(n, 4);
+
+} END_TEST
+
+
+START_TEST(socket_readline_non_blocking2) {
+
+	const char *msg = "yo";
+	ssize_t n;
+	size_t offset;
+
+	fcntl(mock[READ], F_SETFL, O_NONBLOCK);
+	sock_write(mock[WRITE], msg, strlen(msg));
+	n = sock_readline(mock[READ], test_buffer, IRCLEN);
+	ck_assert_int_eq(n, -EAGAIN);
+
+	msg = "\r\nhey\r\n";
+	sock_write(mock[WRITE], msg, strlen(msg));
+	offset = strlen(test_buffer);
+	n = sock_readline(mock[READ], test_buffer + offset, IRCLEN);
+	ck_assert_int_eq(n, 2);
+	ck_assert_str_eq(test_buffer, "yo\r\n");
+
+	n = sock_readline(mock[READ], test_buffer, IRCLEN);
+	ck_assert_int_eq(n, 5);
+	ck_assert_str_eq(test_buffer, "hey\r\n");
 
 } END_TEST
 
@@ -156,21 +207,24 @@ Suite *socket_suite(void) {
 
 	Suite *suite = suite_create("sockets");
 	TCase *core  = tcase_create("core");
-	TCase *sread = tcase_create("socket IO");
+	TCase *sockIO = tcase_create("socket IO");
 
 	suite_add_tcase(suite, core);
 	tcase_add_test(core, socket_connect);
 	tcase_add_test(core, socket_listen);
 	tcase_add_test(core, socket_accept);
 
-	suite_add_tcase(suite, sread);
-	tcase_add_checked_fixture(sread, mock_start, mock_stop);
-	tcase_add_test(sread, socket_write);
-	tcase_add_test(sread, socket_write_non_blocking);
-	tcase_add_test(sread, socket_read);
-	tcase_add_test(sread, socket_read_non_blocking);
-	tcase_add_test(sread, socket_readbytes);
-	tcase_add_test(sread, socket_readline);
+	suite_add_tcase(suite, sockIO);
+	tcase_add_checked_fixture(sockIO, mock_start, mock_stop);
+	tcase_add_test(sockIO, socket_write);
+	tcase_add_test(sockIO, socket_write_non_blocking);
+	tcase_add_test(sockIO, socket_read);
+	tcase_add_test(sockIO, socket_read_non_blocking);
+	tcase_add_test(sockIO, socket_readbytes);
+	tcase_add_test_raise_signal(sockIO, socket_readline_blocking, SIGKILL);
+	tcase_add_test(sockIO, socket_readline_blocking2);
+	tcase_add_test(sockIO, socket_readline_non_blocking);
+	tcase_add_test(sockIO, socket_readline_non_blocking2);
 
 	return suite;
 }

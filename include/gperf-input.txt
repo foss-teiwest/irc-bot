@@ -8,9 +8,9 @@
 %readonly-tables
 %struct-type
 %ignore-case
-%define slot-name command
-%define lookup-function-name function_lookup
-struct function_list;
+%define slot-name name
+%define lookup-function-name command_lookup
+struct command_list;
 %%
 "PRIVMSG", irc_privmsg
 "NOTICE", irc_notice
