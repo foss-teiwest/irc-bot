@@ -31,7 +31,7 @@ void bot_fail(Irc server, Parsed_data pdata) {
 	// Make sure the seed is different even if we call the command twice in a second
 	srand(time(NULL) + getpid());
 	r      = rand() % cfg.quote_count;
-	clr_r  = rand() % COLORCOUNT;
+	clr_r  = (rand() % COLORCOUNT) + 2;
 	maxlen = strlen(cfg.quotes[r]);
 
 	// Pick a random entry from the read-only quotes array and print it.

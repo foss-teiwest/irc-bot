@@ -34,10 +34,16 @@ void disconnect_irc(void) {
 	quit_server(server, "bye");
 }
 
-void mock_irc_core_start(void) {
+void mock_irc_write(void) {
 
 	mock_start();
 	server->sock = mock[WRITE];
+}
+
+void mock_irc_read(void) {
+
+	mock_start();
+	server->sock = mock[READ];
 }
 
 START_TEST(irc_connection) {
@@ -127,26 +133,57 @@ START_TEST(irc_parse_line_ping) {
 
 	const char *msg = "hm\r\n";
 
-	write(mock[READ], msg, strlen(msg));
-	ck_assert_int_eq(parse_irc_line(server), strlen(msg));
+	write(mock[WRITE], msg, strlen(msg));
+	ck_assert_int_eq(parse_irc_line(server), strlen(msg) - 2);
 
 	msg = "PING :wolfe.freenode.net\r\n";
-	write(mock[READ], msg, strlen(msg));
+	write(mock[WRITE], msg, strlen(msg));
 	parse_irc_line(server);
-	read(mock[READ], test_buffer, IRCLEN);
+	read(mock[WRITE], test_buffer, IRCLEN);
 	ck_assert_str_eq(test_buffer, "PONG :wolfe.freenode.net\r\n");
 
 } END_TEST
 
 
+START_TEST(irc_parse_line_tokens) {
+
+	const char *msg = ":laxanofido!~laxanofid@snf-23545.vm.okeanos.grnet.gr PRIVMSG1 #foss-teimes :How YA doing fossbot\r\n";
+
+	int len = strlen(msg);
+	write(mock[WRITE], msg, len);
+	ck_assert_int_eq(parse_irc_line(server), len - 2);
+
+	msg = ":laxanofido!~laxanofid@snf-23545.vm.okeanos.grnet.gr\0PRIVMSG1\0#foss-teimes :How YA doing fossbot";
+	if (memcmp(server->line, msg, len - 2))
+		ck_abort();
+
+} END_TEST
+
+
+START_TEST(irc_privemsg) {
+
+	Parsed_data pdata;
+	char msg[] = "freestyl3r!~laxanofid@snf-23545.vm.okeanos.grnet.gr\0PRIVMSG\0freestylerbot :!bot lol re";
+
+	pdata.sender  = &msg[0];
+	pdata.command = &msg[52];
+	pdata.message = &msg[60];
+
+	irc_privmsg(server, pdata);
+	ck_assert_str_eq(pdata.sender, "freestyl3r");
+	ck_assert_str_eq(pdata.message, "freestylerbot");
+
+} END_TEST
+
 Suite *irc_suite(void) {
 
 	Suite *suite = suite_create("irc");
 	TCase *core  = tcase_create("core");
+	TCase *parse = tcase_create("parse");
 
 	suite_add_tcase(suite, core);
 	tcase_add_unchecked_fixture(core, connect_irc, disconnect_irc);
-	tcase_add_checked_fixture(core, mock_irc_core_start, mock_stop);
+	tcase_add_checked_fixture(core, mock_irc_write, mock_stop);
 	tcase_add_test(core, irc_connection);
 	tcase_add_test(core, irc_get_socket);
 	tcase_add_test(core, irc_numeric_reply);
@@ -155,7 +192,13 @@ Suite *irc_suite(void) {
 	tcase_add_test(core, irc_join_channel);
 	tcase_add_test(core, irc_join_channels);
 	tcase_add_test(core, irc_default_channel);
-	tcase_add_test(core, irc_parse_line_ping);
+
+	suite_add_tcase(suite, parse);
+	tcase_add_unchecked_fixture(parse, connect_irc, disconnect_irc);
+	tcase_add_checked_fixture(parse, mock_irc_read, mock_stop);
+	tcase_add_test(parse, irc_parse_line_ping);
+	tcase_add_test(parse, irc_parse_line_tokens);
+	tcase_add_test(parse, irc_privemsg);
 
 	return suite;
 }

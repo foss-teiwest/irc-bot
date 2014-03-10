@@ -26,8 +26,6 @@
 // Irc color codes
 #define COLOR   RESET
 #define RESET   "\x03"
-#define WHITE   "\x03""0"
-#define BLACK   "\x03""1"
 #define BLUE    "\x03""2"
 #define GREEN   "\x03""3"
 #define RED     "\x03""4"
@@ -42,7 +40,7 @@
 #define PINK    "\x03""13"
 #define GREY    "\x03""14"
 #define LTGREY  "\x03""15"
-#define COLORCOUNT 16
+#define COLORCOUNT 14
 
 
 /** Print available commands. It's a static list. Means you have to update it yourself if you add a command... */
@@ -52,7 +50,7 @@ void help(Irc server, Parsed_data pdata);
  *  Current url extraction is weak. It only checks for at least one '.' */
 void url(Irc server, Parsed_data pdata);
 
-/** Get foss-tesyd mumble user list by reading a webpage made specific for this. No parsing involved */
+/** Get murmur user list by communicating with the ICE protocol */
 void mumble(Irc server, Parsed_data pdata);
 
 /** Print random messages (with random colors) from the quotes list in the config */

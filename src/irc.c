@@ -167,8 +167,11 @@ ssize_t parse_irc_line(Irc server) {
 		server->line_offset = strlen(server->line);
 		return n;
 	}
-	server->line_offset = 0;    // Clear offset if the read was successful
-	server->line[n - 2] = '\0'; // Remove IRC protocol terminators \r\n
+	server->line_offset = 0; // Clear offset if the read was successful
+
+	// Remove IRC protocol terminators \r\n
+	n -= 2;
+	server->line[n] = '\0';
 
 	if (cfg.verbose)
 		puts(server->line);
