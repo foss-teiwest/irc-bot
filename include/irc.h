@@ -63,7 +63,7 @@ void set_nick(Irc server, const char *nick);
 void set_user(Irc server, const char *user);
 
 /** Find out if the user is in config access list and has identified to the NickServ
- *  @warning  Calling this function from the main proccess will return false without actually checking, in order to avoid deadlock */
+ *  @warning  Calling this function from the main proccess will abort (if debug is on) in order to avoid deadlocking */
 bool user_has_access(Irc server, const char *nick);
 
 /**

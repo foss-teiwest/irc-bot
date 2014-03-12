@@ -1,5 +1,7 @@
 #include <check.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
 #include "test_check.h"
 #include "socket.h"
 #include "irc.h"
@@ -20,8 +22,10 @@ struct irc_type {
 };
 
 Irc server;
+Parsed_data pdata;
 extern int mock[2];
 char test_buffer[IRCLEN + 1];
+extern struct config_options cfg;
 
 void connect_irc(void) {
 
@@ -160,9 +164,27 @@ START_TEST(irc_parse_line_tokens) {
 } END_TEST
 
 
+START_TEST(irc_parse_line_offset) {
+
+	const char *msg = "half";
+	ssize_t n;
+
+	fcntl(mock[READ], F_SETFL, O_NONBLOCK);
+	write(mock[WRITE], msg, 4);
+	n = parse_irc_line(server);
+	ck_assert_int_eq(n, -EAGAIN);
+
+	msg = "life\r\n";
+	write(mock[WRITE], msg, 6);
+	n = parse_irc_line(server);
+	ck_assert_int_eq(n, 8);
+	ck_assert_str_eq(server->line, "halflife");
+
+} END_TEST
+
+
 START_TEST(irc_privemsg) {
 
-	Parsed_data pdata;
 	char msg[] = "freestyl3r!~laxanofid@snf-23545.vm.okeanos.grnet.gr\0PRIVMSG\0freestylerbot :!bot lol re";
 
 	pdata.sender  = &msg[0];
@@ -178,7 +200,16 @@ START_TEST(irc_privemsg) {
 
 START_TEST(irc_privemsg_ctcp) {
 
-	const char *msg = "bot";
+	char sender[] = "bot!~a@b.c";
+	char message[] = "bot :\x01VERSION\x01";
+	cfg.bot_version = "irC bot";
+	pdata.sender = sender;
+	pdata.message = message;
+
+	irc_privmsg(server, pdata);
+	ssize_t n = read(mock[WRITE], test_buffer, IRCLEN);
+	test_buffer[n - 2] = '\0';
+	ck_assert_str_eq(test_buffer, "NOTICE bot :\x01VERSION irC bot\x01");
 
 } END_TEST
 
@@ -206,7 +237,9 @@ Suite *irc_suite(void) {
 	tcase_add_checked_fixture(parse, mock_irc_read, mock_stop);
 	tcase_add_test(parse, irc_parse_line_ping);
 	tcase_add_test(parse, irc_parse_line_tokens);
+	tcase_add_test(parse, irc_parse_line_offset);
 	tcase_add_test(parse, irc_privemsg);
+	tcase_add_test(parse, irc_privemsg_ctcp);
 
 	return suite;
 }

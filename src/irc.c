@@ -254,7 +254,7 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 
 	pdata.command++; // Skip leading ":" character
 
-	// Make sure BOT command / CTCP request gets null terminated if there are no parameters
+	// Grab the rest arguments if any or set null
 	pdata.message = strtok(NULL, "");
 
 	// Bot commands must begin with '!'
