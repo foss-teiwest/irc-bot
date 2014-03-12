@@ -72,15 +72,16 @@ ssize_t sock_read_non_blocking(int sock, void *buffer, size_t len);
 /**
  * Read a valid IRC line containing "\r\n" at the end and null terminate it
  * Characters after the IRC message terminators are left untouched for the next call
- * @warning NOT thread safe. Mantains it's own buffer internally to avoid calling single byte read's()
+ * In non blocking mode line_buffer will contain the chars read so far even if -EAGAIN is returned
+ * The length of the line can be used as an offset for the next call till a positive return value
+ * @warning NOT thread safe. Mantains it's own buffer internally to avoid calling single byte read's(). Als
  *
  * @param sock         Non blocking socket
  * @param line_buffer  Buffer to store the line
  * @param len          Will fill the buffer up to len bytes
- * @returns            On success: line length, -1 on error and -EAGAIN if the operation would block
+ * @returns            On success: Amount of bytes written in line, -1 on error and -EAGAIN if the operation would block
  */
 ssize_t sock_readline(int sock, char *line_buffer, size_t len);
-
 
 #endif
 

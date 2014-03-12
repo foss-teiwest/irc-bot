@@ -6,6 +6,7 @@
 #include <netdb.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <assert.h>
 #include "socket.h"
 #include "common.h"
 
@@ -23,8 +24,7 @@ int sock_connect(const char *address, const char *port) {
 		.ai_flags    = AI_NUMERICSERV  // Don't resolve service -> port, since we already provide it in numeric form
 	};
 
-	if (atoi(port) > MAXPORT)
-		return -1;
+	assert(atoi(port) > 0 && atoi(port) <= MAXPORT);
 
 	// Return addresses according to the filter criteria
 	retval = getaddrinfo(address, port, &addr_filter, &addr_holder);
@@ -64,8 +64,7 @@ int sock_listen(const char *address, const char *port) {
 		.ai_flags    = AI_NUMERICSERV
 	};
 
-	if (atoi(port) > MAXPORT)
-		return -1;
+	assert(atoi(port) > 0 && atoi(port) <= MAXPORT);
 
 	retval = getaddrinfo(address, port, &addr_filter, &addr_holder);
 	if (retval) {

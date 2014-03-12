@@ -99,8 +99,7 @@ STATIC bool user_is_identified(Irc server, const char *nick) {
 bool user_has_access(Irc server, const char *nick) {
 
 	// Avoid deadlock
-	if (getpid() == main_pid)
-		return false;
+	assert(getpid() != main_pid);
 
 	if (user_in_access_list(nick) && user_is_identified(server, nick))
 		return true;
@@ -110,7 +109,7 @@ bool user_has_access(Irc server, const char *nick) {
 
 void set_nick(Irc server, const char *nick) {
 
-	assert(nick && "Error in set_nick");
+	assert(nick);
 	strncpy(server->nick, nick, NICKLEN);
 	irc_nick_command(server, server->nick);
 }
@@ -119,7 +118,7 @@ void set_user(Irc server, const char *user) {
 
 	char user_with_flags[USERLEN * 2 + 6];
 
-	assert(user && "Error in set_user");
+	assert(user);
 	strncpy(server->user, user, USERLEN);
 
 	snprintf(user_with_flags, USERLEN * 2 + 6, "%s 0 * :%s", server->user, server->user);
@@ -131,7 +130,7 @@ int join_channel(Irc server, const char *channel) {
 	int i;
 
 	if (channel) {
-		assert(channel[0] == '#' && "Missing # in channel");
+		assert(channel[0] == '#');
 		if (server->channels_set == MAXCHANS) {
 			fprintf(stderr, "Channel limit reached (%d)\n", MAXCHANS);
 			return 0;
@@ -167,11 +166,10 @@ ssize_t parse_irc_line(Irc server) {
 		server->line_offset = strlen(server->line);
 		return n;
 	}
-	server->line_offset = 0; // Clear offset if the read was successful
-
-	// Remove IRC protocol terminators \r\n
-	n -= 2;
+	// Clear offset and remove IRC protocol terminators \r\n
+	n += server->line_offset - 2;
 	server->line[n] = '\0';
+	server->line_offset = 0;
 
 	if (cfg.verbose)
 		puts(server->line);
@@ -382,7 +380,7 @@ void _irc_command(Irc server, const char *type, const char *target, const char *
 
 void quit_server(Irc server, const char *msg) {
 
-	assert(msg && "Error in quit_server");
+	assert(msg);
 	irc_quit_command(server, msg);
 
 	if (close(server->sock) < 0)

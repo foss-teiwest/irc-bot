@@ -25,7 +25,6 @@ START_TEST(socket_connect) {
 START_TEST(socket_listen) {
 
 	ck_assert_int_gt(sock_listen(LOCALHOST, "12345"), 0);
-	ck_assert_int_eq(sock_listen(LOCALHOST, "65536"), -1);
 	ck_assert_int_eq(sock_listen("121.1.1.1", "12345"), -1);
 
 } END_TEST

@@ -175,6 +175,14 @@ START_TEST(irc_privemsg) {
 
 } END_TEST
 
+
+START_TEST(irc_privemsg_ctcp) {
+
+	const char *msg = "bot";
+
+} END_TEST
+
+
 Suite *irc_suite(void) {
 
 	Suite *suite = suite_create("irc");
