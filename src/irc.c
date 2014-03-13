@@ -161,7 +161,7 @@ ssize_t parse_irc_line(Irc server) {
 	n = sock_readline(server->sock, server->line + server->line_offset, IRCLEN - server->line_offset);
 	if (n <= 0) {
 		if (n != -EAGAIN)
-			exit_msg("IRC connection closed");
+			exit_msg("IRC connection closed\n");
 
 		server->line_offset = strlen(server->line);
 		return n;
@@ -372,7 +372,7 @@ void _irc_command(Irc server, const char *type, const char *target, const char *
 
 	// Send message & print it on stdout
 	if (sock_write_non_blocking(server->sock, irc_msg, strlen(irc_msg)) == -1)
-		exit_msg("Failed to send message");
+		exit_msg("Failed to send message\n");
 
 	if (cfg.verbose)
 		fputs(irc_msg, stdout);

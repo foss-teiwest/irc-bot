@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <signal.h>
+#include <assert.h>
 #include <pthread.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -76,12 +77,11 @@ bool starts_case_with(const char *s1, const char *s2) {
 
 void exit_msg(const char *format, ...) {
 
-	char buf[EXIT_MSGLEN];
 	va_list args;
 
+	assert(format);
 	va_start(args, format);
-	snprintf(buf, EXIT_MSGLEN, "%s\n", format);
-	vfprintf(stderr, buf, args);
+	vfprintf(stderr, format, args);
 	va_end(args);
 
 	if (getpid() == main_pid)
@@ -294,7 +294,7 @@ STATIC char *get_json_field(yajl_val root, const char *field_name) {
 
 	yajl_val val = yajl_tree_get(root, CFG(field_name), yajl_t_string);
 	if (!val)
-		exit_msg("%s: missing / wrong type", field_name);
+		exit_msg("%s: missing / wrong type\n", field_name);
 
 	return YAJL_GET_STRING(val);
 }
@@ -306,7 +306,7 @@ STATIC int get_json_array(yajl_val root, const char *array_name, char **array_to
 
 	array = yajl_tree_get(root, CFG(array_name), yajl_t_array);
 	if (!array)
-		exit_msg("%s: missing / wrong type", array_name);
+		exit_msg("%s: missing / wrong type\n", array_name);
 
 	array_size = YAJL_GET_ARRAY(array)->len;
 	if (array_size > max_entries) {
@@ -327,11 +327,11 @@ void parse_config(yajl_val root, const char *config_file) {
 	char errbuf[1024], *buf = NULL, *mpd_path, *mpd_random_file_path, *HOME;
 
 	if (!read_file(&buf, config_file))
-		exit_msg(config_file);
+		exit_msg("%s\n", config_file);
 
 	root = yajl_tree_parse(buf, errbuf, sizeof(errbuf));
 	if (!root)
-		exit_msg("%s", errbuf);
+		exit_msg("%s\n", errbuf);
 
 	// Free original buffer since we have a duplicate in root now
 	free(buf);
@@ -369,10 +369,10 @@ void parse_config(yajl_val root, const char *config_file) {
 	// Only accept true or false value
 	val = yajl_tree_get(root, CFG("verbose"), yajl_t_any);
 	if (!val)
-		exit_msg("verbose: missing");
+		exit_msg("verbose: missing\n");
 
 	if (val->type != yajl_t_true && val->type != yajl_t_false)
-		exit_msg("verbose: wrong type");
+		exit_msg("verbose: wrong type\n");
 
 	cfg.verbose = YAJL_IS_TRUE(val);
 

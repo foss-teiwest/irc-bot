@@ -22,7 +22,6 @@
 #define MAXACCLIST  10
 #define MAXQUOTES   20
 #define PATHLEN     120
-#define EXIT_MSGLEN 128
 #define LINELEN     300
 #define CONFSIZE    4096
 #define SCRIPTDIR  "scripts/" //!< default folder to look for scripts like the youtube one
@@ -69,7 +68,7 @@ extern struct config_options cfg; //!< global struct with config's values
 #define MALLOC_W(x) _malloc_w((x), __func__, __FILE__, __LINE__)
 #define CALLOC_W(x) _calloc_w((x), __func__, __FILE__, __LINE__)
 #define REALLOC_W(x, y) _realloc_w((x), (y), __func__, __FILE__, __LINE__)
-#define ALLOC_ERROR(function, file, line)  exit_msg("Failed to allocate memory in %s() %s:%d", function, file, line);
+#define ALLOC_ERROR(function, file, line)  exit_msg("Failed to allocate memory in %s() %s:%d\n", function, file, line);
 //@}
 
 void *_mmap_w(size_t size, const char *caller, const char *file, int line);

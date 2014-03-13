@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
 	// Connect to server and set IRC details
 	irc_server = irc_connect(cfg.server, cfg.port);
 	if (!irc_server)
-		exit_msg("Irc connection failed");
+		exit_msg("Irc connection failed\n");
 
 	pfd[IRC].fd = get_socket(irc_server);
 	set_nick(irc_server, cfg.nick);

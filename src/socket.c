@@ -46,6 +46,7 @@ int sock_connect(const char *address, const char *port) {
 		close(sock);
 		sock = -1;
 	}
+
 	freeaddrinfo(addr);
 	return sock;
 }
@@ -85,6 +86,7 @@ int sock_listen(const char *address, const char *port) {
 		close(sock);
 		sock = -1;
 	}
+
 	freeaddrinfo(addr);
 	return sock;
 }
