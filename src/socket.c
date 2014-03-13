@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
 #include <netdb.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -14,33 +13,32 @@
 int sock_connect(const char *address, const char *port) {
 
 	int retval, sock = -1;
-	struct addrinfo *addr_holder, *addr_iterator;
+	struct addrinfo *addr, *iterator;
 
-	// Create filter for getaddrinfo()
-	struct addrinfo addr_filter = {
+	// Set hints for getaddrinfo()
+	struct addrinfo hints = {
 		.ai_family   = AF_UNSPEC,      // IPv4 or IPv6
-		.ai_socktype = SOCK_STREAM,    // Stream socket
-		.ai_protocol = IPPROTO_TCP,    // TCP protocol
+		.ai_socktype = SOCK_STREAM,    // Stream socket / TCP protocol
 		.ai_flags    = AI_NUMERICSERV  // Don't resolve service -> port, since we already provide it in numeric form
 	};
 
 	assert(atoi(port) > 0 && atoi(port) <= MAXPORT);
 
-	// Return addresses according to the filter criteria
-	retval = getaddrinfo(address, port, &addr_filter, &addr_holder);
+	// Return addresses according to the hints specified
+	retval = getaddrinfo(address, port, &hints, &addr);
 	if (retval) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(retval));
 		return -1;
 	}
 
-	for (addr_iterator = addr_holder; addr_iterator; addr_iterator = addr_iterator->ai_next) {
+	for (iterator = addr; iterator; iterator = iterator->ai_next) {
 
-		sock = socket(addr_iterator->ai_family, addr_iterator->ai_socktype, addr_iterator->ai_protocol);
+		sock = socket(iterator->ai_family, iterator->ai_socktype, iterator->ai_protocol);
 		if (sock < 0) {
 			perror(__func__);
 			continue; // Failed, try next address
 		}
-		if (!connect(sock, addr_iterator->ai_addr, addr_iterator->ai_addrlen))
+		if (!connect(sock, iterator->ai_addr, iterator->ai_addrlen))
 			break; // Success
 
 		// Cleanup and try next address
@@ -48,47 +46,46 @@ int sock_connect(const char *address, const char *port) {
 		close(sock);
 		sock = -1;
 	}
-	freeaddrinfo(addr_holder);
+	freeaddrinfo(addr);
 	return sock;
 }
 
 int sock_listen(const char *address, const char *port) {
 
 	int retval, sock = -1;
-	struct addrinfo *addr_holder, *addr_iterator;
+	struct addrinfo *addr, *iterator;
 
-	struct addrinfo addr_filter = {
+	struct addrinfo hints = {
 		.ai_family   = AF_UNSPEC,
 		.ai_socktype = SOCK_STREAM,
-		.ai_protocol = IPPROTO_TCP,
 		.ai_flags    = AI_NUMERICSERV
 	};
 
 	assert(atoi(port) > 0 && atoi(port) <= MAXPORT);
 
-	retval = getaddrinfo(address, port, &addr_filter, &addr_holder);
+	retval = getaddrinfo(address, port, &hints, &addr);
 	if (retval) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(retval));
 		return -1;
 	}
 
-	for (addr_iterator = addr_holder; addr_iterator; addr_iterator = addr_iterator->ai_next) {
+	for (iterator = addr; iterator; iterator = iterator->ai_next) {
 
-		sock = socket(addr_iterator->ai_family, addr_iterator->ai_socktype, addr_iterator->ai_protocol);
+		sock = socket(iterator->ai_family, iterator->ai_socktype, iterator->ai_protocol);
 		if (sock < 0) {
 			perror(__func__);
 			continue;
 		}
 		// Allow us to re-use the binding port
 		setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &(int) { 1 }, sizeof(int));
-		if (!bind(sock, addr_iterator->ai_addr, addr_iterator->ai_addrlen) && !listen(sock, 5))
+		if (!bind(sock, iterator->ai_addr, iterator->ai_addrlen) && !listen(sock, 5))
 			break; // Success
 
 		perror(__func__);
 		close(sock);
 		sock = -1;
 	}
-	freeaddrinfo(addr_holder);
+	freeaddrinfo(addr);
 	return sock;
 }
 
