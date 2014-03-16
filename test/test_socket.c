@@ -4,7 +4,7 @@
 #include <signal.h>
 #include <errno.h>
 #include <fcntl.h>
-#include "test_check.h"
+#include "test_main.h"
 #include "socket.h"
 #include "irc.h"
 

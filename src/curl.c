@@ -166,6 +166,7 @@ char *get_url_title(const char *url) {
 
 #ifdef TEST
 	curl_easy_setopt(curl, CURLOPT_URL, TESTDIR "url-title.txt");
+	(void) url; // Silence warning
 #else
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 #endif

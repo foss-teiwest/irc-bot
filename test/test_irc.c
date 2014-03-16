@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
-#include "test_check.h"
+#include "test_main.h"
 #include "socket.h"
 #include "irc.h"
 #include "common.h"
@@ -26,6 +26,7 @@ Parsed_data pdata;
 extern int mock[2];
 char test_buffer[IRCLEN + 1];
 extern struct config_options cfg;
+ssize_t n;
 
 void connect_irc(void) {
 
@@ -49,14 +50,6 @@ void mock_irc_read(void) {
 	mock_start();
 	server->sock = mock[READ];
 }
-
-START_TEST(irc_connection) {
-
-	Irc test = irc_connect("www.google.com", "80000");
-	ck_assert_ptr_eq(test, NULL);
-
-} END_TEST
-
 
 START_TEST(irc_get_socket) {
 
@@ -133,6 +126,30 @@ START_TEST(irc_default_channel) {
 } END_TEST
 
 
+START_TEST(irc_command_test) {
+
+	_irc_command(server, "PRIVMSG", "#yolo", "%s1!", "why so bad");
+	n = read(mock[READ], test_buffer, IRCLEN);
+	test_buffer[n - 2] = '\0';
+	ck_assert_str_eq(test_buffer, "PRIVMSG #yolo :why so bad1!");
+
+	_irc_command(server, "NICK", "yolo", NULL, NULL);
+	n = read(mock[READ], test_buffer, IRCLEN);
+	test_buffer[n - 2] = '\0';
+	ck_assert_str_eq(test_buffer, "NICK yolo");
+
+} END_TEST
+
+
+START_TEST(irc_quit_server) {
+
+	quit_server(server, "trolol");
+	n = read(mock[READ], test_buffer, IRCLEN);
+	test_buffer[n - 2] = '\0';
+	ck_assert_str_eq(test_buffer, "QUIT :trolol");
+
+} END_TEST
+
 START_TEST(irc_parse_line_ping) {
 
 	const char *msg = "hm\r\n";
@@ -167,7 +184,6 @@ START_TEST(irc_parse_line_tokens) {
 START_TEST(irc_parse_line_offset) {
 
 	const char *msg = "half";
-	ssize_t n;
 
 	fcntl(mock[READ], F_SETFL, O_NONBLOCK);
 	write(mock[WRITE], msg, 4);
@@ -179,6 +195,28 @@ START_TEST(irc_parse_line_offset) {
 	n = parse_irc_line(server);
 	ck_assert_int_eq(n, 8);
 	ck_assert_str_eq(server->line, "halflife");
+
+} END_TEST
+
+
+START_TEST(irc_parse_line_length) {
+
+	char buf1[300] = {'a'};
+	char buf2[250] = {'b'};
+
+	memset(buf1, 'a', sizeof(buf1));
+	memset(buf2, 'b', sizeof(buf2));
+	buf2[248] = '\r';
+	buf2[249] = '\n';
+
+	fcntl(mock[READ], F_SETFL, O_NONBLOCK);
+	write(mock[WRITE], buf1, strlen(buf1));
+	n = parse_irc_line(server);
+	ck_assert_int_eq(n, -EAGAIN);
+
+	write(mock[WRITE], buf2, strlen(buf2));
+	n = parse_irc_line(server);
+	ck_assert_int_eq(n, 512);
 
 } END_TEST
 
@@ -207,9 +245,60 @@ START_TEST(irc_privemsg_ctcp) {
 	pdata.message = message;
 
 	irc_privmsg(server, pdata);
-	ssize_t n = read(mock[WRITE], test_buffer, IRCLEN);
+	n = read(mock[WRITE], test_buffer, IRCLEN);
 	test_buffer[n - 2] = '\0';
 	ck_assert_str_eq(test_buffer, "NOTICE bot :\x01VERSION irC bot\x01");
+
+} END_TEST
+
+
+START_TEST(irc_privemsg_command) {
+
+	char sender[] = "bot!~a@b.c";
+	char message[] = "bot :!marker";
+	pdata.sender = sender;
+	pdata.message = message;
+	char reply[] = "PRIVMSG bot :tweet max length. URL's not accounted for:  -  -  -  -  -  60"
+			"  -  -  -  -  -  80  -  -  -  -  -  -  100  -  -  -  -  -  120  -  -  -  -  -  140";
+
+	irc_privmsg(server, pdata);
+	n = read(mock[WRITE], test_buffer, IRCLEN);
+	test_buffer[n - 2] = '\0';
+	ck_assert_str_eq(test_buffer, reply);
+
+} END_TEST
+
+
+START_TEST(irc_notice_identify) {
+
+	char sender[] = "NickServ!~a@b.c";
+	char message[] = "bot :This nickname is registeredTRAILING";
+	char password[] = "lololol";
+	cfg.nick_password = password;
+	pdata.sender = sender;
+	pdata.message = message;
+
+	irc_notice(server, pdata);
+	n = read(mock[WRITE], test_buffer, IRCLEN);
+	test_buffer[n - 2] = '\0';
+	ck_assert_str_eq(test_buffer, "PRIVMSG NickServ :identify lololol");
+	ck_assert_str_eq(cfg.nick_password, "");
+
+} END_TEST
+
+
+START_TEST(irc_kick_test) {
+
+	char sender[] = "noob!~a@b.c";
+	char message[] = "#hey bot";
+	strcpy(server->nick, "bot");
+	pdata.sender = sender;
+	pdata.message = message;
+
+	irc_kick(server, pdata);
+	n = read(mock[WRITE], test_buffer, IRCLEN);
+	test_buffer[n - 2] = '\0';
+	ck_assert_str_eq(test_buffer, "PRIVMSG #hey :magkas noob...");
 
 } END_TEST
 
@@ -223,7 +312,6 @@ Suite *irc_suite(void) {
 	suite_add_tcase(suite, core);
 	tcase_add_unchecked_fixture(core, connect_irc, disconnect_irc);
 	tcase_add_checked_fixture(core, mock_irc_write, mock_stop);
-	tcase_add_test(core, irc_connection);
 	tcase_add_test(core, irc_get_socket);
 	tcase_add_test(core, irc_numeric_reply);
 	tcase_add_test(core, irc_set_nick);
@@ -231,15 +319,22 @@ Suite *irc_suite(void) {
 	tcase_add_test(core, irc_join_channel);
 	tcase_add_test(core, irc_join_channels);
 	tcase_add_test(core, irc_default_channel);
+	tcase_add_test(core, irc_command_test);
+	tcase_add_test(core, irc_quit_server);
 
 	suite_add_tcase(suite, parse);
+	tcase_set_timeout(parse, 5.0);
 	tcase_add_unchecked_fixture(parse, connect_irc, disconnect_irc);
 	tcase_add_checked_fixture(parse, mock_irc_read, mock_stop);
 	tcase_add_test(parse, irc_parse_line_ping);
 	tcase_add_test(parse, irc_parse_line_tokens);
 	tcase_add_test(parse, irc_parse_line_offset);
+	tcase_add_test(parse, irc_parse_line_length);
 	tcase_add_test(parse, irc_privemsg);
 	tcase_add_test(parse, irc_privemsg_ctcp);
+	tcase_add_test(parse, irc_privemsg_command);
+	tcase_add_test(parse, irc_notice_identify);
+	tcase_add_test(parse, irc_kick_test);
 
 	return suite;
 }

@@ -12,12 +12,8 @@
 #include "gperf.h"
 #include "common.h"
 
-// Wrapper functions. If VA_ARGS is NULL (last 2 args) then ':' will be ommited. Do not call _irc_command() directly
-#define irc_nick_command(server, target)    _irc_command(server, "NICK", target, NULL, (char *) NULL)
-#define irc_user_command(server, target)    _irc_command(server, "USER", target, NULL, (char *) NULL)
-#define irc_channel_command(server, target) _irc_command(server, "JOIN", target, NULL, (char *) NULL)
-#define irc_ping_command(server, target)    _irc_command(server, "PONG", target, NULL, (char *) NULL)
-#define irc_quit_command(server, target)    _irc_command(server, "QUIT", "", target,   (char *) NULL)
+// Wrapper function. Since last 2 args (VA_ARGS) are NULL, ':' will be ommited. Do not call _irc_command() directly
+#define irc_command(server, type, arg)  _irc_command(server, type, arg, NULL, (char *) NULL)
 
 struct irc_type {
 	int sock;
@@ -41,7 +37,7 @@ Irc irc_connect(const char *address, const char *port) {
 	Irc server = CALLOC_W(sizeof(*server));
 
 	// Minimum validity checks
-	if (!strchr(address, '.') || atoi(port) > MAXPORT)
+	if (!strchr(address, '.'))
 		return NULL;
 
 	server->sock = sock_connect(address, port);
@@ -111,7 +107,7 @@ void set_nick(Irc server, const char *nick) {
 
 	assert(nick);
 	strncpy(server->nick, nick, NICKLEN);
-	irc_nick_command(server, server->nick);
+	irc_command(server, "NICK", server->nick);
 }
 
 void set_user(Irc server, const char *user) {
@@ -122,7 +118,7 @@ void set_user(Irc server, const char *user) {
 	strncpy(server->user, user, USERLEN);
 
 	snprintf(user_with_flags, USERLEN * 2 + 6, "%s 0 * :%s", server->user, server->user);
-	irc_user_command(server, user_with_flags);
+	irc_command(server, "USER", user_with_flags);
 }
 
 int join_channel(Irc server, const char *channel) {
@@ -137,7 +133,7 @@ int join_channel(Irc server, const char *channel) {
 		}
 		strncpy(server->channels[server->channels_set++], channel, CHANLEN);
 		if (server->isConnected)
-			irc_channel_command(server, server->channels[server->channels_set - 1]);
+			irc_command(server, "JOIN", server->channels[server->channels_set - 1]);
 
 		return 1;
 	}
@@ -145,7 +141,7 @@ int join_channel(Irc server, const char *channel) {
 	i = 0;
 	if (server->isConnected)
 		while (i < server->channels_set)
-			irc_channel_command(server, server->channels[i++]);
+			irc_command(server, "JOIN", server->channels[i++]);
 
 	return i;
 }
@@ -176,7 +172,7 @@ ssize_t parse_irc_line(Irc server) {
 
 	// Check for server ping request. Example: "PING :wolfe.freenode.net"
 	if (starts_with(server->line, "PING")) {
-		irc_ping_command(server, server->line + 5);
+		irc_command(server, "PONG", server->line + 5);
 		return n;
 	}
 
@@ -343,7 +339,7 @@ void irc_kick(Irc server, Parsed_data pdata) {
 
 	// Rejoin and send a message back to the one who kicked us
 	if (streq(victim, server->nick)) {
-		sleep(4);
+		sleep(3);
 
 		// Find the channel we got kicked on and remove it from our list
 		// TODO verify if we actually rejoined the channel
@@ -353,7 +349,7 @@ void irc_kick(Irc server, Parsed_data pdata) {
 
 		strncpy(server->channels[i], server->channels[--server->channels_set], CHANLEN);
 		join_channel(server, pdata.target);
-		send_message(server, pdata.target, "%s magkas...", pdata.sender);
+		send_message(server, pdata.target, "magkas %s...", pdata.sender);
 	}
 }
 
@@ -364,7 +360,7 @@ void _irc_command(Irc server, const char *type, const char *target, const char *
 
 	if (format) {
 		va_start(args, format);
-		vsnprintf(msg, IRCLEN - 50, format, args);
+		vsnprintf(msg, sizeof(msg), format, args);
 		snprintf(irc_msg, IRCLEN, "%s %s :%s\r\n", type, target, msg);
 		va_end(args);
 	} else
@@ -380,8 +376,11 @@ void _irc_command(Irc server, const char *type, const char *target, const char *
 
 void quit_server(Irc server, const char *msg) {
 
+	char exit_msg[IRCLEN - 200] = ":";
+
 	assert(msg);
-	irc_quit_command(server, msg);
+	strncat(exit_msg, msg, sizeof(exit_msg) - 1);
+	irc_command(server, "QUIT", exit_msg);
 
 	if (close(server->sock) < 0)
 		perror(__func__);

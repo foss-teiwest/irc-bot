@@ -33,7 +33,6 @@ ifeq "$(MAKECMDGOALS)" "test"
 	LDLIBS   += -lcheck
 endif
 
-
 # Prepend output directory and add object extension on main program source files
 SRCFILES := $(shell ls $(SRCDIR))
 OBJFILES := $(SRCFILES:.c=.o)
@@ -43,7 +42,7 @@ SRCFILES-TEST := $(shell ls $(TESTDIR))
 OBJFILES-TEST := $(SRCFILES-TEST:.c=.o)
 OBJFILES-TEST := $(addprefix $(OUTDIR)/, $(OBJFILES-TEST))
 OBJFILES-TEST += $(OBJFILES)
-OBJFILES-TEST := $(filter-out %/main.o %/test_check.h, $(OBJFILES-TEST))
+OBJFILES-TEST := $(filter-out %/main.o %/test_main.h, $(OBJFILES-TEST))
 
 all: $(OUTDIR)/$(PROGRAM) $(OUTDIR)/json_value
 release: all
@@ -63,12 +62,9 @@ $(OUTDIR)/%.o: $(SRCDIR)/%.c
 $(OUTDIR)/json_value: scripts/json_value.c
 	$(CC) $(LDFLAGS) $(CFLAGS) $< -o $@ -lyajl
 
-
-# Run test program and produce coverage stats in html
+# Run tests
 test: $(OUTDIR)/$(PROGRAM)-test
 	./$<
-	lcov --capture --directory $(OUTDIR)/ --output-file $(OUTDIR)/coverage.info >/dev/null
-	genhtml $(OUTDIR)/coverage.info --output-directory $(OUTDIR)/lcov >/dev/null
 
 # Build test program
 $(OUTDIR)/$(PROGRAM)-test: $(OBJFILES-TEST)
@@ -78,9 +74,13 @@ $(OUTDIR)/$(PROGRAM)-test: $(OBJFILES-TEST)
 $(OUTDIR)/%.o: $(TESTDIR)/%.c
 	$(CC) $(CFLAGS-TEST) -I$(INCLDIR) -c $< -o $@
 
+# Generate documentation & test coverage in html and upload them
 doc:
 	doxygen Doxyfile
-	rsync -avz --delete bin/doxygen/ freestyler@foss.tesyd.teimes.gr:public_html/irc-bot
+	lcov --capture --directory $(OUTDIR)/ --output-file $(OUTDIR)/coverage.info >/dev/null
+	genhtml $(OUTDIR)/coverage.info --output-directory $(OUTDIR)/lcov >/dev/null
+	rsync -avz --delete bin/doxygen/ freestyler@foss.tesyd.teimes.gr:public_html/irc-bot/doc
+	rsync -avz --delete bin/lcov/ freestyler@foss.tesyd.teimes.gr:public_html/irc-bot/coverage
 
 clean:
 	rm -r $(OUTDIR)/*
