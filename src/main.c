@@ -23,17 +23,6 @@ int main(int argc, char *argv[]) {
 	};
 
 	initialize(argc, argv);
-
-	if (add_murmur_callbacks(cfg.murmur_port))
-		murm_listenfd = pfd[MURM_LISTEN].fd = sock_listen(LOCALHOST, CB_LISTEN_PORT_S);
-	else
-		fprintf(stderr, "Could not connect to Murmur\n");
-
-	mpd->fd = pfd[MPD].fd = mpd_connect(cfg.mpd_port);
-	if (mpd->fd < 0)
-		fprintf(stderr, "Could not connect to MPD\n");
-
-	// Connect to server and set IRC details
 	irc_server = irc_connect(cfg.server, cfg.port);
 	if (!irc_server)
 		exit_msg("Irc connection failed\n");
@@ -43,6 +32,15 @@ int main(int argc, char *argv[]) {
 	set_user(irc_server, cfg.user);
 	for (i = 0; i < cfg.channels_set; i++)
 		join_channel(irc_server, cfg.channels[i]);
+
+	if (add_murmur_callbacks(cfg.murmur_port))
+		murm_listenfd = pfd[MURM_LISTEN].fd = sock_listen(LOCALHOST, CB_LISTEN_PORT_S);
+	else
+		fprintf(stderr, "Could not connect to Murmur\n");
+
+	mpd->fd = pfd[MPD].fd = mpd_connect(cfg.mpd_port);
+	if (mpd->fd < 0)
+		fprintf(stderr, "Could not connect to MPD\n");
 
 	while ((ready = poll(pfd, PFDS, TIMEOUT)) > 0) {
 		// Keep reading & parsing lines as long the connection is active and act on any registered actions found

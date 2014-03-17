@@ -59,6 +59,9 @@ int get_socket(Irc server) {
 
 char *default_channel(Irc server) {
 
+	if (!server->channels_set)
+		return NULL;
+
 	return server->channels[0];
 }
 
@@ -120,27 +123,36 @@ void set_user(Irc server, const char *user) {
 
 int join_channel(Irc server, const char *channel) {
 
-	int i;
+	int i = 0;
 
-	if (channel) {
-		assert(channel[0] == '#');
+
+	// Join all channels if arg is NULL
+	if (!channel) {
+		if (server->isConnected)
+			while (i < server->channels_set)
+				irc_command(server, "JOIN", server->channels[i++]);
+
+		return i;
+	}
+
+	assert(channel[0] == '#');
+	for (i = 0; i < server->channels_set; i++)
+		if (streq(channel, server->channels[i]))
+			break;
+
+	// Add channel if it's not a duplicate
+	if (i == server->channels_set) {
 		if (server->channels_set == MAXCHANS) {
 			fprintf(stderr, "Channel limit reached (%d)\n", MAXCHANS);
 			return 0;
 		}
 		strncpy(server->channels[server->channels_set++], channel, CHANLEN);
-		if (server->isConnected)
-			irc_command(server, "JOIN", server->channels[server->channels_set - 1]);
-
-		return 1;
 	}
 
-	i = 0;
 	if (server->isConnected)
-		while (i < server->channels_set)
-			irc_command(server, "JOIN", server->channels[i++]);
+		irc_command(server, "JOIN", channel);
 
-	return i;
+	return 1;
 }
 
 ssize_t parse_irc_line(Irc server) {
@@ -196,7 +208,7 @@ ssize_t parse_irc_line(Irc server) {
 	// Find out if server command is a numeric reply
 	reply = atoi(pdata.command);
 	if (reply)
-		numeric_reply(server, reply);
+		numeric_reply(server, pdata, reply);
 	else {
 		// Find & launch any functions registered to IRC commands
 		command = command_lookup(pdata.command, strlen(pdata.command));
@@ -207,16 +219,29 @@ ssize_t parse_irc_line(Irc server) {
 	return n;
 }
 
-int numeric_reply(Irc server, int reply) {
+int numeric_reply(Irc server, Parsed_data pdata, int reply) {
+
+	int i;
 
 	switch (reply) {
 	case NICKNAMEINUSE: // Change our nick
 		strcat(server->nick, "_");
 		set_nick(server, server->nick);
 		break;
-	case ENDOFMOTD: // Join all channels set before
+	case ENDOFMOTD: // Join all set channels
 		server->isConnected = true;
 		join_channel(server, NULL);
+		break;
+	case BANNEDFROMCHAN: // Find the channel we got banned and remove it from our list
+		pdata.target = strtok(pdata.message, " ");
+		if (!pdata.target)
+			break;
+
+		for (i = 0; i < server->channels_set; i++)
+			if (streq(pdata.target, server->channels[i]))
+				break;
+
+		strncpy(server->channels[i], server->channels[--server->channels_set], CHANLEN);
 		break;
 	}
 
@@ -317,7 +342,6 @@ void irc_notice(Irc server, Parsed_data pdata) {
 
 void irc_kick(Irc server, Parsed_data pdata) {
 
-	int i;
 	char *victim;
 
 	// Discard hostname from nickname
@@ -337,14 +361,6 @@ void irc_kick(Irc server, Parsed_data pdata) {
 	// Rejoin and send a message back to the one who kicked us
 	if (streq(victim, server->nick)) {
 		sleep(3);
-
-		// Find the channel we got kicked on and remove it from our list
-		// TODO verify if we actually rejoined the channel
-		for (i = 0; i < server->channels_set; i++)
-			if (streq(pdata.target, server->channels[i]))
-				break;
-
-		strncpy(server->channels[i], server->channels[--server->channels_set], CHANLEN);
 		join_channel(server, pdata.target);
 		send_message(server, pdata.target, "magkas %s...", pdata.sender);
 	}

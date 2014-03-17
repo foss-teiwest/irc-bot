@@ -31,8 +31,9 @@ typedef struct {
 
 /** IRC server numeric replies. See http://www.ietf.org/rfc/rfc1459.txt for a detailed list */
 enum irc_reply {
-	ENDOFMOTD     = 376, //!< Registration successful, join the channels already set
-	NICKNAMEINUSE = 433  //!< Add an extra '_' to the end of our nickname each time
+	ENDOFMOTD      = 376, //!< Registration successful, join the channels already set
+	NICKNAMEINUSE  = 433, //!< Add an extra '_' to the end of our nickname each time
+	BANNEDFROMCHAN = 474  //!< Remove the channel from the joined list
 };
 
 /**
@@ -52,7 +53,7 @@ Irc irc_connect(const char *address, const char *port);
  */
 int get_socket(Irc server);
 
-/** Returns a default channel to send messages to. Currently it's the first channel set */
+/** Returns the first channel set or NULL if there is not one */
 char *default_channel(Irc server);
 
 /** Set nickname */
@@ -97,7 +98,7 @@ void irc_kick(Irc server, Parsed_data pdata);
  *
  * @returns the numeric reply received
  */
-int numeric_reply(Irc Server, int reply);
+int numeric_reply(Irc Server, Parsed_data pdata, int reply);
 
 //@{
 /**
