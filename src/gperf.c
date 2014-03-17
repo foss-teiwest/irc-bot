@@ -1,5 +1,5 @@
 /* ANSI-C code produced by gperf version 3.0.4 */
-/* Command-line: gperf include/gperf-input.txt  */
+/* Command-line: gperf include/gperf.txt  */
 /* Computed positions: -k'1-2' */
 
 #if !((' ' == 32) && ('!' == 33) && ('"' == 34) && ('#' == 35) \
@@ -29,10 +29,10 @@
 #error "gperf generated tables don't work with this execution character set. Please report a bug to <bug-gnu-gperf@gnu.org>."
 #endif
 
-#line 1 "include/gperf-input.txt"
+#line 1 "include/gperf.txt"
 
 #include "gperf.h"
-#line 13 "include/gperf-input.txt"
+#line 13 "include/gperf.txt"
 struct command_list;
 #include <string.h>
 
@@ -141,51 +141,51 @@ command_lookup (register const char *str, register unsigned int len)
 {
   static const struct command_list wordlist[] =
     {
-#line 21 "include/gperf-input.txt"
+#line 21 "include/gperf.txt"
       {"url", url},
-#line 27 "include/gperf-input.txt"
+#line 27 "include/gperf.txt"
       {"play", play},
-#line 36 "include/gperf-input.txt"
+#line 36 "include/gperf.txt"
       {"tweet", tweet},
-#line 26 "include/gperf-input.txt"
+#line 26 "include/gperf.txt"
       {"uptime", uptime},
-#line 15 "include/gperf-input.txt"
+#line 15 "include/gperf.txt"
       {"PRIVMSG", irc_privmsg},
-#line 28 "include/gperf-input.txt"
+#line 28 "include/gperf.txt"
       {"playlist", playlist},
-#line 32 "include/gperf-input.txt"
+#line 32 "include/gperf.txt"
       {"stop", stop},
-#line 25 "include/gperf-input.txt"
+#line 25 "include/gperf.txt"
       {"traceroute", traceroute},
-#line 20 "include/gperf-input.txt"
+#line 20 "include/gperf.txt"
       {"mumble", mumble},
-#line 30 "include/gperf-input.txt"
+#line 30 "include/gperf.txt"
       {"current", current},
-#line 24 "include/gperf-input.txt"
+#line 24 "include/gperf.txt"
       {"dns", dns},
-#line 33 "include/gperf-input.txt"
+#line 33 "include/gperf.txt"
       {"roll", roll},
-#line 16 "include/gperf-input.txt"
+#line 16 "include/gperf.txt"
       {"NOTICE", irc_notice},
-#line 35 "include/gperf-input.txt"
+#line 35 "include/gperf.txt"
       {"announce", announce},
-#line 31 "include/gperf-input.txt"
+#line 31 "include/gperf.txt"
       {"next", next},
-#line 37 "include/gperf-input.txt"
+#line 37 "include/gperf.txt"
       {"marker", marker},
-#line 34 "include/gperf-input.txt"
+#line 34 "include/gperf.txt"
       {"seek", seek},
-#line 23 "include/gperf-input.txt"
+#line 23 "include/gperf.txt"
       {"ping", ping},
-#line 22 "include/gperf-input.txt"
+#line 22 "include/gperf.txt"
       {"github", github},
-#line 18 "include/gperf-input.txt"
+#line 18 "include/gperf.txt"
       {"help", help},
-#line 17 "include/gperf-input.txt"
+#line 17 "include/gperf.txt"
       {"KICK", irc_kick},
-#line 19 "include/gperf-input.txt"
+#line 19 "include/gperf.txt"
       {"fail", bot_fail},
-#line 29 "include/gperf-input.txt"
+#line 29 "include/gperf.txt"
       {"history", history}
     };
 

@@ -52,7 +52,7 @@ $(OUTDIR)/$(PROGRAM): $(OBJFILES)
 	$(CC) $(LDFLAGS) $^ -o $@ $(LDLIBS)
 
 # Build a lookup table to quickly match strings -> bot commands
-$(SRCDIR)/gperf.c: $(INCLDIR)/gperf-input.txt
+$(SRCDIR)/gperf.c: $(INCLDIR)/gperf.txt
 	gperf $< >$@
 
 # Generic rule to build all source files needed for main

@@ -12,9 +12,6 @@
 #include "gperf.h"
 #include "common.h"
 
-// Wrapper function. Since last 2 args (VA_ARGS) are NULL, ':' will be ommited. Do not call _irc_command() directly
-#define irc_command(server, type, arg)  _irc_command(server, type, arg, NULL, (char *) NULL)
-
 struct irc_type {
 	int sock;
 	int pipe[2];
@@ -117,7 +114,7 @@ void set_user(Irc server, const char *user) {
 	assert(user);
 	strncpy(server->user, user, USERLEN);
 
-	snprintf(user_with_flags, USERLEN * 2 + 6, "%s 0 * :%s", server->user, server->user);
+	snprintf(user_with_flags, sizeof(user_with_flags), "%s 0 * :%s", server->user, server->user);
 	irc_command(server, "USER", user_with_flags);
 }
 
