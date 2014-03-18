@@ -21,35 +21,7 @@ struct irc_type {
 	bool isConnected;
 };
 
-Irc server;
-Parsed_data pdata;
-extern int mock[2];
-char test_buffer[IRCLEN + 1];
-extern struct config_options cfg;
 ssize_t n;
-
-void connect_irc(void) {
-
-	server = irc_connect("www.google.com", "80");
-	ck_assert_ptr_ne(server, NULL);
-}
-
-void disconnect_irc(void) {
-
-	quit_server(server, "bye");
-}
-
-void mock_irc_write(void) {
-
-	mock_start();
-	server->sock = mock[WRITE];
-}
-
-void mock_irc_read(void) {
-
-	mock_start();
-	server->sock = mock[READ];
-}
 
 START_TEST(irc_get_socket) {
 
@@ -72,7 +44,7 @@ START_TEST(irc_set_nick) {
 START_TEST(irc_numeric_reply) {
 
 	set_nick(server, "trololol");
-	numeric_reply(server, NICKNAMEINUSE);
+	numeric_reply(server, pdata, NICKNAMEINUSE);
 	if (server->nick[strlen(server->nick) - 1] != '_')
 		ck_abort_msg("nick rename failed");
 

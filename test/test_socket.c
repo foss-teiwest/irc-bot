@@ -10,10 +10,6 @@
 
 ssize_t sock_readbyte(int sock, char *byte);
 
-extern int mock[2];
-char test_buffer[IRCLEN + 1];
-
-
 START_TEST(socket_connect) {
 
 	int sock = sock_connect("www.google.com", "80");
