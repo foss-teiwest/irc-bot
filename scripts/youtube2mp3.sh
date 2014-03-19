@@ -57,9 +57,15 @@ fi
 -o "$DIR"/"$TITLE"."%(ext)s"
 
 scripts/id3v2_unicode_title.py "$TITLE" "$DIR"/"$TITLE".mp3
-mpc -q update --wait && mpc add "$TITLE".mp3 && mpc -q play
-if [ $? -eq 0 ]; then
-	print_song
-else
-	echo "Could not play song"
-fi
+
+for (( i = 0; i < 5; i++ )); do
+	mpc -q add "$TITLE".mp3
+	if [ $? -eq 0 ]; then
+		mpc play &>/dev/null
+		print_song
+		exit
+	fi
+	sleep 2
+done
+
+echo "Could not play song"
