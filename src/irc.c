@@ -331,7 +331,7 @@ void irc_notice(Irc server, Parsed_data pdata) {
 		auth_level = atoi(test + 4);
 		if (write(server->pipe[1], &auth_level, 4) != 4)
 			perror(__func__);
-	} else if (starts_with(pdata.message, "This nickname is registered")) {
+	} else if (starts_with(pdata.message, "This nickname is registered") && *cfg.nick_password) {
 		temp = cfg.verbose;
 		cfg.verbose = false;
 		send_message(server, pdata.sender, "identify %s", cfg.nick_password);

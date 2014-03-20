@@ -118,10 +118,8 @@ char *fetch_murmur_users(void) {
 
 	while (user_counter++ < read_buffer[25]) {
 		if (user_counter > 1) {
-			while (!(username[0] == 0x0 && username[1] == 0x0 && username[2] == 0xff && username[3] == 0xff))
-				username++;
-
-			username += 0x2d;
+			while (*username++ != 0xff);
+			username += 41 + (*username == 0xff);
 		}
 		username[(unsigned) *(username - 1)] = '\0';
 		bytes_written += snprintf(user_list + bytes_written, READ_BUFFER_SIZE - bytes_written,
