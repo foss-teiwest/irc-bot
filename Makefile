@@ -77,9 +77,9 @@ $(OUTDIR)/%.o: $(TESTDIR)/%.c
 # Generate documentation & test coverage in html and upload them
 doc:
 	doxygen Doxyfile
+	rsync -avz --delete bin/doxygen/ freestyler@foss.tesyd.teimes.gr:public_html/irc-bot/doc
 	lcov --capture --directory $(OUTDIR)/ --output-file $(OUTDIR)/coverage.info >/dev/null
 	genhtml $(OUTDIR)/coverage.info --output-directory $(OUTDIR)/lcov >/dev/null
-	rsync -avz --delete bin/doxygen/ freestyler@foss.tesyd.teimes.gr:public_html/irc-bot/doc
 	rsync -avz --delete bin/lcov/ freestyler@foss.tesyd.teimes.gr:public_html/irc-bot/coverage
 
 clean:
