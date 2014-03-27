@@ -25,6 +25,11 @@ void initialize(int argc, char *argv[]) {
 
 	main_pid = getpid(); // store our process id to help exit_msg function exit appropriately
 
+	signal(SIGCHLD, SIG_IGN); // Make child processes not leave zombies behind when killed
+	signal(SIGPIPE, SIG_IGN); // Handle writing on closed sockets on our own
+	curl_global_init(CURL_GLOBAL_ALL); // Initialize curl library
+	setlinebuf(stdout); // Flush on each line
+
 	// Accept config path as an optional argument
 	if (argc == 1)
 		parse_config(root, DEFAULT_CONFIG_NAME);
@@ -33,10 +38,6 @@ void initialize(int argc, char *argv[]) {
 
 	if (*cfg.oauth_consumer_key && *cfg.oauth_consumer_secret && *cfg.oauth_token && *cfg.oauth_token_secret)
 		cfg.twitter_details_set = true;
-
-	signal(SIGCHLD, SIG_IGN); // Make child processes not leave zombies behind when killed
-	signal(SIGPIPE, SIG_IGN); // Handle writing on closed sockets on our own
-	curl_global_init(CURL_GLOBAL_ALL); // Initialize curl library
 
 	// Set up a mutex that works across processes
 	mtx = MMAP_W(sizeof(pthread_mutex_t));
@@ -382,7 +383,7 @@ void parse_config(yajl_val root, const char *config_file) {
 	cfg.access_list_count = get_json_array(root, "access_list", cfg.access_list, MAXACCLIST);
 }
 
-char *iso8859_7_to_utf8(char *iso) {
+char *iso8859_7_to_utf8(const char *iso) {
 
 	unsigned char *uiso, *utf;
 	unsigned int i = 0, y = 0;

@@ -59,13 +59,13 @@ fi
 scripts/id3v2_unicode_title.py "$TITLE" "$DIR"/"$TITLE".mp3
 
 for (( i = 0; i < 5; i++ )); do
+	sleep 2
 	mpc -q add "$TITLE".mp3
 	if [ $? -eq 0 ]; then
 		mpc play &>/dev/null
 		print_song
 		exit
 	fi
-	sleep 2
 done
 
 echo "Could not play song"

@@ -46,5 +46,5 @@ mutagen    | >= 1.20   | [optional] MPD integration
 
 # Documentation
 
-[**Doxygen documentation**](https://foss.tesyd.teimes.gr/~freestyler/irc-bot/doc)  
+[**Doxygen**](https://foss.tesyd.teimes.gr/~freestyler/irc-bot/doc)  
 [**Test coverage**](https://foss.tesyd.teimes.gr/~freestyler/irc-bot/coverage/src/index.html)

@@ -57,10 +57,12 @@ struct config_options {
 
 extern struct config_options cfg; //!< global struct with config's values
 
+//@{
 /** Macros to help reduce boilerplate code */
 #define CMD(...) (char *[]) { __VA_ARGS__, NULL }
 #define CFG(...) (const char *[]) { __VA_ARGS__, NULL }
 #define CFG_GET(struct_name, root, field) struct_name.field = get_json_field(root, #field)
+//@}
 
 //@{
 /** Wrappers for allocating memory. Print the position on failure and exit. Will always return a valid pointer */
@@ -68,7 +70,7 @@ extern struct config_options cfg; //!< global struct with config's values
 #define MALLOC_W(x) _malloc_w((x), __func__, __FILE__, __LINE__)
 #define CALLOC_W(x) _calloc_w((x), __func__, __FILE__, __LINE__)
 #define REALLOC_W(x, y) _realloc_w((x), (y), __func__, __FILE__, __LINE__)
-#define ALLOC_ERROR(function, file, line)  exit_msg("Failed to allocate memory in %s() %s:%d\n", function, file, line);
+#define ALLOC_ERROR(function, file, line) exit_msg("Failed to allocate memory in %s() %s:%d\n", function, file, line);
 //@}
 
 void *_mmap_w(size_t size, const char *caller, const char *file, int line);
@@ -140,7 +142,7 @@ void parse_config(yajl_val root, const char *config_file);
 
 /** Convert string's encoding from ISO 8859-7 to UTF-8
  *  @warning  Return value must be freed to avoid memory leak */
-char *iso8859_7_to_utf8(char *iso);
+char *iso8859_7_to_utf8(const char *iso);
 
 #endif
 
