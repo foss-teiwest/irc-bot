@@ -91,8 +91,8 @@ STATIC char *prepare_parameter_string(CURL *curl, char **status_msg, char **oaut
 	*oauth_nonce = generate_nonce(DEFNONCE);
 	*status_msg = curl_easy_escape(curl, *status_msg, 0);
 	len = snprintf(parameter_string, TWTLEN, "include_entities=true&oauth_consumer_key=%s&oauth_nonce=%s"
-		"&oauth_signature_method=HMAC-SHA1&oauth_timestamp=%zd&oauth_token=%s&oauth_version=1.0&status=%s",
-			cfg.oauth_consumer_key, *oauth_nonce, *timestamp, cfg.oauth_token, *status_msg);
+		"&oauth_signature_method=HMAC-SHA1&oauth_timestamp=%lu&oauth_token=%s&oauth_version=1.0&status=%s",
+			cfg.oauth_consumer_key, *oauth_nonce, (unsigned long) *timestamp, cfg.oauth_token, *status_msg);
 
 	parameter_string_url_encoded = curl_easy_escape(curl, parameter_string, len);
 	return parameter_string_url_encoded;
@@ -147,8 +147,8 @@ STATIC struct curl_slist *prepare_http_post_request(CURL *curl, char **status_ms
 	struct curl_slist *headers = NULL;
 
 	snprintf(buffer, TWTLEN, "Authorization: OAuth oauth_consumer_key=\"%s\", oauth_nonce=\"%s\", oauth_signature=\"%s\", "
-		"oauth_signature_method=\"HMAC-SHA1\", oauth_timestamp=\"%zd\", oauth_token=\"%s\", oauth_version=\"1.0\"",
-			cfg.oauth_consumer_key, oauth_nonce, oauth_signature, timestamp, cfg.oauth_token);
+		"oauth_signature_method=\"HMAC-SHA1\", oauth_timestamp=\"%lu\", oauth_token=\"%s\", oauth_version=\"1.0\"",
+			cfg.oauth_consumer_key, oauth_nonce, oauth_signature, (unsigned long) timestamp, cfg.oauth_token);
 
 	headers = curl_slist_append(headers, buffer);
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
