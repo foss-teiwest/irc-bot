@@ -11,7 +11,6 @@
 
 #define URLLEN   440
 #define TITLELEN 300
-#define TESTDIR "file:///home/free/programming/c/irc-bot/test-files/" //!< Run network tests from file instead of actually connecting to a service
 
 /** HTTP status codes */
 enum http_codes {

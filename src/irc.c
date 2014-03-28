@@ -360,7 +360,10 @@ void irc_kick(Irc server, Parsed_data pdata) {
 
 	// Rejoin and send a message back to the one who kicked us
 	if (streq(victim, server->nick)) {
-		sleep(3);
+
+#ifndef TEST
+		sleep(5);
+#endif
 		join_channel(server, pdata.target);
 		send_message(server, pdata.target, "magkas %s...", pdata.sender);
 	}

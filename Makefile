@@ -72,7 +72,7 @@ $(OUTDIR)/$(PROGRAM)-test: $(OBJFILES-TEST)
 
 # Generic rule to build all source files needed for test
 $(OUTDIR)/%.o: $(TESTDIR)/%.c
-	$(CC) $(CFLAGS-TEST) -I$(INCLDIR) -c $< -o $@
+	$(CC) $(CPPFLAGS) $(CFLAGS-TEST) -I$(INCLDIR) -c $< -o $@
 
 # Generate documentation & test coverage in html and upload them
 doc:

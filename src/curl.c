@@ -44,7 +44,7 @@ char *shorten_url(const char *long_url) {
 		goto cleanup;
 
 #ifdef TEST
-	curl_easy_setopt(curl, CURLOPT_URL, TESTDIR "url-shorten.txt");
+	curl_easy_setopt(curl, CURLOPT_URL, getenv("IRCBOT_TESTFILE"));
 #else
 	curl_easy_setopt(curl, CURLOPT_URL, "https://www.googleapis.com/urlshortener/v1/url"); // Set API url
 #endif
@@ -96,7 +96,7 @@ Github *fetch_github_commits(yajl_val *root, const char *repo, int *commit_count
 	snprintf(API_URL, URLLEN, "https://api.github.com/repos/%s/commits?per_page=%d", repo, *commit_count);
 
 #ifdef TEST
-	curl_easy_setopt(curl, CURLOPT_URL, TESTDIR "github.json");
+	curl_easy_setopt(curl, CURLOPT_URL, getenv("IRCBOT_TESTFILE"));
 #else
 	curl_easy_setopt(curl, CURLOPT_URL, API_URL);
 #endif
@@ -164,12 +164,7 @@ char *get_url_title(const char *url) {
 	if (!curl)
 		goto cleanup;
 
-#ifdef TEST
-	curl_easy_setopt(curl, CURLOPT_URL, TESTDIR "url-title.txt");
-	(void) url; // Silence warning
-#else
 	curl_easy_setopt(curl, CURLOPT_URL, url);
-#endif
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 3L);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_memory);

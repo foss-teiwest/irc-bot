@@ -1,9 +1,14 @@
 #include <check.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <limits.h>
 #include "test_main.h"
 #include "curl.h"
 
 size_t curl_write_memory(char *data, size_t size, size_t elements, void *membuf);
+
+char testfile[PATH_MAX];
 
 START_TEST(curl_writeback) {
 
@@ -18,6 +23,9 @@ START_TEST(curl_writeback) {
 
 START_TEST(url_shortener_test) {
 
+	snprintf(testfile, PATH_MAX, "IRCBOT_TESTFILE=file://%s/test-files/url-shorten.txt", get_current_dir_name());
+	putenv(testfile);
+
 	char *short_url = shorten_url("rofl.com");
 	ck_assert_str_eq(short_url, "http://goo.gl/LJbW");
 
@@ -26,7 +34,9 @@ START_TEST(url_shortener_test) {
 
 START_TEST(titleurl) {
 
-	char *url_title = get_url_title("https://www.ntua.gr/");
+	snprintf(testfile, PATH_MAX, "file://%s/test-files/url-title.txt", get_current_dir_name());
+
+	char *url_title = get_url_title(testfile);
 	ck_assert_str_eq(url_title, "ΕΘΝΙΚΟ ΜΕΤΣΟΒΙΟ ΠΟΛΥΤΕΧΝΕΙΟ");
 
 } END_TEST
@@ -38,6 +48,8 @@ START_TEST(github_commits) {
 	yajl_val root = NULL;
 	int n = 10;
 
+	snprintf(testfile, PATH_MAX, "IRCBOT_TESTFILE=file://%s/test-files/github.json", get_current_dir_name());
+	putenv(testfile);
 	commits = fetch_github_commits(&root, "foss-teimes/irc-bot", &n);
 
 	ck_assert_str_eq(commits[0].sha,  "de7579c08e35f232af4938dc7dc325b9809d63bf");

@@ -295,7 +295,6 @@ Suite *irc_suite(void) {
 	tcase_add_test(core, irc_quit_server);
 
 	suite_add_tcase(suite, parse);
-	tcase_set_timeout(parse, 5.0);
 	tcase_add_unchecked_fixture(parse, connect_irc, disconnect_irc);
 	tcase_add_checked_fixture(parse, mock_irc_read, mock_stop);
 	tcase_add_test(parse, irc_parse_line_ping);
