@@ -148,7 +148,11 @@ int mpd_connect(const char *port) {
 		if (!mpd_announce(ON))
 			goto cleanup;
 
-	fcntl(mpdfd, F_SETFL, O_NONBLOCK);
+	if (fcntl(mpdfd, F_SETFL, O_NONBLOCK) < 0) {
+		perror(__func__);
+		goto cleanup;
+	}
+
 	return mpdfd; // Success
 
 cleanup:

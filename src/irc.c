@@ -17,11 +17,11 @@ struct irc_type {
 	int pipe[2];
 	char line[IRCLEN + 1];
 	size_t line_offset;
-	char address[ADDRLEN];
-	char port[PORTLEN];
-	char nick[NICKLEN];
-	char user[USERLEN];
-	char channels[MAXCHANS][CHANLEN];
+	char address[ADDRLEN + 1];
+	char port[PORTLEN + 1];
+	char nick[NICKLEN + 1];
+	char user[USERLEN + 1];
+	char channels[MAXCHANS][CHANLEN + 1];
 	int channels_set;
 	bool isConnected;
 };
@@ -31,25 +31,36 @@ extern pid_t main_pid;
 
 Irc irc_connect(const char *address, const char *port) {
 
-	Irc server = CALLOC_W(sizeof(*server));
+	Irc server;
 
 	// Minimum validity checks
 	if (!strchr(address, '.'))
 		return NULL;
 
+	server = CALLOC_W(sizeof(*server));
 	server->sock = sock_connect(address, port);
 	if (server->sock < 0)
-		return NULL;
+		goto cleanup;
 
 	if (pipe(server->pipe) < 0) {
-		perror("pipe");
-		return NULL;
+		perror(__func__);
+		goto cleanup;
 	}
-	fcntl(server->sock, F_SETFL, O_NONBLOCK); // Set socket to non-blocking mode
+
+	// Set socket to non-blocking mode
+	if (fcntl(server->sock, F_SETFL, O_NONBLOCK) < 0) {
+		perror(__func__);
+		goto cleanup;
+	}
+
 	strncpy(server->address, address, ADDRLEN);
 	strncpy(server->port, port, PORTLEN);
 
 	return server;
+
+cleanup:
+	free(server);
+	return NULL;
 }
 
 int get_socket(Irc server) {

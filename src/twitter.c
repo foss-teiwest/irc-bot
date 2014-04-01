@@ -100,13 +100,14 @@ STATIC char *prepare_parameter_string(CURL *curl, char **status_msg, char **oaut
 
 STATIC char *prepare_signature_base_string(CURL *curl, char **resource_url, char *parameter_string) {
 
-	char *signature_base_string = MALLOC_W(TWTLEN);
+	char *signature_base_string;
 
 	*resource_url = curl_easy_escape(curl, *resource_url, 0);
 	if (!null_terminate(parameter_string, '6')) // Cut the "include_entities%3Dtrue%26" part
 		return NULL;
 
 	parameter_string += strlen(parameter_string) + 1;
+	signature_base_string = MALLOC_W(TWTLEN);
 	snprintf(signature_base_string, TWTLEN, "POST&%s&%s", *resource_url, parameter_string);
 
 	return signature_base_string;
@@ -122,7 +123,7 @@ STATIC char *generate_oauth_signature(CURL *curl, const char *signature_base_str
 	signing_key = MALLOC_W(len);
 	len = snprintf(signing_key, len, "%s&%s", cfg.oauth_consumer_secret, cfg.oauth_token_secret);
 	oauth_signature = HMAC(EVP_sha1(), signing_key, len, (unsigned char *) signature_base_string,
-		strlen(signature_base_string), NULL, NULL);
+			strlen(signature_base_string), NULL, NULL);
 
 	oauth_signature_encoded = base64_encode(oauth_signature, 20);
 	temp = oauth_signature_encoded;

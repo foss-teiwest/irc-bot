@@ -51,7 +51,7 @@ bool add_murmur_callbacks(const char *port) {
 	uint16_t listener_port = htons(CB_LISTEN_PORT);
 	unsigned char *listener_port_bytes = (unsigned char *) &listener_port;
 	unsigned char read_buffer[READ_BUFFER_SIZE];
-	int murm_callbackfd;
+	int murm_callbackfd, status = false;
 
 	const unsigned char addCallback_packet[] = {
 		0x49, 0x63, 0x65, 0x50, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0x70, 0x00, 0x00, 0x00, 0x02, 0x00,
@@ -76,11 +76,12 @@ bool add_murmur_callbacks(const char *port) {
 		fprintf(stderr, "Error: Failed to receive addCallback_packet success reply\n");
 		goto cleanup;
 	}
-	return true; // Success
+
+	status = true; // Success
 
 cleanup:
 	close(murm_callbackfd);
-	return false;
+	return status;
 }
 
 char *fetch_murmur_users(void) {
