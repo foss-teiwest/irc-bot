@@ -42,13 +42,13 @@ Irc irc_connect(const char *address, const char *port) {
 	if (server->sock < 0)
 		goto cleanup;
 
-	if (pipe(server->pipe) < 0) {
+	if (pipe(server->pipe)) {
 		perror(__func__);
 		goto cleanup;
 	}
 
 	// Set socket to non-blocking mode
-	if (fcntl(server->sock, F_SETFL, O_NONBLOCK) < 0) {
+	if (fcntl(server->sock, F_SETFL, O_NONBLOCK) == -1) {
 		perror(__func__);
 		goto cleanup;
 	}
@@ -409,7 +409,7 @@ void quit_server(Irc server, const char *msg) {
 	strncat(exit_msg, msg, sizeof(exit_msg) - 1);
 	irc_command(server, "QUIT", exit_msg);
 
-	if (close(server->sock) < 0)
+	if (close(server->sock))
 		perror(__func__);
 
 	free(server);

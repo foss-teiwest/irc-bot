@@ -101,7 +101,7 @@ int sock_accept(int listen_fd, bool non_block) {
 		return -1;
 	}
 
-	if (non_block && fcntl(accept_fd, F_SETFL, O_NONBLOCK) < 0) {
+	if (non_block && fcntl(accept_fd, F_SETFL, O_NONBLOCK) == -1) {
 		perror(__func__);
 		close(accept_fd);
 		return -1;

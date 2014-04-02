@@ -196,7 +196,7 @@ void print_cmd_output(Irc server, const char *target, char *cmd_args[]) {
 	size_t len;
 	int fd[2];
 
-	if (pipe(fd) < 0) {
+	if (pipe(fd)) {
 		perror("pipe");
 		return;
 	}
@@ -269,7 +269,7 @@ STATIC size_t read_file(char **buf, const char *filename) {
 		fprintf(stderr, "fopen error: ");
 		return 0;
 	}
-	if (fstat(fileno(file), &st) == -1) {
+	if (fstat(fileno(file), &st)) {
 		fprintf(stderr, "fstat fail: ");
 		goto cleanup;
 	}

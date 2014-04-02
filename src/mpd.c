@@ -78,7 +78,8 @@ void stop(Irc server, Parsed_data pdata) {
 	if (mpd->random) {
 		mpd->random = OFF;
 		mpd_announce(OFF);
-		remove(cfg.mpd_random_file);
+		if (remove(cfg.mpd_random_file))
+			perror(__func__);
 	}
 
 	print_cmd_output_unsafe(server, pdata.target, "mpc -q clear");
@@ -101,7 +102,7 @@ void seek(Irc server, Parsed_data pdata) {
 	argc = extract_params(pdata.message, &argv);
 	if (!argc)
 		send_message(server, pdata.target, "%s", "usage: [+-][HH:MM:SS]|<0-100>%");
-	else if (argc == 1) {
+	else {
 		print_cmd_output(server, pdata.target, CMD(SCRIPTDIR "mpd_seek.sh", argv[0]));
 		free(argv);
 	}
@@ -148,7 +149,7 @@ int mpd_connect(const char *port) {
 		if (!mpd_announce(ON))
 			goto cleanup;
 
-	if (fcntl(mpdfd, F_SETFL, O_NONBLOCK) < 0) {
+	if (fcntl(mpdfd, F_SETFL, O_NONBLOCK) == -1) {
 		perror(__func__);
 		goto cleanup;
 	}
