@@ -233,11 +233,15 @@ ssize_t parse_irc_line(Irc server) {
 int numeric_reply(Irc server, Parsed_data pdata, int reply) {
 
 	int i;
+	char newnick[NICKLEN];
 
 	switch (reply) {
 	case NICKNAMEINUSE: // Change our nick
-		strcat(server->nick, "_");
-		set_nick(server, server->nick);
+		i = snprintf(newnick, NICKLEN, "%s_", server->nick);
+		if (i >= NICKLEN)
+			exit_msg("maximum nickname length reached\n");
+
+		set_nick(server, newnick);
 		break;
 	case ENDOFMOTD: // Join all set channels
 		server->isConnected = true;
