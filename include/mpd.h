@@ -1,14 +1,14 @@
 #ifndef MPD_H
 #define MPD_H
 
-#include <stdbool.h>
-#include "irc.h"
-
 /**
  * @file mpd.h
  * Contains the functions to interact with MPD
  * External helper scripts will be used to do most of the work
  */
+
+#include <stdbool.h>
+#include "irc.h"
 
 #define ON  true
 #define OFF false

@@ -1,9 +1,6 @@
 #ifndef COMMANDS_H
 #define COMMANDS_H
 
-#include "irc.h"
-#include "murmur.h"
-
 /**
  * @file commands.h
  * Data available to all bot functions through pdata structure:
@@ -15,6 +12,9 @@
  * @warning All BOT functions in this file are running in a new process.
  *  They will not crash main program in case of failure
  */
+
+#include "irc.h"
+#include "murmur.h"
 
 #define MAXCOMMITS   10
 #define MAXPINGS     10

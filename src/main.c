@@ -1,12 +1,14 @@
 #include <stdio.h>
 #include <poll.h>
+#include <pthread.h>
 #include "socket.h"
 #include "irc.h"
 #include "murmur.h"
 #include "mpd.h"
 #include "common.h"
+#include "ratelimit.h"
 
-#define TIMEOUT 300000 // Timeout in milliseconds for the poll function
+#define TIMEOUT 300 * 1000 // Timeout in milliseconds for the poll function
 
 extern struct mpd_info *mpd;
 enum { IRC, MURM_LISTEN, MURM_ACCEPT, MPD, PFDS };
@@ -14,6 +16,8 @@ enum { IRC, MURM_LISTEN, MURM_ACCEPT, MPD, PFDS };
 int main(int argc, char *argv[]) {
 
 	Irc irc_server;
+	struct rate_limit rtl;
+	pthread_t tid;
 	int i, ready, murm_listenfd = -1;
 	struct pollfd pfd[PFDS] = {
 		{ .fd = -1, .events = POLLIN },
@@ -27,7 +31,10 @@ int main(int argc, char *argv[]) {
 	if (!irc_server)
 		exit_msg("Irc connection failed\n");
 
-	pfd[IRC].fd = get_socket(irc_server);
+	rtl = ratelimit_init();
+	rtl.ircfd = pfd[IRC].fd = get_socket(irc_server);
+	pthread_create(&tid, NULL, ratelimit_loop, &rtl);
+
 	set_nick(irc_server, cfg.nick);
 	set_user(irc_server, cfg.user);
 	for (i = 0; i < cfg.channels_set; i++)
@@ -70,6 +77,7 @@ int main(int argc, char *argv[]) {
 		fprintf(stderr, "%d minutes passed without getting a message, exiting...\n", TIMEOUT / 1000 / 60);
 
 	quit_server(irc_server, cfg.quit_message);
+	ratelimit_destroy(rtl);
 	cleanup();
 	return 1;
 }

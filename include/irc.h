@@ -1,13 +1,13 @@
 #ifndef IRC_H
 #define IRC_H
 
-#include <sys/types.h>
-#include <stdbool.h>
-
 /**
  * @file irc.h
  * Contains the functions to interact with the IRC network
  */
+
+#include <sys/types.h>
+#include <stdbool.h>
 
 #define IRCLEN   512
 #define NICKLEN  20
@@ -111,12 +111,12 @@ int numeric_reply(Irc Server, Parsed_data pdata, int reply);
  * @param type    command type e.x. PONG, NICK, JOIN etc
  * @param arg     the arguments after type
  */
-#define  irc_command(server, type, arg)           _irc_command(server, type, arg, NULL, (char *) NULL)
-#define  send_notice(server, target, format, ...) _irc_command(server, "NOTICE",  target, format, __VA_ARGS__)
-#define send_message(server, target, format, ...) _irc_command(server, "PRIVMSG", target, format, __VA_ARGS__)
+#define  irc_command(server, type, arg)           _irc_command(server, 1, type, arg, NULL, (char *) NULL)
+#define  send_notice(server, target, format, ...) _irc_command(server, 1, "NOTICE",  target, format, __VA_ARGS__)
+#define send_message(server, target, format, ...) _irc_command(server, 0, "PRIVMSG", target, format, __VA_ARGS__)
 //@}
 
-void _irc_command(Irc server, const char *type, const char *target, const char *format, ...);
+void _irc_command(Irc server, unsigned priority, const char *type, const char *target, const char *format, ...);
 
 /** Close socket and free resources */
 void quit_server(Irc server, const char *msg);

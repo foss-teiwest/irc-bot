@@ -4,17 +4,20 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <fcntl.h>
+#include <mqueue.h>
 #include <stdarg.h>
 #include <errno.h>
 #include <assert.h>
 #include "socket.h"
 #include "irc.h"
 #include "gperf.h"
+#include "ratelimit.h"
 #include "common.h"
 
 struct irc_type {
 	int sock;
 	int pipe[2];
+	mqd_t mqdfd;
 	char line[IRCLEN + 1];
 	size_t line_offset;
 	char address[ADDRLEN + 1];
@@ -53,6 +56,7 @@ Irc irc_connect(const char *address, const char *port) {
 		goto cleanup;
 	}
 
+	server->mqdfd = mqueue_create(MQUEUE_NAME, MQUEUE_MAXLINES, MQUEUE_LINELEN);
 	strncpy(server->address, address, ADDRLEN);
 	strncpy(server->port, port, PORTLEN);
 
@@ -382,7 +386,7 @@ void irc_kick(Irc server, Parsed_data pdata) {
 	}
 }
 
-void _irc_command(Irc server, const char *type, const char *target, const char *format, ...) {
+void _irc_command(Irc server, unsigned priority, const char *type, const char *target, const char *format, ...) {
 
 	va_list args;
 	char msg[IRCLEN - 50], irc_msg[IRCLEN];
@@ -396,8 +400,12 @@ void _irc_command(Irc server, const char *type, const char *target, const char *
 		snprintf(irc_msg, IRCLEN, "%s %s\r\n", type, target);
 
 	// Only exit on actual failure (ignore EAGAIN)
-	if (sock_write(server->sock, irc_msg, strlen(irc_msg)) == -1)
-		exit_msg("Failed to send message\n");
+	if (mq_send(server->mqdfd, irc_msg, strlen(irc_msg), priority) == -1) {
+		if (errno == EAGAIN)
+			fprintf(stderr, "Dropped message due to throttling\n");
+		else
+			exit_msg("Failed to send irc message\n");
+	}
 
 	if (cfg.verbose)
 		fputs(irc_msg, stdout);
@@ -412,6 +420,9 @@ void quit_server(Irc server, const char *msg) {
 	irc_command(server, "QUIT", exit_msg);
 
 	if (close(server->sock))
+		perror(__func__);
+
+	if (mq_close(server->mqdfd))
 		perror(__func__);
 
 	free(server);

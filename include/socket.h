@@ -1,13 +1,13 @@
 #ifndef SOCKET_H
 #define SOCKET_H
 
-#include <sys/types.h>
-#include <stdbool.h>
-
 /**
  * @file socket.h
  * Contains low level read & write operations
  */
+
+#include <sys/types.h>
+#include <stdbool.h>
 
 #define NONBLOCK 1
 #define IRCLEN   512

@@ -1,10 +1,6 @@
 #ifndef MURMUR_H
 #define MURMUR_H
 
-#include <sys/types.h>
-#include <stdbool.h>
-#include "irc.h"
-
 /**
  * @file murmur.h
  * Murmur's ICE userConnected/userDisconnected callbacks-notifications adder & listener,
@@ -12,6 +8,10 @@
  * Works only with a Murmur that supports ICE's version >=3.4 and runs at localhost.
  * Author: Charalampos Kostas <root@charkost.gr>
  */
+
+#include <sys/types.h>
+#include <stdbool.h>
+#include "irc.h"
 
 #define CB_LISTEN_PORT 65535
 #define CB_LISTEN_PORT_S "65535"

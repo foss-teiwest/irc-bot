@@ -1,13 +1,13 @@
 #ifndef CURL_H
 #define CURL_H
 
-#include <sys/types.h>
-#include <yajl/yajl_tree.h>
-
 /**
  * @file curl.h
  * Contains functions that use CURL directly
  */
+
+#include <sys/types.h>
+#include <yajl/yajl_tree.h>
 
 #define URLLEN   440
 #define TITLELEN 300

@@ -1,15 +1,15 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#include <stdbool.h>
-#include <yajl/yajl_tree.h>
-#include "irc.h"
-#include "twitter.h"
-
 /**
  * @file common.h
  * Contains general functions that are needed by many files
  */
+
+#include <stdbool.h>
+#include <yajl/yajl_tree.h>
+#include "irc.h"
+#include "twitter.h"
 
 // Allow testing on static functions
 #ifdef TEST
