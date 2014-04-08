@@ -9,7 +9,6 @@
 #include "socket.h"
 #include "common.h"
 
-
 int sock_connect(const char *address, const char *port) {
 
 	int retval, sock = -1;
@@ -118,9 +117,12 @@ ssize_t sock_write(int sock, const void *buffer, size_t len) {
 
 	while (n_left > 0) {
 		n_sent = write(sock, buf, n_left);
-		if (n_sent < 0) {
+		if (n_sent == -1) {
 			if (errno == EINTR) // Interrupted by signal, retry
 				continue;
+
+			if (errno == EAGAIN) // Operation would block, return bytes written so far
+				return len - n_sent;
 
 			perror(__func__);
 			return -1;
@@ -131,17 +133,6 @@ ssize_t sock_write(int sock, const void *buffer, size_t len) {
 	return len;
 }
 
-ssize_t sock_write_non_blocking(int sock, const void *buffer, size_t len) {
-
-	const unsigned char *buf = buffer;
-
-	// TODO we don't actually resend the buffer if we get EAGAIN...
-	if (write(sock, buf, len) < 0)
-		return errno == EAGAIN ? -EAGAIN : (perror(__func__), -1);
-
-	return len;
-}
-
 ssize_t sock_read(int sock, void *buffer, size_t len) {
 
 	ssize_t n;
@@ -149,29 +140,18 @@ ssize_t sock_read(int sock, void *buffer, size_t len) {
 
 	while (true) {
 		n = read(sock, buf, len);
-		if (n == -1 && errno == EINTR)
-			continue;
+		if (n == -1) {
+			if (errno == EINTR)
+				continue;
 
-		if (n == -1)
+			if (errno == EAGAIN)
+				return -EAGAIN;
+
 			perror(__func__);
+		}
 
 		return n;
 	}
-}
-
-ssize_t sock_read_non_blocking(int sock, void *buffer, size_t len) {
-
-	ssize_t n;
-	unsigned char *buf = buffer;
-
-	n = read(sock, buf, len);
-	if (n == -1 && errno == EAGAIN)
-		return -EAGAIN;
-
-	if (n == -1)
-		perror(__func__);
-
-	return n;
 }
 
 STATIC ssize_t sock_readbyte(int sock, char *byte) {
@@ -183,16 +163,10 @@ STATIC ssize_t sock_readbyte(int sock, char *byte) {
 	// Stores the character in byte. Returns 1 on success, -1 on error,
 	// -EAGAIN if the operation would block and 0 if connection is closed
 	if (bytes_read <= 0) {
-		bytes_read = read(sock, buffer, IRCLEN);
-		if (bytes_read <= 0) {
-			if (bytes_read == -1 && errno == EAGAIN)
-				return -EAGAIN;
-
-			if (bytes_read == -1)
-				perror(__func__);
-
+		bytes_read = sock_read(sock, buffer, IRCLEN);
+		if (bytes_read <= 0)
 			return bytes_read;
-		}
+
 		buf_ptr = buffer;
 	}
 	bytes_read--;
@@ -207,12 +181,14 @@ ssize_t sock_readline(int sock, char *line_buf, size_t len) {
 	size_t n_read = 0;
 	char byte = '\0';
 
-	// If n == 0, connection is closed. Return bytes read so far
 	while (n_read++ <= len) {
 		n = sock_readbyte(sock, &byte);
 		if (n <= 0) {
 			*line_buf = '\0';
-			return n == 0 ? (ssize_t) n_read - 1 : n;
+			if (n == 0) // connection closed. Return bytes read so far
+				return n_read - 1;
+
+			return n;
 		}
 		*line_buf++ = byte;
 		if (byte == '\n' && *(line_buf - 2) == '\r')

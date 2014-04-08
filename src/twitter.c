@@ -7,7 +7,6 @@
 #include "twitter.h"
 #include "common.h"
 
-
 STATIC char base64_encode_char(unsigned char u) {
 
 	if (u < 26)

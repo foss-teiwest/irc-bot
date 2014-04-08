@@ -5,7 +5,6 @@
 #include "curl.h"
 #include "common.h"
 
-
 STATIC size_t curl_write_memory(char *data, size_t size, size_t elements, void *membuf) {
 
 	Mem_buffer *mem = membuf;
@@ -53,8 +52,8 @@ char *shorten_url(const char *long_url) {
 	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 3L);
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers); // Use our modified header
 
-	// By default curl_easy_perform output the result in stdout, so we provide own function and data struct,
-	// so we can save the output in a string
+	// By default curl_easy_perform outputs the result in stdout.
+	// We provide our own function, in order to save the output in a string
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_memory);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &mem);
 

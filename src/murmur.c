@@ -10,7 +10,6 @@
 #include "murmur.h"
 #include "common.h"
 
-
 STATIC int murmur_connect(const char *port) {
 
 	int murmfd;
@@ -31,7 +30,7 @@ STATIC int murmur_connect(const char *port) {
 		fprintf(stderr, "Error: Failed to receive validate_packet\n");
 		goto cleanup;
 	}
-	if (sock_write(murmfd, ice_isA_packet, sizeof(ice_isA_packet)) < 0) {
+	if (sock_write(murmfd, ice_isA_packet, sizeof(ice_isA_packet)) != sizeof(ice_isA_packet)) {
 		fprintf(stderr, "Error: Failed to send ice_isA_packet\n");
 		goto cleanup;
 	}
@@ -68,7 +67,7 @@ bool add_murmur_callbacks(const char *port) {
 	if (murm_callbackfd < 0)
 		return false;
 
-	if (sock_write(murm_callbackfd, addCallback_packet, sizeof(addCallback_packet)) < 0) {
+	if (sock_write(murm_callbackfd, addCallback_packet, sizeof(addCallback_packet)) != sizeof(addCallback_packet)) {
 		fprintf(stderr, "Error: Failed to send addCallback_packet\n");
 		goto cleanup;
 	}
@@ -101,7 +100,7 @@ char *fetch_murmur_users(void) {
 	if (murmfd < 0)
 		return NULL;
 
-	if (sock_write(murmfd, getUsers_packet, sizeof(getUsers_packet)) < 0) {
+	if (sock_write(murmfd, getUsers_packet, sizeof(getUsers_packet)) != sizeof(getUsers_packet)) {
 		fprintf(stderr, "Error: Failed to send getUsers_packet\n");
 		close(murmfd);
 		return NULL;
@@ -138,8 +137,8 @@ STATIC ssize_t validate_murmur_connection(int murm_acceptfd) {
 		0x49, 0x63, 0x65, 0x50, 0x01, 0x00, 0x01, 0x00, 0x03, 0x00, 0x0e, 0x00, 0x00, 0x00
 	};
 
-	n = sock_write_non_blocking(murm_acceptfd, validate_packet, sizeof(validate_packet));
-	if (n < 0)
+	n = sock_write(murm_acceptfd, validate_packet, sizeof(validate_packet));
+	if (n != sizeof(validate_packet))
 		fprintf(stderr, "Error: Failed to send validate_packet\n");
 
 	return n;
@@ -165,7 +164,7 @@ bool listen_murmur_callbacks(Irc server, int murm_acceptfd) {
 	char *username, read_buffer[READ_BUFFER_SIZE];
 
 	errno = 0;
-	while (sock_read_non_blocking(murm_acceptfd, read_buffer, sizeof(read_buffer)) > 0) {
+	while (sock_read(murm_acceptfd, read_buffer, sizeof(read_buffer)) > 0) {
 		/* Close connection when related packet received */
 		if (read_buffer[8] == 0x4)
 			break;

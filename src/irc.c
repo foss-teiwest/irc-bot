@@ -93,12 +93,12 @@ STATIC bool user_is_identified(Irc server, const char *nick) {
 
 	pthread_mutex_lock(mtx);
 	send_message(server, "NickServ", "ACC %s", nick);
-	if (read(server->pipe[0], &auth_level, 4) != 4)
+	if (sock_read(server->pipe[0], &auth_level, 4) != 4)
 		perror(__func__);
 
+	pthread_mutex_unlock(mtx);
 	close(server->pipe[0]);
 	close(server->pipe[1]);
-	pthread_mutex_unlock(mtx);
 
 	return auth_level == 3;
 }
@@ -135,7 +135,6 @@ void set_user(Irc server, const char *user) {
 int join_channel(Irc server, const char *channel) {
 
 	int i = 0;
-
 
 	// Join all channels if arg is NULL
 	if (!channel) {
@@ -344,7 +343,7 @@ void irc_notice(Irc server, Parsed_data pdata) {
 	test = strstr(pdata.message, "ACC");
 	if (test) {
 		auth_level = atoi(test + 4);
-		if (write(server->pipe[1], &auth_level, 4) != 4)
+		if (sock_write(server->pipe[1], &auth_level, 4) != 4)
 			perror(__func__);
 	} else if (starts_with(pdata.message, "This nickname is registered") && *cfg.nick_password) {
 		temp = cfg.verbose;
@@ -375,7 +374,6 @@ void irc_kick(Irc server, Parsed_data pdata) {
 
 	// Rejoin and send a message back to the one who kicked us
 	if (streq(victim, server->nick)) {
-
 #ifndef TEST
 		sleep(5);
 #endif
@@ -397,8 +395,8 @@ void _irc_command(Irc server, const char *type, const char *target, const char *
 	} else
 		snprintf(irc_msg, IRCLEN, "%s %s\r\n", type, target);
 
-	// Send message & print it on stdout
-	if (sock_write_non_blocking(server->sock, irc_msg, strlen(irc_msg)) == -1)
+	// Only exit on actual failure (ignore EAGAIN)
+	if (sock_write(server->sock, irc_msg, strlen(irc_msg)) == -1)
 		exit_msg("Failed to send message\n");
 
 	if (cfg.verbose)

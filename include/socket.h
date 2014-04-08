@@ -41,7 +41,6 @@ int sock_listen(const char *address, const char *port);
  */
 int sock_accept(int listen_fd, bool non_block);
 
-//@{
 /**
  * Write the input unaltered to socket descriptor
  *
@@ -49,13 +48,10 @@ int sock_accept(int listen_fd, bool non_block);
  * @param buffer  Buffer to send
  * @param len     Number of bytes to write
  * @returns       blocking: On success: the amount of bytes written (this will always equal len) or -1 on error
- *                non-blocking: Same as blocking plus -EAGAIN if the operation would block
+ *                non-blocking: If the return value != len then a partial write was made due to EAGAIN
  */
 ssize_t sock_write(int sock, const void *buffer, size_t len);
-ssize_t sock_write_non_blocking(int sock, const void *buffer, size_t len);
-//@}
 
-//@{
 /**
  * Read data into buffer
  *
@@ -66,8 +62,6 @@ ssize_t sock_write_non_blocking(int sock, const void *buffer, size_t len);
  *                non-blocking: Same as blocking plus -EAGAIN if the operation would block
  */
 ssize_t sock_read(int sock, void *buffer, size_t len);
-ssize_t sock_read_non_blocking(int sock, void *buffer, size_t len);
-//@}
 
 /**
  * Read a valid IRC line containing "\r\n" at the end and null terminate it

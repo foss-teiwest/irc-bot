@@ -16,13 +16,13 @@ STATIC bool mpd_announce(bool on) {
 
 	if (on) {
 		mpd->announce = ON;
-		return sock_write_non_blocking(mpd->fd, "idle player\n", 12) == 12;
+		return sock_write(mpd->fd, "idle player\n", 12) == 12;
 	} else {
 		if (!mpd->announce)
 			return true;
 
 		mpd->announce = OFF;
-		return sock_write_non_blocking(mpd->fd, "noidle\n", 7) == 7;
+		return sock_write(mpd->fd, "noidle\n", 7) == 7;
 	}
 }
 
@@ -174,7 +174,7 @@ STATIC char *get_title(void) {
 	ready = poll(&pfd, 1, 4000);
 	if (ready == 1) {
 		if (pfd.revents & POLLIN) {
-			n = sock_read_non_blocking(mpd->fd, buf, SONG_INFO_LEN);
+			n = sock_read(mpd->fd, buf, SONG_INFO_LEN);
 			if (n <= 0)
 				return NULL;
 		}
@@ -204,7 +204,7 @@ bool print_song(Irc server, const char *channel) {
 	static char old_song[SONG_TITLE_LEN];
 	char *song_title, buf[128 + 1];
 
-	if (sock_read_non_blocking(mpd->fd, buf, 128) <= 0)
+	if (sock_read(mpd->fd, buf, 128) <= 0)
 		goto cleanup;
 
 	// Preserve the connection if "noidle" was issued
@@ -212,7 +212,7 @@ bool print_song(Irc server, const char *channel) {
 		return true;
 
 	// Ask for current song
-	if (sock_write_non_blocking(mpd->fd, "currentsong\n", 12) < 0)
+	if (sock_write(mpd->fd, "currentsong\n", 12) != 12)
 		goto cleanup;
 
 	song_title = get_title();

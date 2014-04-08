@@ -12,7 +12,6 @@
 #include "twitter.h"
 #include "common.h"
 
-
 void help(Irc server, Parsed_data pdata) {
 
 	send_message(server, pdata.target, "%s", "url, mumble, fail, github, ping, traceroute, dns, uptime, roll, tweet, marker");

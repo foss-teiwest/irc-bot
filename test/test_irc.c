@@ -12,11 +12,11 @@ struct irc_type {
 	int pipe[2];
 	char line[IRCLEN + 1];
 	size_t line_offset;
-	char address[ADDRLEN];
-	char port[PORTLEN];
-	char nick[NICKLEN];
-	char user[USERLEN];
-	char channels[MAXCHANS][CHANLEN];
+	char address[ADDRLEN + 1];
+	char port[PORTLEN + 1];
+	char nick[NICKLEN + 1];
+	char user[USERLEN + 1];
+	char channels[MAXCHANS][CHANLEN + 1];
 	int channels_set;
 	bool isConnected;
 };
