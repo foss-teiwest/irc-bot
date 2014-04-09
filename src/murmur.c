@@ -121,7 +121,7 @@ char *fetch_murmur_users(void) {
 			while (*username++ != 0xff);
 			username += 41 + (*username == 0xff);
 		}
-		username[(unsigned) *(username - 1)] = '\0';
+		username[(unsigned char) *(username - 1)] = '\0';
 		bytes_written += snprintf(user_list + bytes_written, READ_BUFFER_SIZE - bytes_written,
 			(user_counter < read_buffer[25] ? "%s, " : "%s"), username);
 	}
@@ -172,7 +172,7 @@ bool listen_murmur_callbacks(Irc server, int murm_acceptfd) {
 		/* Determine if received packet represents userConnected callback */
 		if (read_buffer[62] == 'C') {
 			username = read_buffer + 99;
-			username[(unsigned) *(username - 1)] = '\0';
+			username[(unsigned char) *(username - 1)] = '\0';
 			send_message(server, default_channel(server), "Mumble: %s connected", username);
 		}
 	}

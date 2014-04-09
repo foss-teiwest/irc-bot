@@ -66,7 +66,7 @@ STATIC char *generate_nonce(int len) {
 
 	int i;
 	char *nonce;
-	unsigned int max;
+	unsigned max;
 	const char *chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
 	max = strlen(chars);

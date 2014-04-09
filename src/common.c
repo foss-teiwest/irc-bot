@@ -386,7 +386,7 @@ void parse_config(yajl_val root, const char *config_file) {
 char *iso8859_7_to_utf8(const char *iso) {
 
 	unsigned char *uiso, *utf;
-	unsigned int i = 0, y = 0;
+	unsigned i = 0, y = 0;
 
 	uiso = (unsigned char *) iso;
 	utf = MALLOC_W(strlen(iso) * 2);

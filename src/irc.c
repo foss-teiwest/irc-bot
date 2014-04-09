@@ -51,7 +51,7 @@ Irc irc_connect(const char *address, const char *port) {
 	}
 
 	// Set socket to non-blocking mode
-	if (fcntl(server->sock, F_SETFL, O_NONBLOCK) == -1) {
+	if (fcntl(server->sock, F_SETFL, O_NONBLOCK)) {
 		perror(__func__);
 		goto cleanup;
 	}
@@ -400,13 +400,17 @@ void _irc_command(Irc server, unsigned priority, const char *type, const char *t
 		snprintf(irc_msg, IRCLEN, "%s %s\r\n", type, target);
 
 	// Only exit on actual failure (ignore EAGAIN)
+#ifdef TEST
+	if (sock_write(server->sock, irc_msg, strlen(irc_msg)) == -1)
+		exit_msg("Failed to send message\n");
+#else
 	if (mq_send(server->mqdfd, irc_msg, strlen(irc_msg), priority) == -1) {
 		if (errno == EAGAIN)
 			fprintf(stderr, "Dropped message due to throttling\n");
 		else
 			exit_msg("Failed to send irc message\n");
 	}
-
+#endif
 	if (cfg.verbose)
 		fputs(irc_msg, stdout);
 }
