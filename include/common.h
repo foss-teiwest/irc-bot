@@ -27,6 +27,9 @@
 #define SCRIPTDIR  "scripts/" //!< default folder to look for scripts like the youtube one
 #define DEFAULT_CONFIG_NAME "config.json"
 
+#define MILLISECS 1000
+#define NANOSECS  1000 * 1000 * 1000
+
 struct config_options {
 	char *server;
 	char *port;
@@ -56,6 +59,8 @@ struct config_options {
 };
 
 extern struct config_options cfg; //!< global struct with config's values
+
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 //@{
 /** Macros to help reduce boilerplate code */

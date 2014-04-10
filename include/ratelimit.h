@@ -3,17 +3,13 @@
 
 /**
  * @file ratelimit.h
- * Create Posix message queue to send all messages to. Token bucket algorithm is employed,
+ * Create queue (using unix sockets) to send all messages to. Token bucket algorithm is employed,
  * in order to throttle the sending of messages if needed. That way we avoid getting
- * kicked by the server for flooding. Token bucket algorithm supports some burst before
- * throttling kicks in. If lines are arrived while queue is full, they are dropped.
- * @warning You have to set the maximum allowed messages that Posix message queues allow
- * to match the value of MQUEUE_MAXLINES. You can do it by running the following as root:
- *     echo MQUEUE_MAXLINES > /proc/sys/fs/mqueue/msg_max
+ * kicked by the server for flooding. Token bucket algorithm supports bursting before
+ * throttling kicks in. If lines arrive while queue is full, they are dropped.
  */
 
 #include <time.h>
-#include <mqueue.h>
 #include "irc.h"
 
 typedef struct token_bucket {
@@ -24,44 +20,26 @@ typedef struct token_bucket {
 	struct timespec sleep_time;
 } Bucket;
 
-struct rate_limit {
-	int ircfd;
-	mqd_t mqdfd;
-	Bucket *bkt;
+struct ratelimit {
+	int irc;
+	int queue;
+	Bucket *bucket;
 };
 
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
-#define NANOSECS 1000 * 1000 * 1000
+#define BUCKET_BURST   6.0
+#define BUCKET_RATE    1.0
+#define BUCKET_CONSUME 1.0
+#define QUEUE_MAXSIZE  30 * IRCLEN
 
-#define BKT_BURST 8.0
-#define BKT_RATE 1.0
-#define BKT_CONSUME 1.0
-#define MQUEUE_NAME "/irc-bot"
-#define MQUEUE_MAXLINES 40
-#define MQUEUE_LINELEN IRCLEN
+/** Initialize token bucket algorithm and setup unix sockets */
+struct ratelimit *ratelimit_init(Irc server);
 
-/**
- * Create write-only Posix message queue
- *
- * @param name      The name of queue. Posix requires that the first char is a slash. E.x. /bot
- * @param maxlines  The maximum amount of lines that can be in the queue
- * @param linelen   The maximum length a line can be
- * @return          File descriptor
- */
-mqd_t mqueue_create(const char *name, long maxlines, long linelen);
-
-/** Open mqueue in read-only mode and initialize the token bucket algorithm */
-struct rate_limit ratelimit_init(void);
-
-/**
- * Read's messages from queue according to priority and send them to IRC rate-limited
- *
- * @param arg  struct rate_limit is expected with all the values filled in
- */
+/* Read's messages from queue according to priority and send them to IRC rate-limited
+ * @param arg  struct ratelimit is expected with all the values filled in */
 void *ratelimit_loop(void *arg);
 
-/** Destroy queue and token bucket constructs */
-void ratelimit_destroy(struct rate_limit rtl);
+/** Free resources created in init() */
+void ratelimit_destroy(struct ratelimit *rtl);
 
 #endif
 

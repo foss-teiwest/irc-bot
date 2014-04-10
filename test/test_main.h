@@ -4,6 +4,21 @@
 #include <check.h>
 #include "irc.h"
 
+struct irc_type {
+	int conn;
+	int pipe[2];
+	int queue;
+	char line[IRCLEN + 1];
+	size_t line_offset;
+	char address[ADDRLEN + 1];
+	char port[PORTLEN + 1];
+	char nick[NICKLEN + 1];
+	char user[USERLEN + 1];
+	char channels[MAXCHANS][CHANLEN + 1];
+	int channels_set;
+	bool connected;
+};
+
 #define READ  0
 #define WRITE 1
 

@@ -77,7 +77,7 @@ int sock_listen(const char *address, const char *port) {
 			continue;
 		}
 		// Allow us to re-use the binding port
-		setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &(int) { 1 }, sizeof(int));
+		setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &(socklen_t) { 1 }, sizeof(socklen_t));
 		if (!bind(sock, iterator->ai_addr, iterator->ai_addrlen) && !listen(sock, 5))
 			break; // Success
 

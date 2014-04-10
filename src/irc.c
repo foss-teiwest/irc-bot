@@ -4,7 +4,6 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <fcntl.h>
-#include <mqueue.h>
 #include <stdarg.h>
 #include <errno.h>
 #include <assert.h>
@@ -15,9 +14,9 @@
 #include "common.h"
 
 struct irc_type {
-	int sock;
+	int conn;
 	int pipe[2];
-	mqd_t mqdfd;
+	int queue;
 	char line[IRCLEN + 1];
 	size_t line_offset;
 	char address[ADDRLEN + 1];
@@ -26,7 +25,7 @@ struct irc_type {
 	char user[USERLEN + 1];
 	char channels[MAXCHANS][CHANLEN + 1];
 	int channels_set;
-	bool isConnected;
+	bool connected;
 };
 
 extern pthread_mutex_t *mtx;
@@ -41,8 +40,8 @@ Irc irc_connect(const char *address, const char *port) {
 		return NULL;
 
 	server = CALLOC_W(sizeof(*server));
-	server->sock = sock_connect(address, port);
-	if (server->sock < 0)
+	server->conn = sock_connect(address, port);
+	if (server->conn < 0)
 		goto cleanup;
 
 	if (pipe(server->pipe)) {
@@ -51,12 +50,11 @@ Irc irc_connect(const char *address, const char *port) {
 	}
 
 	// Set socket to non-blocking mode
-	if (fcntl(server->sock, F_SETFL, O_NONBLOCK)) {
+	if (fcntl(server->conn, F_SETFL, O_NONBLOCK)) {
 		perror(__func__);
 		goto cleanup;
 	}
 
-	server->mqdfd = mqueue_create(MQUEUE_NAME, MQUEUE_MAXLINES, MQUEUE_LINELEN);
 	strncpy(server->address, address, ADDRLEN);
 	strncpy(server->port, port, PORTLEN);
 
@@ -69,7 +67,13 @@ cleanup:
 
 int get_socket(Irc server) {
 
-	return server->sock;
+	return server->conn;
+}
+
+void set_queue(Irc server, int fd) {
+
+	assert(fd > 0);
+	server->queue = fd;
 }
 
 char *default_channel(Irc server) {
@@ -142,7 +146,7 @@ int join_channel(Irc server, const char *channel) {
 
 	// Join all channels if arg is NULL
 	if (!channel) {
-		if (server->isConnected)
+		if (server->connected)
 			while (i < server->channels_set)
 				irc_command(server, "JOIN", server->channels[i++]);
 
@@ -163,7 +167,7 @@ int join_channel(Irc server, const char *channel) {
 		strncpy(server->channels[server->channels_set++], channel, CHANLEN);
 	}
 
-	if (server->isConnected)
+	if (server->connected)
 		irc_command(server, "JOIN", channel);
 
 	return 1;
@@ -177,7 +181,7 @@ ssize_t parse_irc_line(Irc server) {
 	ssize_t n;
 
 	// Read raw line from server. Example: ":laxanofido!~laxanofid@snf-23545.vm.okeanos.grnet.gr PRIVMSG #foss-teimes :How YA doing fossbot"
-	n = sock_readline(server->sock, server->line + server->line_offset, IRCLEN - server->line_offset);
+	n = sock_readline(server->conn, server->line + server->line_offset, IRCLEN - server->line_offset);
 	if (n <= 0) {
 		if (n != -EAGAIN)
 			exit_msg("IRC connection closed\n");
@@ -247,7 +251,7 @@ int numeric_reply(Irc server, Parsed_data pdata, int reply) {
 		set_nick(server, newnick);
 		break;
 	case ENDOFMOTD: // Join all set channels
-		server->isConnected = true;
+		server->connected = true;
 		join_channel(server, NULL);
 		break;
 	case BANNEDFROMCHAN: // Find the channel we got banned and remove it from our list
@@ -386,10 +390,11 @@ void irc_kick(Irc server, Parsed_data pdata) {
 	}
 }
 
-void _irc_command(Irc server, unsigned priority, const char *type, const char *target, const char *format, ...) {
+void _irc_command(Irc server, const char *type, const char *target, const char *format, ...) {
 
-	va_list args;
 	char msg[IRCLEN - 50], irc_msg[IRCLEN];
+	int len;
+	va_list args;
 
 	if (format) {
 		va_start(args, format);
@@ -399,19 +404,13 @@ void _irc_command(Irc server, unsigned priority, const char *type, const char *t
 	} else
 		snprintf(irc_msg, IRCLEN, "%s %s\r\n", type, target);
 
-	// Only exit on actual failure (ignore EAGAIN)
-#ifdef TEST
-	if (sock_write(server->sock, irc_msg, strlen(irc_msg)) == -1)
-		exit_msg("Failed to send message\n");
-#else
-	if (mq_send(server->mqdfd, irc_msg, strlen(irc_msg), priority) == -1) {
-		if (errno == EAGAIN)
-			fprintf(stderr, "Dropped message due to throttling\n");
-		else
+	len = strlen(irc_msg);
+	if (sock_write(server->queue, irc_msg, len) != len) {
+		if (errno != EAGAIN)
 			exit_msg("Failed to send irc message\n");
-	}
-#endif
-	if (cfg.verbose)
+
+		fprintf(stderr, "Dropped message due to throttling\n");
+	} else if (cfg.verbose)
 		fputs(irc_msg, stdout);
 }
 
@@ -423,10 +422,10 @@ void quit_server(Irc server, const char *msg) {
 	strncat(exit_msg, msg, sizeof(exit_msg) - 1);
 	irc_command(server, "QUIT", exit_msg);
 
-	if (close(server->sock))
+	if (close(server->conn))
 		perror(__func__);
 
-	if (mq_close(server->mqdfd))
+	if (close(server->queue))
 		perror(__func__);
 
 	free(server);

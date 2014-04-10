@@ -4,20 +4,6 @@
 #include "test_main.h"
 #include "irc.h"
 
-struct irc_type {
-	int sock;
-	int pipe[2];
-	char line[IRCLEN + 1];
-	size_t line_offset;
-	char address[ADDRLEN];
-	char port[PORTLEN];
-	char nick[NICKLEN];
-	char user[USERLEN];
-	char channels[MAXCHANS][CHANLEN];
-	int channels_set;
-	bool isConnected;
-};
-
 Irc server;
 int mock[2];
 Parsed_data pdata;
@@ -43,13 +29,13 @@ void mock_start(void) {
 void mock_irc_read(void) {
 
 	mock_start();
-	server->sock = mock[READ];
+	server->conn = server->queue = mock[READ];
 }
 
 void mock_irc_write(void) {
 
 	mock_start();
-	server->sock = mock[WRITE];
+	server->conn = server->queue = mock[WRITE];
 }
 
 void mock_stop(void) {

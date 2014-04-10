@@ -1,33 +1,16 @@
 #include <check.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <mqueue.h>
-#include <errno.h>
 #include "test_main.h"
 #include "socket.h"
 #include "irc.h"
 #include "common.h"
 
-struct irc_type {
-	int sock;
-	int pipe[2];
-	mqd_t mqdfd;
-	char line[IRCLEN + 1];
-	size_t line_offset;
-	char address[ADDRLEN + 1];
-	char port[PORTLEN + 1];
-	char nick[NICKLEN + 1];
-	char user[USERLEN + 1];
-	char channels[MAXCHANS][CHANLEN + 1];
-	int channels_set;
-	bool isConnected;
-};
-
 ssize_t n;
 
 START_TEST(irc_get_socket) {
 
-	ck_assert_int_eq(get_socket(server), server->sock);
+	ck_assert_int_eq(get_socket(server), server->conn);
 
 } END_TEST
 
@@ -66,7 +49,7 @@ START_TEST(irc_set_user) {
 
 START_TEST(irc_join_channel) {
 
-	server->isConnected = true;
+	server->connected = true;
 	join_channel(server, "#trololol");
 	ck_assert_str_eq(server->channels[0], "#trololol");
 
@@ -81,7 +64,7 @@ START_TEST(irc_join_channels) {
 	join_channel(server, "#foss-teimes");
 	join_channel(server, "#trolltown");
 
-	server->isConnected = true;
+	server->connected = true;
 	ck_assert_int_eq(join_channel(server, NULL), 2);
 	ck_assert_str_eq(server->channels[0], "#foss-teimes");
 	ck_assert_str_eq(server->channels[1], "#trolltown");
@@ -102,12 +85,12 @@ START_TEST(irc_default_channel) {
 
 START_TEST(irc_command_test) {
 
-	_irc_command(server, 0, "PRIVMSG", "#yolo", "%s1!", "why so bad");
+	_irc_command(server, "PRIVMSG", "#yolo", "%s1!", "why so bad");
 	n = read(mock[READ], test_buffer, IRCLEN);
 	test_buffer[n - 2] = '\0';
 	ck_assert_str_eq(test_buffer, "PRIVMSG #yolo :why so bad1!");
 
-	_irc_command(server, 0, "NICK", "yolo", NULL, NULL);
+	_irc_command(server, "NICK", "yolo", NULL, NULL);
 	n = read(mock[READ], test_buffer, IRCLEN);
 	test_buffer[n - 2] = '\0';
 	ck_assert_str_eq(test_buffer, "NICK yolo");

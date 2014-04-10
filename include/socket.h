@@ -9,6 +9,9 @@
 #include <sys/types.h>
 #include <stdbool.h>
 
+#define RD   0
+#define WR   1
+#define RDWR 2
 #define NONBLOCK 1
 #define IRCLEN   512
 #define MAXPORT  65535

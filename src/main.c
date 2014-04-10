@@ -8,17 +8,18 @@
 #include "common.h"
 #include "ratelimit.h"
 
-#define TIMEOUT 300 * 1000 // Timeout in milliseconds for the poll function
+#define TIMEOUT 300 * MILLISECS
 
-extern struct mpd_info *mpd;
 enum { IRC, MURM_LISTEN, MURM_ACCEPT, MPD, PFDS };
+extern struct mpd_info *mpd;
 
 int main(int argc, char *argv[]) {
 
 	Irc irc_server;
-	struct rate_limit rtl;
+	struct ratelimit *rtl;
 	pthread_t tid;
 	int i, ready, murm_listenfd = -1;
+
 	struct pollfd pfd[PFDS] = {
 		{ .fd = -1, .events = POLLIN },
 		{ .fd = -1, .events = POLLIN },
@@ -27,14 +28,17 @@ int main(int argc, char *argv[]) {
 	};
 
 	initialize(argc, argv);
+
 	irc_server = irc_connect(cfg.server, cfg.port);
 	if (!irc_server)
 		exit_msg("Irc connection failed\n");
 
-	rtl = ratelimit_init();
-	rtl.ircfd = pfd[IRC].fd = get_socket(irc_server);
-	pthread_create(&tid, NULL, ratelimit_loop, &rtl);
+	rtl = ratelimit_init(irc_server);
+	if (!rtl)
+		exit_msg("rate limit initialization failed\n");
 
+	pthread_create(&tid, NULL, ratelimit_loop, rtl);
+	pfd[IRC].fd = get_socket(irc_server);
 	set_nick(irc_server, cfg.nick);
 	set_user(irc_server, cfg.user);
 	for (i = 0; i < cfg.channels_set; i++)

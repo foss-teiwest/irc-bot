@@ -53,6 +53,9 @@ Irc irc_connect(const char *address, const char *port);
  */
 int get_socket(Irc server);
 
+/** Set queue file descriptor */
+void set_queue(Irc server, int fd);
+
 /** Returns the first channel set or NULL if there is not one */
 char *default_channel(Irc server);
 
@@ -111,12 +114,12 @@ int numeric_reply(Irc Server, Parsed_data pdata, int reply);
  * @param type    command type e.x. PONG, NICK, JOIN etc
  * @param arg     the arguments after type
  */
-#define  irc_command(server, type, arg)           _irc_command(server, 1, type, arg, NULL, (char *) NULL)
-#define  send_notice(server, target, format, ...) _irc_command(server, 1, "NOTICE",  target, format, __VA_ARGS__)
-#define send_message(server, target, format, ...) _irc_command(server, 0, "PRIVMSG", target, format, __VA_ARGS__)
+#define  irc_command(server, type, arg)           _irc_command(server, type, arg, NULL, (char *) NULL)
+#define  send_notice(server, target, format, ...) _irc_command(server, "NOTICE",  target, format, __VA_ARGS__)
+#define send_message(server, target, format, ...) _irc_command(server, "PRIVMSG", target, format, __VA_ARGS__)
 //@}
 
-void _irc_command(Irc server, unsigned priority, const char *type, const char *target, const char *format, ...);
+void _irc_command(Irc server, const char *type, const char *target, const char *format, ...);
 
 /** Close socket and free resources */
 void quit_server(Irc server, const char *msg);
