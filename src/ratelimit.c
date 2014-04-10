@@ -17,7 +17,7 @@ STATIC Bucket *bucket_init(double burst, double rate) {
 	int rate_integer;
 	double rate_decimal;
 
-	bucket = MALLOC_W(sizeof(*bucket));
+	bucket = malloc_w(sizeof(*bucket));
 	bucket->burst_capacity = burst;
 	bucket->tokens = burst;
 	bucket->fill_rate = rate;
@@ -100,10 +100,10 @@ void *ratelimit_loop(void *arg) {
 		}
 		n = sock_read(rtl.queue, buf, IRCLEN);
 		if (n <= 0)
-			exit_msg("error while reading from queue\n");
+			exit_msg("error while reading from queue");
 
 		if (sock_write(rtl.irc, buf, n) != n)
-			exit_msg("error while sending to irc\n");
+			exit_msg("error while sending to irc");
 	}
 	return NULL;
 }

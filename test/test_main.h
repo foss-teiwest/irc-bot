@@ -2,11 +2,12 @@
 #define CHECK_CHECK_H
 
 #include <check.h>
+#include "socket.h"
 #include "irc.h"
 
 struct irc_type {
 	int conn;
-	int pipe[2];
+	int pipe[RDWR];
 	int queue;
 	char line[IRCLEN + 1];
 	size_t line_offset;
@@ -19,11 +20,8 @@ struct irc_type {
 	bool connected;
 };
 
-#define READ  0
-#define WRITE 1
-
 extern Irc server;
-extern int mock[2];
+extern int mock[RDWR];
 extern Parsed_data pdata;
 extern char test_buffer[IRCLEN + 1];
 

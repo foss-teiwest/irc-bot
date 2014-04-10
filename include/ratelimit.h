@@ -12,6 +12,11 @@
 #include <time.h>
 #include "irc.h"
 
+#define BUCKET_BURST   6.0
+#define BUCKET_RATE    1.0
+#define BUCKET_CONSUME 1.0
+#define QUEUE_MAXSIZE  30 * IRCLEN
+
 typedef struct token_bucket {
 	double burst_capacity;
 	double tokens;
@@ -25,11 +30,6 @@ struct ratelimit {
 	int queue;
 	Bucket *bucket;
 };
-
-#define BUCKET_BURST   6.0
-#define BUCKET_RATE    1.0
-#define BUCKET_CONSUME 1.0
-#define QUEUE_MAXSIZE  30 * IRCLEN
 
 /** Initialize token bucket algorithm and setup unix sockets */
 struct ratelimit *ratelimit_init(Irc server);

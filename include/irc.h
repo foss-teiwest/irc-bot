@@ -46,11 +46,8 @@ enum irc_reply {
  */
 Irc irc_connect(const char *address, const char *port);
 
-/**
- * Extract the socket descriptor from the opaque Irc object
- *
- * @returns  Always a valid descriptor
- */
+/* Extract the socket descriptor from the opaque Irc object
+ * @returns  Always a valid descriptor */
 int get_socket(Irc server);
 
 /** Set queue file descriptor */
@@ -79,11 +76,8 @@ bool user_has_access(Irc server, const char *nick);
 int join_channel(Irc server, const char *channel);
 
 
-/**
- * Read line from server, split it into Parsed_data structure elements and launch the function associated with the IRC command
- *
- * @returns  On success: line length, -1 on error, -2 if the operation would block or 0 if connection is closed
- */
+/* Read line from server, split it into Parsed_data structure elements and launch the function associated with the IRC command
+ * @returns  On success: line length, -1 on error, -2 if the operation would block or 0 if connection is closed */
 ssize_t parse_irc_line(Irc server);
 
 /** Parse channel / private messages and launch the function that matches the BOT command (must begin with '!') or CTCP request.
@@ -96,11 +90,8 @@ void irc_notice(Irc server, Parsed_data pdata);
 /** Rejoin few secs after being kicked and send message to offender */
 void irc_kick(Irc server, Parsed_data pdata);
 
-/**
- * Handle server numeric replies
- *
- * @returns the numeric reply received
- */
+/* Handle server numeric replies
+ * @returns the numeric reply received */
 int numeric_reply(Irc Server, Parsed_data pdata, int reply);
 
 //@{

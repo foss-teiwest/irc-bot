@@ -39,7 +39,6 @@ void play(Irc server, Parsed_data pdata) {
 		}
 		return;
 	}
-
 	mpd_announce(OFF);
 	mpd->random = OFF;
 
@@ -81,7 +80,6 @@ void stop(Irc server, Parsed_data pdata) {
 		if (remove(cfg.mpd_random_file))
 			perror(__func__);
 	}
-
 	print_cmd_output_unsafe(server, pdata.target, "mpc -q clear");
 }
 
@@ -153,7 +151,6 @@ int mpd_connect(const char *port) {
 		perror(__func__);
 		goto cleanup;
 	}
-
 	return mpdfd; // Success
 
 cleanup:
@@ -166,11 +163,11 @@ STATIC char *get_title(void) {
 	int ready;
 	ssize_t n = 0;
 	char *song_title, buf[SONG_INFO_LEN + 1];
+
 	struct pollfd pfd = {
 		.fd = mpd->fd,
 		.events = POLLIN
 	};
-
 	ready = poll(&pfd, 1, 4000);
 	if (ready == 1) {
 		if (pfd.revents & POLLIN) {
@@ -185,7 +182,6 @@ STATIC char *get_title(void) {
 		fprintf(stderr, "%s:Timeout limit reached\n", __func__);
 		return NULL;
 	}
-
 	buf[n] = '\0'; // terminate reply
 	song_title = strstr(buf, "Title");
 	if (!song_title)
@@ -223,7 +219,6 @@ bool print_song(Irc server, const char *channel) {
 		send_message(server, channel, "♪ %s ♪", song_title);
 		snprintf(old_song, SONG_TITLE_LEN, "%s", song_title);
 	}
-
 	// Free title and restart query
 	free(song_title);
 	if (mpd_announce(ON))

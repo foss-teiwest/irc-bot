@@ -20,7 +20,6 @@ int sock_connect(const char *address, const char *port) {
 		.ai_socktype = SOCK_STREAM,    // Stream socket / TCP protocol
 		.ai_flags    = AI_NUMERICSERV  // Don't resolve service -> port, since we already provide it in numeric form
 	};
-
 	assert(atoi(port) > 0 && atoi(port) <= MAXPORT);
 
 	// Return addresses according to the hints specified
@@ -29,7 +28,6 @@ int sock_connect(const char *address, const char *port) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(retval));
 		return -1;
 	}
-
 	for (iterator = addr; iterator; iterator = iterator->ai_next) {
 
 		sock = socket(iterator->ai_family, iterator->ai_socktype, iterator->ai_protocol);
@@ -45,7 +43,6 @@ int sock_connect(const char *address, const char *port) {
 		close(sock);
 		sock = -1;
 	}
-
 	freeaddrinfo(addr);
 	return sock;
 }
@@ -60,7 +57,6 @@ int sock_listen(const char *address, const char *port) {
 		.ai_socktype = SOCK_STREAM,
 		.ai_flags    = AI_NUMERICSERV
 	};
-
 	assert(atoi(port) > 0 && atoi(port) <= MAXPORT);
 
 	retval = getaddrinfo(address, port, &hints, &addr);
@@ -68,7 +64,6 @@ int sock_listen(const char *address, const char *port) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(retval));
 		return -1;
 	}
-
 	for (iterator = addr; iterator; iterator = iterator->ai_next) {
 
 		sock = socket(iterator->ai_family, iterator->ai_socktype, iterator->ai_protocol);
@@ -77,7 +72,7 @@ int sock_listen(const char *address, const char *port) {
 			continue;
 		}
 		// Allow us to re-use the binding port
-		setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &(socklen_t) { 1 }, sizeof(socklen_t));
+		setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &(socklen_t) {1}, sizeof(socklen_t));
 		if (!bind(sock, iterator->ai_addr, iterator->ai_addrlen) && !listen(sock, 5))
 			break; // Success
 
@@ -85,7 +80,6 @@ int sock_listen(const char *address, const char *port) {
 		close(sock);
 		sock = -1;
 	}
-
 	freeaddrinfo(addr);
 	return sock;
 }
@@ -99,13 +93,11 @@ int sock_accept(int listen_fd, bool non_block) {
 		perror(__func__);
 		return -1;
 	}
-
 	if (non_block && fcntl(accept_fd, F_SETFL, O_NONBLOCK)) {
 		perror(__func__);
 		close(accept_fd);
 		return -1;
 	}
-
 	return accept_fd;
 }
 
@@ -149,7 +141,6 @@ ssize_t sock_read(int sock, void *buffer, size_t len) {
 
 			perror(__func__);
 		}
-
 		return n;
 	}
 }

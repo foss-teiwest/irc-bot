@@ -1,6 +1,7 @@
 #include <check.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <errno.h>
 #include "test_main.h"
 #include "socket.h"
 #include "irc.h"
@@ -20,7 +21,7 @@ START_TEST(irc_set_nick) {
 	set_nick(server, "trololol");
 	ck_assert_str_eq(server->nick, "trololol");
 
-	read(mock[READ], test_buffer, IRCLEN);
+	read(mock[RD], test_buffer, IRCLEN);
 	ck_assert_str_eq(test_buffer, "NICK trololol\r\n");
 
 } END_TEST
@@ -41,7 +42,7 @@ START_TEST(irc_set_user) {
 	set_user(server, "trololol");
 	ck_assert_str_eq(server->user, "trololol");
 
-	read(mock[READ], test_buffer, IRCLEN);
+	read(mock[RD], test_buffer, IRCLEN);
 	ck_assert_str_eq(test_buffer, "USER trololol 0 * :trololol\r\n");
 
 } END_TEST
@@ -53,7 +54,7 @@ START_TEST(irc_join_channel) {
 	join_channel(server, "#trololol");
 	ck_assert_str_eq(server->channels[0], "#trololol");
 
-	read(mock[READ], test_buffer, IRCLEN);
+	read(mock[RD], test_buffer, IRCLEN);
 	ck_assert_str_eq(test_buffer, "JOIN #trololol\r\n");
 
 } END_TEST
@@ -69,7 +70,7 @@ START_TEST(irc_join_channels) {
 	ck_assert_str_eq(server->channels[0], "#foss-teimes");
 	ck_assert_str_eq(server->channels[1], "#trolltown");
 
-	read(mock[READ], test_buffer, IRCLEN);
+	read(mock[RD], test_buffer, IRCLEN);
 	ck_assert_str_eq(test_buffer, "JOIN #foss-teimes\r\nJOIN #trolltown\r\n");
 
 } END_TEST
@@ -86,12 +87,12 @@ START_TEST(irc_default_channel) {
 START_TEST(irc_command_test) {
 
 	_irc_command(server, "PRIVMSG", "#yolo", "%s1!", "why so bad");
-	n = read(mock[READ], test_buffer, IRCLEN);
+	n = read(mock[RD], test_buffer, IRCLEN);
 	test_buffer[n - 2] = '\0';
 	ck_assert_str_eq(test_buffer, "PRIVMSG #yolo :why so bad1!");
 
 	_irc_command(server, "NICK", "yolo", NULL, NULL);
-	n = read(mock[READ], test_buffer, IRCLEN);
+	n = read(mock[RD], test_buffer, IRCLEN);
 	test_buffer[n - 2] = '\0';
 	ck_assert_str_eq(test_buffer, "NICK yolo");
 
@@ -101,7 +102,7 @@ START_TEST(irc_command_test) {
 START_TEST(irc_quit_server) {
 
 	quit_server(server, "trolol");
-	n = read(mock[READ], test_buffer, IRCLEN);
+	n = read(mock[RD], test_buffer, IRCLEN);
 	test_buffer[n - 2] = '\0';
 	ck_assert_str_eq(test_buffer, "QUIT :trolol");
 
@@ -111,13 +112,13 @@ START_TEST(irc_parse_line_ping) {
 
 	const char *msg = "hm\r\n";
 
-	write(mock[WRITE], msg, strlen(msg));
+	write(mock[WR], msg, strlen(msg));
 	ck_assert_int_eq(parse_irc_line(server), strlen(msg) - 2);
 
 	msg = "PING :wolfe.freenode.net\r\n";
-	write(mock[WRITE], msg, strlen(msg));
+	write(mock[WR], msg, strlen(msg));
 	parse_irc_line(server);
-	read(mock[WRITE], test_buffer, IRCLEN);
+	read(mock[WR], test_buffer, IRCLEN);
 	ck_assert_str_eq(test_buffer, "PONG :wolfe.freenode.net\r\n");
 
 } END_TEST
@@ -128,7 +129,7 @@ START_TEST(irc_parse_line_tokens) {
 	const char *msg = ":laxanofido!~laxanofid@snf-23545.vm.okeanos.grnet.gr PRIVMSG1 #foss-teimes :How YA doing fossbot\r\n";
 
 	int len = strlen(msg);
-	write(mock[WRITE], msg, len);
+	write(mock[WR], msg, len);
 	ck_assert_int_eq(parse_irc_line(server), len - 2);
 
 	msg = ":laxanofido!~laxanofid@snf-23545.vm.okeanos.grnet.gr\0PRIVMSG1\0#foss-teimes :How YA doing fossbot";
@@ -142,13 +143,13 @@ START_TEST(irc_parse_line_offset) {
 
 	const char *msg = "half";
 
-	fcntl(mock[READ], F_SETFL, O_NONBLOCK);
-	write(mock[WRITE], msg, 4);
+	fcntl(mock[RD], F_SETFL, O_NONBLOCK);
+	write(mock[WR], msg, 4);
 	n = parse_irc_line(server);
 	ck_assert_int_eq(n, -EAGAIN);
 
 	msg = "life\r\n";
-	write(mock[WRITE], msg, 6);
+	write(mock[WR], msg, 6);
 	n = parse_irc_line(server);
 	ck_assert_int_eq(n, 8);
 	ck_assert_str_eq(server->line, "halflife");
@@ -166,12 +167,12 @@ START_TEST(irc_parse_line_length) {
 	buf2[248] = '\r';
 	buf2[249] = '\n';
 
-	fcntl(mock[READ], F_SETFL, O_NONBLOCK);
-	write(mock[WRITE], buf1, strlen(buf1));
+	fcntl(mock[RD], F_SETFL, O_NONBLOCK);
+	write(mock[WR], buf1, strlen(buf1));
 	n = parse_irc_line(server);
 	ck_assert_int_eq(n, -EAGAIN);
 
-	write(mock[WRITE], buf2, strlen(buf2));
+	write(mock[WR], buf2, strlen(buf2));
 	n = parse_irc_line(server);
 	ck_assert_int_eq(n, 512);
 
@@ -202,7 +203,7 @@ START_TEST(irc_privemsg_ctcp) {
 	pdata.message = message;
 
 	irc_privmsg(server, pdata);
-	n = read(mock[WRITE], test_buffer, IRCLEN);
+	n = read(mock[WR], test_buffer, IRCLEN);
 	test_buffer[n - 2] = '\0';
 	ck_assert_str_eq(test_buffer, "NOTICE bot :\x01VERSION irC bot\x01");
 
@@ -219,7 +220,7 @@ START_TEST(irc_privemsg_command) {
 			"  -  -  -  -  -  80  -  -  -  -  -  -  100  -  -  -  -  -  120  -  -  -  -  -  140";
 
 	irc_privmsg(server, pdata);
-	n = read(mock[WRITE], test_buffer, IRCLEN);
+	n = read(mock[WR], test_buffer, IRCLEN);
 	test_buffer[n - 2] = '\0';
 	ck_assert_str_eq(test_buffer, reply);
 
@@ -236,7 +237,7 @@ START_TEST(irc_notice_identify) {
 	pdata.message = message;
 
 	irc_notice(server, pdata);
-	n = read(mock[WRITE], test_buffer, IRCLEN);
+	n = read(mock[WR], test_buffer, IRCLEN);
 	test_buffer[n - 2] = '\0';
 	ck_assert_str_eq(test_buffer, "PRIVMSG NickServ :identify lololol");
 	ck_assert_str_eq(cfg.nick_password, "");
@@ -253,7 +254,7 @@ START_TEST(irc_kick_test) {
 	pdata.message = message;
 
 	irc_kick(server, pdata);
-	n = read(mock[WRITE], test_buffer, IRCLEN);
+	n = read(mock[WR], test_buffer, IRCLEN);
 	test_buffer[n - 2] = '\0';
 	ck_assert_str_eq(test_buffer, "PRIVMSG #hey :magkas noob...");
 

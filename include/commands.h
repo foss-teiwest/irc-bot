@@ -42,7 +42,6 @@
 #define LTGREY  "\x03""15"
 #define COLORCOUNT 14
 
-
 /** Print available commands. It's a static list. Means you have to update it yourself if you add a command... */
 void help(Irc server, Parsed_data pdata);
 

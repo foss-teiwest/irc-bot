@@ -60,7 +60,7 @@ void url(Irc server, Parsed_data pdata) {
 		goto cleanup;
 
 	// Map shared memory for inter-process communication
-	short_url = MMAP_W(ADDRLEN + 1);
+	short_url = mmap_w(ADDRLEN + 1);
 
 	switch (fork()) {
 	case -1:
@@ -83,7 +83,6 @@ void url(Irc server, Parsed_data pdata) {
 		// Only print short_url / title if they are not empty
 		send_message(server, pdata.target, "%s -- %s", (*short_url ? short_url : ""), (url_title ? url_title : ""));
 	}
-
 	free(url_title);
 	munmap(short_url, ADDRLEN + 1); // Unmap pages from parent as well
 
@@ -120,7 +119,6 @@ void github(Irc server, Parsed_data pdata) {
 		strncpy(repo, argv[0], REPOLEN);
 		repo[REPOLEN] = '\0';
 	}
-
 	// Do not return more than MAXCOMMITS
 	if (argc >= 2)
 		commit_count = get_int(argv[1], MAXCOMMITS);
@@ -137,7 +135,6 @@ void github(Irc server, Parsed_data pdata) {
 
 		free(short_url);
 	}
-
 cleanup:
 	yajl_tree_free(root);
 	free(commits);
@@ -162,7 +159,6 @@ void ping(Irc server, Parsed_data pdata) {
 		free(argv);
 		return;
 	}
-
 	if (argc >= 2)
 		count = get_int(argv[1], MAXPINGS);
 
@@ -188,7 +184,6 @@ void traceroute(Irc server, Parsed_data pdata) {
 		free(argv);
 		return;
 	}
-
 	// Don't send the following msg if the request was initiated in private
 	if (*pdata.target == '#')
 		send_message(server, pdata.target, "Printing results privately to %s", pdata.sender);
@@ -234,7 +229,6 @@ void roll(Irc server, Parsed_data pdata) {
 
 		free(argv);
 	}
-
 	r = rand() % roll + 1;
 	send_message(server, pdata.target, "%s rolls %d", pdata.sender, r);
 }
@@ -260,7 +254,6 @@ void tweet(Irc server, Parsed_data pdata) {
 		send_message(server, pdata.target, "%s is not found in access list or identified to the NickServ", pdata.sender);
 		return;
 	}
-
 	http_status = send_tweet(pdata.message);
 	switch (http_status) {
 	case UNKNOWN:

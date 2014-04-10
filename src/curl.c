@@ -31,7 +31,7 @@ char *shorten_url(const char *long_url) {
 	CURL *curl;
 	CURLcode code;
 	char url_formatted[URLLEN], *short_url = NULL;
-	Mem_buffer mem = { NULL, 0 };
+	Mem_buffer mem = {NULL, 0};
 	struct curl_slist *headers = NULL;
 
 	// Set the Content-type and url format as required by Google API for the POST request
@@ -83,7 +83,7 @@ Github *fetch_github_commits(yajl_val *root, const char *repo, int *commit_count
 	CURLcode code;
 	yajl_val val;
 	Github *commits = NULL;
-	Mem_buffer mem = { NULL, 0 };
+	Mem_buffer mem = {NULL, 0};
 	char API_URL[URLLEN], errbuf[1024];
 	int i;
 
@@ -117,7 +117,7 @@ Github *fetch_github_commits(yajl_val *root, const char *repo, int *commit_count
 	}
 	free(mem.buffer);
 	*commit_count = YAJL_IS_ARRAY(*root) ? YAJL_GET_ARRAY(*root)->len : 0;
-	commits = MALLOC_W(*commit_count * sizeof(*commits));
+	commits = malloc_w(*commit_count * sizeof(*commits));
 
 	// Find the field we are interested in the json reply, save a reference to it & null terminate
 	for (i = 0; i < *commit_count; i++) {
@@ -145,7 +145,6 @@ Github *fetch_github_commits(yajl_val *root, const char *repo, int *commit_count
 		// Cut commit message at newline character if present
 		null_terminate(commits[i].msg, '\n');
 	}
-
 cleanup:
 	curl_easy_cleanup(curl);
 	return commits;
@@ -155,7 +154,7 @@ char *get_url_title(const char *url) {
 
 	CURL *curl;
 	CURLcode code;
-	Mem_buffer mem = { NULL, 0 };
+	Mem_buffer mem = {NULL, 0};
 	char *temp, *url_title = NULL;
 	bool iso = false;
 

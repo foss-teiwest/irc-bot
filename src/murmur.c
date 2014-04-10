@@ -21,7 +21,6 @@ STATIC int murmur_connect(const char *port) {
 		0x41, 0x01, 0x00, 0x15, 0x00, 0x00, 0x00, 0x01, 0x00, 0x0e, 0x3a, 0x3a, 0x4d, 0x75, 0x72, 0x6d,
 		0x75, 0x72, 0x3a, 0x3a, 0x4d, 0x65, 0x74, 0x61
 	};
-
 	murmfd = sock_connect(LOCALHOST, port);
 	if (murmfd < 0)
 		return -1;
@@ -62,7 +61,6 @@ bool add_murmur_callbacks(const char *port) {
 		0x37, 0x2e, 0x30, 0x2e, 0x30, 0x2e, 0x31, listener_port_bytes[1], listener_port_bytes[0], 0x00,
 		0x00, 0xff, 0xff, 0xff, 0xff, 0x00
 	};
-
 	murm_callbackfd = murmur_connect(port);
 	if (murm_callbackfd < 0)
 		return false;
@@ -75,7 +73,6 @@ bool add_murmur_callbacks(const char *port) {
 		fprintf(stderr, "Error: Failed to receive addCallback_packet success reply\n");
 		goto cleanup;
 	}
-
 	status = true; // Success
 
 cleanup:
@@ -95,7 +92,6 @@ char *fetch_murmur_users(void) {
 		0x00, 0x00, 0x01, 0x31, 0x01, 0x73, 0x00, 0x08, 0x67, 0x65, 0x74, 0x55, 0x73, 0x65, 0x72, 0x73,
 		0x02, 0x00, 0x06, 0x00, 0x00, 0x00, 0x01, 0x00
 	};
-
 	murmfd = murmur_connect(cfg.murmur_port);
 	if (murmfd < 0)
 		return NULL;
@@ -110,7 +106,7 @@ char *fetch_murmur_users(void) {
 		close(murmfd);
 		return NULL;
 	}
-	user_list = MALLOC_W(READ_BUFFER_SIZE);
+	user_list = malloc_w(READ_BUFFER_SIZE);
 
 	/* read_buffer[25] = number of users */
 	bytes_written = snprintf(user_list, READ_BUFFER_SIZE, "%u Online Client%s%s", read_buffer[25],
@@ -125,7 +121,6 @@ char *fetch_murmur_users(void) {
 		bytes_written += snprintf(user_list + bytes_written, READ_BUFFER_SIZE - bytes_written,
 			(user_counter < read_buffer[25] ? "%s, " : "%s"), username);
 	}
-
 	close(murmfd);
 	return user_list;
 }
@@ -136,7 +131,6 @@ STATIC ssize_t validate_murmur_connection(int murm_acceptfd) {
 	const unsigned char validate_packet[] = {
 		0x49, 0x63, 0x65, 0x50, 0x01, 0x00, 0x01, 0x00, 0x03, 0x00, 0x0e, 0x00, 0x00, 0x00
 	};
-
 	n = sock_write(murm_acceptfd, validate_packet, sizeof(validate_packet));
 	if (n != sizeof(validate_packet))
 		fprintf(stderr, "Error: Failed to send validate_packet\n");

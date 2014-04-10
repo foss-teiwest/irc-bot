@@ -54,14 +54,14 @@ START_TEST(socket_write) {
 	const char *msg = "rofl";
 	ssize_t sent, received;
 
-	sent = sock_write(mock[WRITE], msg, strlen(msg));
-	received = read(mock[READ], test_buffer, IRCLEN);
+	sent = sock_write(mock[WR], msg, strlen(msg));
+	received = read(mock[RD], test_buffer, IRCLEN);
 	ck_assert_int_eq(sent, received);
 	ck_assert_str_eq(msg, test_buffer);
 
-	sent = sock_write(mock[WRITE], msg, 0);
+	sent = sock_write(mock[WR], msg, 0);
 	ck_assert_int_eq(sent, 0);
-	sent = sock_write(mock[WRITE], msg, -2);
+	sent = sock_write(mock[WR], msg, -2);
 	ck_assert_int_eq(sent, -1);
 
 } END_TEST
@@ -72,15 +72,15 @@ START_TEST(socket_write_non_blocking) {
 	const char *msg = "rofl";
 	ssize_t sent, received;
 
-	fcntl(mock[WRITE], F_SETFL, O_NONBLOCK);
-	sent = sock_write(mock[WRITE], msg, strlen(msg));
-	received = read(mock[READ], test_buffer, 64);
+	fcntl(mock[WR], F_SETFL, O_NONBLOCK);
+	sent = sock_write(mock[WR], msg, strlen(msg));
+	received = read(mock[RD], test_buffer, 64);
 	ck_assert_int_eq(sent, received);
 	ck_assert_str_eq(test_buffer, msg);
 
-	sent = sock_write(mock[WRITE], msg, 0);
+	sent = sock_write(mock[WR], msg, 0);
 	ck_assert_int_eq(sent, 0);
-	sent = sock_write(mock[WRITE], msg, -2);
+	sent = sock_write(mock[WR], msg, -2);
 	ck_assert_int_eq(sent, -1);
 
 } END_TEST
@@ -91,13 +91,13 @@ START_TEST(socket_read) {
 	const char *msg = "whysobad";
 	ssize_t sent, received;
 
-	sent = write(mock[WRITE], msg, strlen(msg));
-	received = sock_read(mock[READ], test_buffer, IRCLEN);
+	sent = write(mock[WR], msg, strlen(msg));
+	received = sock_read(mock[RD], test_buffer, IRCLEN);
 	ck_assert_int_eq(sent, received);
 	ck_assert_str_eq(test_buffer, msg);
 
-	write(mock[WRITE], msg, strlen(msg));
-	received = sock_read(mock[READ], test_buffer, 4);
+	write(mock[WR], msg, strlen(msg));
+	received = sock_read(mock[RD], test_buffer, 4);
 	ck_assert_int_eq(received, 4);
 
 } END_TEST
@@ -108,13 +108,13 @@ START_TEST(socket_read_non_blocking) {
 	const char *msg = "whysobad";
 	ssize_t received;
 
-	fcntl(mock[READ], F_SETFL, O_NONBLOCK);
-	write(mock[WRITE], msg, 0);
-	received = sock_read(mock[READ], test_buffer, IRCLEN);
+	fcntl(mock[RD], F_SETFL, O_NONBLOCK);
+	write(mock[WR], msg, 0);
+	received = sock_read(mock[RD], test_buffer, IRCLEN);
 	ck_assert_int_lt(received, 0);
 
-	write(mock[WRITE], msg, strlen(msg));
-	received = sock_read(mock[READ], test_buffer, 4);
+	write(mock[WR], msg, strlen(msg));
+	received = sock_read(mock[RD], test_buffer, 4);
 	ck_assert_int_eq(received, 4);
 
 } END_TEST
@@ -126,10 +126,10 @@ START_TEST(socket_readbytes) {
 	char c;
 	const char *msg = "lol\r\ntroll\r\n";
 
-	sock_write(mock[WRITE], msg, strlen(msg));
-	close(mock[WRITE]);
+	sock_write(mock[WR], msg, strlen(msg));
+	close(mock[WR]);
 
-	for (i = 0; sock_readbyte(mock[READ], &c) > 0; i++)
+	for (i = 0; sock_readbyte(mock[RD], &c) > 0; i++)
 		test_buffer[i] = c;
 
 	test_buffer[i] = '\0';
@@ -142,9 +142,9 @@ START_TEST(socket_readline_blocking) {
 
 	const char *msg = "lol";
 
-	sock_write(mock[WRITE], msg, strlen(msg));
+	sock_write(mock[WR], msg, strlen(msg));
 	alarm(1);
-	sock_readline(mock[READ], test_buffer, IRCLEN);
+	sock_readline(mock[RD], test_buffer, IRCLEN);
 	alarm(0);
 	ck_abort();
 
@@ -155,8 +155,8 @@ START_TEST(socket_readline_blocking2) {
 
 	const char *msg = "lol\r\n";
 
-	sock_write(mock[WRITE], msg, strlen(msg));
-	ssize_t n = sock_readline(mock[READ], test_buffer, IRCLEN);
+	sock_write(mock[WR], msg, strlen(msg));
+	ssize_t n = sock_readline(mock[RD], test_buffer, IRCLEN);
 	ck_assert_int_eq(n, 5);
 
 } END_TEST
@@ -166,9 +166,9 @@ START_TEST(socket_readline_non_blocking) {
 
 	const char *msg = "yo\r\n";
 
-	fcntl(mock[WRITE], F_SETFL, O_NONBLOCK);
-	sock_write(mock[WRITE], msg, strlen(msg));
-	ssize_t n = sock_readline(mock[READ], test_buffer, IRCLEN);
+	fcntl(mock[WR], F_SETFL, O_NONBLOCK);
+	sock_write(mock[WR], msg, strlen(msg));
+	ssize_t n = sock_readline(mock[RD], test_buffer, IRCLEN);
 	ck_assert_int_eq(n, 4);
 
 } END_TEST
@@ -180,19 +180,19 @@ START_TEST(socket_readline_non_blocking2) {
 	ssize_t n;
 	size_t offset;
 
-	fcntl(mock[READ], F_SETFL, O_NONBLOCK);
-	sock_write(mock[WRITE], msg, strlen(msg));
-	n = sock_readline(mock[READ], test_buffer, IRCLEN);
+	fcntl(mock[RD], F_SETFL, O_NONBLOCK);
+	sock_write(mock[WR], msg, strlen(msg));
+	n = sock_readline(mock[RD], test_buffer, IRCLEN);
 	ck_assert_int_eq(n, -EAGAIN);
 
 	msg = "\r\nhey\r\n";
-	sock_write(mock[WRITE], msg, strlen(msg));
+	sock_write(mock[WR], msg, strlen(msg));
 	offset = strlen(test_buffer);
-	n = sock_readline(mock[READ], test_buffer + offset, IRCLEN);
+	n = sock_readline(mock[RD], test_buffer + offset, IRCLEN);
 	ck_assert_int_eq(n, 2);
 	ck_assert_str_eq(test_buffer, "yo\r\n");
 
-	n = sock_readline(mock[READ], test_buffer, IRCLEN);
+	n = sock_readline(mock[RD], test_buffer, IRCLEN);
 	ck_assert_int_eq(n, 5);
 	ck_assert_str_eq(test_buffer, "hey\r\n");
 

@@ -10,7 +10,7 @@
 
 #define TIMEOUT 300 * MILLISECS
 
-enum { IRC, MURM_LISTEN, MURM_ACCEPT, MPD, PFDS };
+enum {IRC, MURM_LISTEN, MURM_ACCEPT, MPD, PFDS};
 extern struct mpd_info *mpd;
 
 int main(int argc, char *argv[]) {
@@ -26,16 +26,15 @@ int main(int argc, char *argv[]) {
 		{ .fd = -1, .events = POLLIN },
 		{ .fd = -1, .events = POLLIN }
 	};
-
 	initialize(argc, argv);
 
 	irc_server = irc_connect(cfg.server, cfg.port);
 	if (!irc_server)
-		exit_msg("Irc connection failed\n");
+		exit_msg("Irc connection failed");
 
 	rtl = ratelimit_init(irc_server);
 	if (!rtl)
-		exit_msg("rate limit initialization failed\n");
+		exit_msg("rate limit initialization failed");
 
 	pthread_create(&tid, NULL, ratelimit_loop, rtl);
 	pfd[IRC].fd = get_socket(irc_server);
@@ -63,7 +62,6 @@ int main(int argc, char *argv[]) {
 			if (pfd[MURM_ACCEPT].fd > 0)
 				pfd[MURM_LISTEN].fd = -1; // Stop listening for connections
 		}
-
 		if (pfd[MURM_ACCEPT].revents & POLLIN) {
 			if (!listen_murmur_callbacks(irc_server, pfd[MURM_ACCEPT].fd)) {
 				pfd[MURM_ACCEPT].fd = -1;

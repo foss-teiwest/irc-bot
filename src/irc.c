@@ -15,7 +15,7 @@
 
 struct irc_type {
 	int conn;
-	int pipe[2];
+	int pipe[RDWR];
 	int queue;
 	char line[IRCLEN + 1];
 	size_t line_offset;
@@ -39,7 +39,7 @@ Irc irc_connect(const char *address, const char *port) {
 	if (!strchr(address, '.'))
 		return NULL;
 
-	server = CALLOC_W(sizeof(*server));
+	server = calloc_w(sizeof(*server));
 	server->conn = sock_connect(address, port);
 	if (server->conn < 0)
 		goto cleanup;
@@ -48,13 +48,11 @@ Irc irc_connect(const char *address, const char *port) {
 		perror(__func__);
 		goto cleanup;
 	}
-
 	// Set socket to non-blocking mode
 	if (fcntl(server->conn, F_SETFL, O_NONBLOCK)) {
 		perror(__func__);
 		goto cleanup;
 	}
-
 	strncpy(server->address, address, ADDRLEN);
 	strncpy(server->port, port, PORTLEN);
 
@@ -101,12 +99,12 @@ STATIC bool user_is_identified(Irc server, const char *nick) {
 
 	pthread_mutex_lock(mtx);
 	send_message(server, "NickServ", "ACC %s", nick);
-	if (sock_read(server->pipe[0], &auth_level, 4) != 4)
+	if (sock_read(server->pipe[RD], &auth_level, 4) != 4)
 		perror(__func__);
 
 	pthread_mutex_unlock(mtx);
-	close(server->pipe[0]);
-	close(server->pipe[1]);
+	close(server->pipe[RD]);
+	close(server->pipe[WR]);
 
 	return auth_level == 3;
 }
@@ -184,7 +182,7 @@ ssize_t parse_irc_line(Irc server) {
 	n = sock_readline(server->conn, server->line + server->line_offset, IRCLEN - server->line_offset);
 	if (n <= 0) {
 		if (n != -EAGAIN)
-			exit_msg("IRC connection closed\n");
+			exit_msg("IRC connection closed");
 
 		server->line_offset = strlen(server->line);
 		return n;
@@ -202,7 +200,6 @@ ssize_t parse_irc_line(Irc server) {
 		irc_command(server, "PONG", server->line + 5);
 		return n;
 	}
-
 	// Store the sender of the message / server command without the leading ':'.
 	// Examples: "laxanofido!~laxanofid@snf-23545.vm.okeanos.grnet.gr", "wolfe.freenode.net"
 	pdata.sender = strtok(server->line + 1, " ");
@@ -233,7 +230,6 @@ ssize_t parse_irc_line(Irc server) {
 		if (command)
 			command->function(server, pdata);
 	}
-
 	return n;
 }
 
@@ -246,7 +242,7 @@ int numeric_reply(Irc server, Parsed_data pdata, int reply) {
 	case NICKNAMEINUSE: // Change our nick
 		i = snprintf(newnick, NICKLEN, "%s_", server->nick);
 		if (i >= NICKLEN)
-			exit_msg("maximum nickname length reached\n");
+			exit_msg("maximum nickname length reached");
 
 		set_nick(server, newnick);
 		break;
@@ -266,7 +262,6 @@ int numeric_reply(Irc server, Parsed_data pdata, int reply) {
 		strncpy(server->channels[i], server->channels[--server->channels_set], CHANLEN);
 		break;
 	}
-
 	return reply;
 }
 
@@ -351,7 +346,7 @@ void irc_notice(Irc server, Parsed_data pdata) {
 	test = strstr(pdata.message, "ACC");
 	if (test) {
 		auth_level = atoi(test + 4);
-		if (sock_write(server->pipe[1], &auth_level, 4) != 4)
+		if (sock_write(server->pipe[WR], &auth_level, 4) != 4)
 			perror(__func__);
 	} else if (starts_with(pdata.message, "This nickname is registered") && *cfg.nick_password) {
 		temp = cfg.verbose;
@@ -392,9 +387,10 @@ void irc_kick(Irc server, Parsed_data pdata) {
 
 void _irc_command(Irc server, const char *type, const char *target, const char *format, ...) {
 
-	char msg[IRCLEN - 50], irc_msg[IRCLEN];
 	int len;
 	va_list args;
+	static bool notified;
+	char msg[IRCLEN - 50], irc_msg[IRCLEN];
 
 	if (format) {
 		va_start(args, format);
@@ -407,20 +403,23 @@ void _irc_command(Irc server, const char *type, const char *target, const char *
 	len = strlen(irc_msg);
 	if (sock_write(server->queue, irc_msg, len) != len) {
 		if (errno != EAGAIN)
-			exit_msg("Failed to send irc message\n");
+			exit_msg("Failed to send irc message");
 
-		fprintf(stderr, "Dropped message due to throttling\n");
+		if (!notified) {
+			fprintf(stderr, "***Throttled: dropping messages***\n");
+			notified = true;
+		}
 	} else if (cfg.verbose)
 		fputs(irc_msg, stdout);
 }
 
 void quit_server(Irc server, const char *msg) {
 
-	char exit_msg[IRCLEN - 200] = ":";
+	char buf[IRCLEN - 200] = ":";
 
 	assert(msg);
-	strncat(exit_msg, msg, sizeof(exit_msg) - 1);
-	irc_command(server, "QUIT", exit_msg);
+	strncat(buf, msg, sizeof(buf) - 1);
+	irc_command(server, "QUIT", buf);
 
 	if (close(server->conn))
 		perror(__func__);

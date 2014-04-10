@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
 		fprintf(stderr, "%s\n", errbuf);
 		return 1;
 	}
-	val = yajl_tree_get(root, (const char *[]) { argv[1], NULL }, yajl_t_string);
+	val = yajl_tree_get(root, (const char *[]) {argv[1], NULL}, yajl_t_string);
 	if (!val)
 		return 1;
 

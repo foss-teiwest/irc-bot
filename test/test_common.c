@@ -75,7 +75,7 @@ START_TEST(iso8859_7_to_utf8_test) {
 START_TEST(cmd_output_unsafe) {
 
 	print_cmd_output_unsafe(server, "#test", "echo rofl");
-	n = read(mock[READ], test_buffer, IRCLEN);
+	n = read(mock[RD], test_buffer, IRCLEN);
 	test_buffer[n - 2] = '\0';
 	ck_assert_str_eq(test_buffer, "PRIVMSG #test :rofl");
 
@@ -85,7 +85,7 @@ START_TEST(cmd_output_unsafe) {
 START_TEST(cmd_output) {
 
 	print_cmd_output(server, "#test", CMD("echo", "rofl"));
-	n = read(mock[READ], test_buffer, IRCLEN);
+	n = read(mock[RD], test_buffer, IRCLEN);
 	test_buffer[n - 2] = '\0';
 	ck_assert_str_eq(test_buffer, "PRIVMSG #test :rofl");
 

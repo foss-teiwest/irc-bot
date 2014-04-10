@@ -5,7 +5,7 @@
 #include "irc.h"
 
 Irc server;
-int mock[2];
+int mock[RDWR];
 Parsed_data pdata;
 char test_buffer[IRCLEN + 1];
 
@@ -29,19 +29,19 @@ void mock_start(void) {
 void mock_irc_read(void) {
 
 	mock_start();
-	server->conn = server->queue = mock[READ];
+	server->conn = server->queue = mock[RD];
 }
 
 void mock_irc_write(void) {
 
 	mock_start();
-	server->conn = server->queue = mock[WRITE];
+	server->conn = server->queue = mock[WR];
 }
 
 void mock_stop(void) {
 
-	close(mock[READ]);
-	close(mock[WRITE]);
+	close(mock[RD]);
+	close(mock[WR]);
 }
 
 int main(void) {
