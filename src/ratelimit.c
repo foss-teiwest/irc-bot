@@ -57,31 +57,32 @@ STATIC bool consume_tokens(Bucket *bucket, double tokens) {
 struct ratelimit *ratelimit_init(Irc server) {
 
 	int queue[RDWR];
-	struct ratelimit *rtl = malloc(sizeof(*rtl));
+	struct ratelimit *rtl = malloc_w(sizeof(*rtl));
 
 	rtl->bucket = bucket_init(BUCKET_BURST, BUCKET_RATE);
 	if (!rtl->bucket)
 		return NULL;
 
-	if (socketpair(AF_UNIX, SOCK_DGRAM, 0, queue)) {
-		perror(__func__);
+	if (socketpair(AF_UNIX, SOCK_DGRAM, 0, queue))
 		goto cleanup;
-	}
-	if (setsockopt(queue[WR], SOL_SOCKET, SO_SNDBUF, &(socklen_t) {QUEUE_MAXSIZE}, sizeof(socklen_t))) {
-		perror(__func__);
-		goto cleanup;
-	}
-	if (fcntl(queue[WR], F_SETFL, O_NONBLOCK)) {
-		perror(__func__);
-		goto cleanup;
-	}
+
+	if (setsockopt(queue[WR], SOL_SOCKET, SO_SNDBUF, &(socklen_t) {QUEUE_MAXSIZE}, sizeof(socklen_t)))
+		goto cleanup2;
+
+	if (fcntl(queue[WR], F_SETFL, O_NONBLOCK))
+		goto cleanup2;
+
 	rtl->irc = get_socket(server);
-	set_queue(server, queue[WR]);
 	rtl->queue = queue[RD];
+	set_queue(server, queue[WR]);
 
 	return rtl;
 
+cleanup2:
+	close(queue[RD]);
+	close(queue[WR]);
 cleanup:
+	perror(__func__);
 	free(rtl->bucket);
 	free(rtl);
 	return NULL;
@@ -108,9 +109,3 @@ void *ratelimit_loop(void *arg) {
 	return NULL;
 }
 
-void ratelimit_destroy(struct ratelimit *rtl) {
-
-	close(rtl->queue);
-	free(rtl->bucket);
-	free(rtl);
-}

@@ -10,6 +10,7 @@
  */
 
 #include <time.h>
+#include <stdbool.h>
 #include "irc.h"
 
 #define BUCKET_BURST   6.0
@@ -31,15 +32,12 @@ struct ratelimit {
 	Bucket *bucket;
 };
 
-/** Initialize token bucket algorithm and setup unix sockets */
+/** Initialize token bucket algorithm and setup queue */
 struct ratelimit *ratelimit_init(Irc server);
 
 /* Read's messages from queue according to priority and send them to IRC rate-limited
  * @param arg  struct ratelimit is expected with all the values filled in */
 void *ratelimit_loop(void *arg);
-
-/** Free resources created in init() */
-void ratelimit_destroy(struct ratelimit *rtl);
 
 #endif
 

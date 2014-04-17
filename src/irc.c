@@ -320,7 +320,6 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 void irc_notice(Irc server, Parsed_data pdata) {
 
 	char *test;
-	bool temp;
 	int auth_level;
 
 	// Discard hostname from nickname
@@ -349,11 +348,8 @@ void irc_notice(Irc server, Parsed_data pdata) {
 		if (sock_write(server->pipe[WR], &auth_level, 4) != 4)
 			perror(__func__);
 	} else if (starts_with(pdata.message, "This nickname is registered") && *cfg.nick_password) {
-		temp = cfg.verbose;
-		cfg.verbose = false;
 		send_message(server, pdata.sender, "identify %s", cfg.nick_password);
 		memset(cfg.nick_password, '\0', strlen(cfg.nick_password));
-		cfg.verbose = temp;
 	}
 }
 
@@ -409,16 +405,15 @@ void _irc_command(Irc server, const char *type, const char *target, const char *
 			fprintf(stderr, "***Throttled: dropping messages***\n");
 			notified = true;
 		}
-	} else if (cfg.verbose)
-		fputs(irc_msg, stdout);
+	}
 }
 
 void quit_server(Irc server, const char *msg) {
 
-	char buf[IRCLEN - 200] = ":";
+	char buf[QUITLEN + 1] = ":";
 
 	assert(msg);
-	strncat(buf, msg, sizeof(buf) - 1);
+	strncat(buf, msg, QUITLEN - 1);
 	irc_command(server, "QUIT", buf);
 
 	if (close(server->conn))

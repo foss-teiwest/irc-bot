@@ -13,7 +13,6 @@
 #define WR   1
 #define RDWR 2
 #define NONBLOCK 1
-#define IRCLEN   512
 #define MAXPORT  65535
 #define LOCALHOST "127.0.0.1"
 

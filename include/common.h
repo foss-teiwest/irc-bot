@@ -6,10 +6,10 @@
  * Contains general functions that are needed by many files
  */
 
+#include <stdio.h>
 #include <stdbool.h>
-#include <yajl/yajl_tree.h>
+#include "init.h"
 #include "irc.h"
-#include "twitter.h"
 
 // Allow testing on static functions
 #ifdef TEST
@@ -18,17 +18,11 @@
 	#define STATIC static
 #endif
 
-#define STARTSIZE   5
-#define MAXACCLIST  10
-#define MAXQUOTES   20
-#define PATHLEN     120
-#define LINELEN     300
-#define CONFSIZE    4096
-#define SCRIPTDIR  "scripts/" //!< default folder to look for scripts like the youtube one
-#define DEFAULT_CONFIG_NAME "config.json"
-
+#define STARTING_PARAMS 5
+#define LINELEN   350
 #define MILLISECS 1000
-#define NANOSECS  1000 * 1000 * 1000
+#define NANOSECS  1000 * MILLISECS * MILLISECS
+#define SCRIPTDIR "scripts/" //!< default folder to look for scripts like the youtube one
 
 struct config_options {
 	char *server;
@@ -45,6 +39,7 @@ struct config_options {
 	char *mpd_port;
 	char *mpd_database;
 	char *mpd_random_file;
+	char *fifo_path;
 	char *oauth_consumer_key;
 	char *oauth_consumer_secret;
 	char *oauth_token;
@@ -60,17 +55,17 @@ struct config_options {
 
 extern struct config_options cfg; //!< global struct with config's values
 
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
-
 //@{
 /** Macros to help reduce boilerplate code */
 #define CMD(...) (char *[]) {__VA_ARGS__, NULL}
 #define CFG(...) (const char *[]) {__VA_ARGS__, NULL}
-#define CFG_GET(struct_name, root, field) struct_name.field = get_json_field(root, #field)
 //@}
 
+/** Find minimum number. Beware of side effects. */
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+
 //@{
-/** Wrappers for allocating memory. Print the position on failure and exit. Will always return a valid pointer */
+/** Wrappers for allocating memory. On failure, print the position and exit. A valid pointer is returned always. mmap_w zeros the memory it returns. */
 #define mmap_w(x) _mmap_w((x), __func__, __FILE__, __LINE__)
 #define malloc_w(x) _malloc_w((x), __func__, __FILE__, __LINE__)
 #define calloc_w(x) _calloc_w((x), __func__, __FILE__, __LINE__)
@@ -82,13 +77,6 @@ void *_mmap_w(size_t size, const char *caller, const char *file, int line);
 void *_malloc_w(size_t size, const char *caller, const char *file, int line);
 void *_calloc_w(size_t size, const char *caller, const char *file, int line);
 void *_realloc_w(void *buf, size_t size, const char *caller, const char *file, int line);
-
-/** Parse arguments, load config, install signal handlers etc
- *  @param argc, argv main's parameters unaltered */
-void initialize(int argc, char *argv[]);
-
-/** Cleanup curl, free yajl handler etc */
-void cleanup(void);
 
 /** Takes a format specifier with a variable number of arguments. Prints message and exits with failure
  *  If the caller is not the main process then _exit() will be used to avoid,
@@ -128,6 +116,9 @@ int extract_params(char *msg, char **argv[]);
  */
 int get_int(const char *num, int max);
 
+/** Read all lines from stream and send them to server target */
+void send_all_lines(Irc server, const char *target, FILE *stream);
+
 /**
  * Run the program specified and print the output in target channel / person
  *
@@ -141,9 +132,6 @@ void print_cmd_output(Irc server, const char *target, char *cmd_args[]);
 /** Same as the above function but commands are interpeted by the shell so it is prone to exploits.
  *  @warning  Do NOT trust user input. Use only fixed values like "ls | wc -l" */
 void print_cmd_output_unsafe(Irc server, const char *target, const char *cmd);
-
-/** Parse json config_file and update cfg global struct with the values read */
-void parse_config(yajl_val root, const char *config_file);
 
 /** Convert string's encoding from ISO 8859-7 to UTF-8
  *  @warning  Return value must be freed to avoid memory leak */

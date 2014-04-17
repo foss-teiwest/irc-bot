@@ -10,6 +10,7 @@
 #include <stdbool.h>
 
 #define IRCLEN   512
+#define QUITLEN  160
 #define NICKLEN  20
 #define USERLEN  15
 #define CHANLEN  40
