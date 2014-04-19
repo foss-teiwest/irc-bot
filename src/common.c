@@ -9,6 +9,8 @@
 #include "irc.h"
 #include "common.h"
 
+#define alloc_error(function, file, line) exit_msg("Failed to allocate memory in %s() %s:%d", function, file, line);
+
 extern pid_t main_pid;
 
 void exit_msg(const char *format, ...) {

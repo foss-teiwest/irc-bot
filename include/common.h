@@ -19,9 +19,10 @@
 #endif
 
 #define STARTING_PARAMS 5
-#define LINELEN   350
-#define MILLISECS 1000
-#define NANOSECS  1000 * MILLISECS * MILLISECS
+#define LINELEN    350
+#define MILLISECS  1000
+#define MICROSECS (1000 * MILLISECS)
+#define NANOSECS  (1000 * MICROSECS)
 #define SCRIPTDIR "scripts/" //!< default folder to look for scripts like the youtube one
 
 extern struct config_options cfg; //!< global struct with config's values defined in init.h
@@ -37,11 +38,10 @@ extern struct config_options cfg; //!< global struct with config's values define
 
 //@{
 /** Wrappers for allocating memory. On failure, print the position and exit. A valid pointer is returned always. mmap_w zeros the memory it returns. */
-#define mmap_w(x) _mmap_w((x), __func__, __FILE__, __LINE__)
-#define malloc_w(x) _malloc_w((x), __func__, __FILE__, __LINE__)
-#define calloc_w(x) _calloc_w((x), __func__, __FILE__, __LINE__)
+#define mmap_w(x)       _mmap_w((x),         __func__, __FILE__, __LINE__)
+#define malloc_w(x)     _malloc_w((x),       __func__, __FILE__, __LINE__)
+#define calloc_w(x)     _calloc_w((x),       __func__, __FILE__, __LINE__)
 #define realloc_w(x, y) _realloc_w((x), (y), __func__, __FILE__, __LINE__)
-#define alloc_error(function, file, line) exit_msg("Failed to allocate memory in %s() %s:%d", function, file, line);
 //@}
 
 void *_mmap_w(size_t size, const char *caller, const char *file, int line);

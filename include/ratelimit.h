@@ -10,19 +10,21 @@
  */
 
 #include <time.h>
-#include <stdbool.h>
 #include "irc.h"
 
 #define BUCKET_BURST   6.0
 #define BUCKET_RATE    1.0
 #define BUCKET_CONSUME 1.0
+
+/** The actual amount of messages that can be in queue at a given time will probably be higher,
+ *  since not all messages will have the maximum length of IRCLEN */
 #define QUEUE_MAXSIZE  30 * IRCLEN
 
 typedef struct token_bucket {
 	double burst_capacity;
 	double tokens;
 	double fill_rate;
-	time_t timestamp;
+	struct timespec timestamp;
 	struct timespec sleep_time;
 } Bucket;
 

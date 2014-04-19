@@ -10,17 +10,10 @@ LDLIBS   = -pthread -lcurl -lcrypto -lyajl
 CPPFLAGS = -D_GNU_SOURCE
 CFLAGS-TEST := $(CFLAGS)
 
-# Detect architecture
-ifeq "$(shell uname -m)" "x86_64"
-	ARCH = x86-64
-else
-	ARCH = i686
-endif
-
 # Disable assertions, enable compiler optimizations and strip binary for "release" rule
 ifeq "$(MAKECMDGOALS)" "release"
 	CPPFLAGS += -DNDEBUG
-	CFLAGS   += -march=$(ARCH) -mtune=generic -O2 -pipe
+	CFLAGS   += -O2 -pipe
 	CFLAGS   := $(filter-out -g, $(CFLAGS))
 	LDFLAGS  = -s
 endif

@@ -55,11 +55,13 @@ STATIC char *base64_encode(const unsigned char *src, int size) {
 
 		if (i + 1 < size)
 			*p++= base64_encode_char(b6);
-		else *p++= '=';
+		else
+			*p++= '=';
 
 		if (i + 2 < size)
 			*p++= base64_encode_char(b7);
-		else *p++= '=';
+		else
+			*p++= '=';
 	}
 	return out;
 }
@@ -209,13 +211,13 @@ long send_tweet(char *status_msg, char *tweet_url) {
 	free(mem.buffer);
 	tweet_url[0] = '\0';
 
-	val = yajl_tree_get(root, CFG("user", "screen_name"), yajl_t_string);
-	if (!val) goto cleanup;
-	twt_profile_url = YAJL_GET_STRING(val);
-
 	val = yajl_tree_get(root, CFG("id_str"), yajl_t_string);
 	if (!val) goto cleanup;
 	tweed_id = YAJL_GET_STRING(val);
+
+	val = yajl_tree_get(root, CFG("user", "screen_name"), yajl_t_string);
+	if (!val) goto cleanup;
+	twt_profile_url = YAJL_GET_STRING(val);
 
 	snprintf(tweet_url, TWEET_URLLEN, "https://twitter.com/%s/status/%s", twt_profile_url, tweed_id);
 

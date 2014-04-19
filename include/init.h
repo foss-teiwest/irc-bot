@@ -10,11 +10,11 @@
 #include "irc.h"
 
 #define DEFAULT_CONFIG_NAME "config.json"
-#define CONFSIZE     4096
-#define PATHLEN      120
-#define MAXACCLIST   10
-#define MAXQUOTES    20
-#define POLL_TIMEOUT 300 * MILLISECS
+#define CONFSIZE      4096
+#define PATHLEN       120
+#define MAXACCLIST    10
+#define MAXQUOTES     20
+#define POLL_TIMEOUT (300 * MILLISECS)
 
 struct config_options {
 	char *server;
