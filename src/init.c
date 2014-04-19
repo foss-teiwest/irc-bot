@@ -113,7 +113,6 @@ STATIC void parse_config(const char *config_file) {
 	CFG_GET(cfg, root, mpd_database);
 	CFG_GET(cfg, root, mpd_random_file);
 	CFG_GET(cfg, root, fifo_path);
-	CFG_GET(cfg, root, twitter_profile_url);
 	CFG_GET(cfg, root, oauth_consumer_key);
 	CFG_GET(cfg, root, oauth_consumer_secret);
 	CFG_GET(cfg, root, oauth_token);

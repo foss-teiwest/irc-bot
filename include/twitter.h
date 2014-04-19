@@ -8,13 +8,14 @@
  */
 
 #define DEFNONCE 32
-#define TWTLEN 2560
-#define TWTURL "https://api.twitter.com/1.1/statuses/update.json"
+#define TWEETLEN 2560
+#define TWEET_URLLEN 128
+#define TWTAPI "https://api.twitter.com/1.1/statuses/update.json"
 
 /** Send tweets to the specified account in config.json. Message can be longer than 140 chars
  *  @returns  the http status code of the request to the API.
  */
-long send_tweet(char *message);
+long send_tweet(char *message, char *tweet_url);
 
 #endif
 

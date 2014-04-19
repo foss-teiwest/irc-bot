@@ -14,7 +14,7 @@
 
 /** HTTP status codes */
 enum http_codes {
-	UNKNOWN      = 0,
+	OK           = 200,
 	UNAUTHORIZED = 401,
 	FORBIDDEN    = 403
 };
@@ -61,6 +61,10 @@ char *fetch_mumble_users(void);
  * @returns        An array of commits and maybe NULL on failure. commits will be updated with the actual number returned or 0 for error
  */
 Github *fetch_github_commits(yajl_val *root, const char *repo, int *commits);
+
+/** Callback required by Curl if we want to save the output in a buffer
+ *  @param membuf  Mem_buffer type is expected */
+size_t curl_write_memory(char *data, size_t size, size_t elements, void *membuf);
 
 #endif
 

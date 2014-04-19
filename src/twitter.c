@@ -3,8 +3,10 @@
 #include <unistd.h>
 #include <time.h>
 #include <curl/curl.h>
+#include <yajl/yajl_tree.h>
 #include <openssl/hmac.h>
 #include "twitter.h"
+#include "curl.h"
 #include "common.h"
 
 STATIC char base64_encode_char(unsigned char u) {
@@ -83,13 +85,13 @@ STATIC char *generate_nonce(int len) {
 STATIC char *prepare_parameter_string(CURL *curl, char **status_msg, char **oauth_nonce, time_t *timestamp) {
 
 	int len;
-	char parameter_string[TWTLEN];
+	char parameter_string[TWEETLEN];
 	char *parameter_string_url_encoded;
 
 	*timestamp = time(NULL);
 	*oauth_nonce = generate_nonce(DEFNONCE);
 	*status_msg = curl_easy_escape(curl, *status_msg, 0);
-	len = snprintf(parameter_string, TWTLEN, "include_entities=true&oauth_consumer_key=%s&oauth_nonce=%s"
+	len = snprintf(parameter_string, TWEETLEN, "include_entities=true&oauth_consumer_key=%s&oauth_nonce=%s"
 		"&oauth_signature_method=HMAC-SHA1&oauth_timestamp=%lu&oauth_token=%s&oauth_version=1.0&status=%s",
 			cfg.oauth_consumer_key, *oauth_nonce, (unsigned long) *timestamp, cfg.oauth_token, *status_msg);
 
@@ -106,8 +108,8 @@ STATIC char *prepare_signature_base_string(CURL *curl, char **resource_url, char
 		return NULL;
 
 	parameter_string += strlen(parameter_string) + 1;
-	signature_base_string = malloc_w(TWTLEN);
-	snprintf(signature_base_string, TWTLEN, "POST&%s&%s", *resource_url, parameter_string);
+	signature_base_string = malloc_w(TWEETLEN);
+	snprintf(signature_base_string, TWEETLEN, "POST&%s&%s", *resource_url, parameter_string);
 
 	return signature_base_string;
 }
@@ -133,44 +135,39 @@ STATIC char *generate_oauth_signature(CURL *curl, const char *signature_base_str
 	return oauth_signature_encoded;
 }
 
-STATIC size_t discard_response(char *data, size_t size, size_t elements, void *null) {
-
-	// Silence unused warnings
-	(void) data;
-	(void) null;
-	return size * elements;
-}
-
 STATIC struct curl_slist *prepare_http_post_request(CURL *curl, char **status_msg, const char *oauth_signature, const char *oauth_nonce, time_t timestamp) {
 
-	char *temp, buffer[TWTLEN];
+	char *temp, buffer[TWEETLEN];
 	struct curl_slist *headers = NULL;
 
-	snprintf(buffer, TWTLEN, "Authorization: OAuth oauth_consumer_key=\"%s\", oauth_nonce=\"%s\", oauth_signature=\"%s\", "
+	snprintf(buffer, TWEETLEN, "Authorization: OAuth oauth_consumer_key=\"%s\", oauth_nonce=\"%s\", oauth_signature=\"%s\", "
 		"oauth_signature_method=\"HMAC-SHA1\", oauth_timestamp=\"%lu\", oauth_token=\"%s\", oauth_version=\"1.0\"",
 			cfg.oauth_consumer_key, oauth_nonce, oauth_signature, (unsigned long) timestamp, cfg.oauth_token);
 
 	headers = curl_slist_append(headers, buffer);
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
-	temp = malloc_w(TWTLEN);
-	snprintf(temp, TWTLEN, "status=%s", *status_msg);
+	temp = malloc_w(TWEETLEN);
+	snprintf(temp, TWEETLEN, "status=%s", *status_msg);
 	free(*status_msg);
 	*status_msg = temp;
 
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, *status_msg);
-	curl_easy_setopt(curl, CURLOPT_URL, TWTURL);
+	curl_easy_setopt(curl, CURLOPT_URL, TWTAPI);
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10L);
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, discard_response);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_memory);
 
 	return headers;
 }
 
-long send_tweet(char *status_msg) {
+long send_tweet(char *status_msg, char *tweet_url) {
 
 	CURL *curl;
 	CURLcode code;
+	Mem_buffer mem = {NULL, 0};
+	yajl_val val, root = NULL;
+	char errbuf[1024];
 	struct curl_slist *request = NULL;
 	char *parameter_string;
 	char *signature_base_string;
@@ -178,13 +175,14 @@ long send_tweet(char *status_msg) {
 	char *resource_url;
 	char *oauth_nonce;
 	time_t timestamp;
+	char *tweed_id, *twt_profile_url;
 	long http_status = 0;
 
 	curl = curl_easy_init();
 	if (!curl)
 		return 0;
 
-	resource_url = TWTURL;
+	resource_url = TWTAPI;
 	parameter_string = prepare_parameter_string(curl, &status_msg, &oauth_nonce, &timestamp);
 	signature_base_string = prepare_signature_base_string(curl, &resource_url, parameter_string);
 	if (!signature_base_string)
@@ -192,18 +190,41 @@ long send_tweet(char *status_msg) {
 
 	oauth_signature = generate_oauth_signature(curl, signature_base_string);
 	request = prepare_http_post_request(curl, &status_msg, oauth_signature, oauth_nonce, timestamp);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &mem);
+
 	code = curl_easy_perform(curl);
-	if (code != CURLE_OK) {
+	if (code != CURLE_OK || !mem.buffer) {
 		fprintf(stderr, "Error: %s\n", curl_easy_strerror(code));
 		goto cleanup;
 	}
 	curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_status);
+	if (http_status != 200)
+		goto cleanup;
+
+	root = yajl_tree_parse(mem.buffer, errbuf, sizeof(errbuf));
+	if (!root) {
+		fprintf(stderr, "%s\n", errbuf);
+		goto cleanup;
+	}
+	free(mem.buffer);
+	tweet_url[0] = '\0';
+
+	val = yajl_tree_get(root, CFG("user", "screen_name"), yajl_t_string);
+	if (!val) goto cleanup;
+	twt_profile_url = YAJL_GET_STRING(val);
+
+	val = yajl_tree_get(root, CFG("id_str"), yajl_t_string);
+	if (!val) goto cleanup;
+	tweed_id = YAJL_GET_STRING(val);
+
+	snprintf(tweet_url, TWEET_URLLEN, "https://twitter.com/%s/status/%s", twt_profile_url, tweed_id);
 
 cleanup:
 	free(status_msg);
 	free(oauth_nonce);
 	free(oauth_signature);
 	free(signature_base_string);
+	yajl_tree_free(root);
 	curl_free(resource_url);
 	curl_free(parameter_string);
 	curl_slist_free_all(request);

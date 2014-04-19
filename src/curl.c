@@ -2,10 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <curl/curl.h>
+#include <yajl/yajl_tree.h>
 #include "curl.h"
 #include "common.h"
 
-STATIC size_t curl_write_memory(char *data, size_t size, size_t elements, void *membuf) {
+size_t curl_write_memory(char *data, size_t size, size_t elements, void *membuf) {
 
 	Mem_buffer *mem = membuf;
 	size_t total_size = size * elements;
@@ -122,24 +123,19 @@ Github *fetch_github_commits(yajl_val *root, const char *repo, int *commit_count
 	// Find the field we are interested in the json reply, save a reference to it & null terminate
 	for (i = 0; i < *commit_count; i++) {
 		val = yajl_tree_get(YAJL_GET_ARRAY(*root)->values[i], CFG("sha"),                      yajl_t_string);
-		if (!val)
-			break;
-
+		if (!val) break;
 		commits[i].sha  = YAJL_GET_STRING(val);
+
 		val = yajl_tree_get(YAJL_GET_ARRAY(*root)->values[i], CFG("commit", "author", "name"), yajl_t_string);
-		if (!val)
-			break;
-
+		if (!val) break;
 		commits[i].name = YAJL_GET_STRING(val);
+
 		val = yajl_tree_get(YAJL_GET_ARRAY(*root)->values[i], CFG("commit", "message"),        yajl_t_string);
-		if (!val)
-			break;
-
+		if (!val) break;
 		commits[i].msg  = YAJL_GET_STRING(val);
-		val = yajl_tree_get(YAJL_GET_ARRAY(*root)->values[i], CFG("html_url"),                 yajl_t_string);
-		if (!val)
-			break;
 
+		val = yajl_tree_get(YAJL_GET_ARRAY(*root)->values[i], CFG("html_url"),                 yajl_t_string);
+		if (!val) break;
 		commits[i].url  = YAJL_GET_STRING(val);
 
 		// Cut commit message at newline character if present

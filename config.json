@@ -30,7 +30,6 @@
 	"fifo_path": "/tmp/irc-bot",
 
 	// Twitter settings
-	"twitter_profile_url":   "https://twitter.com/fossteiwest",
 	"oauth_consumer_key":    "",
 	"oauth_consumer_secret": "",
 	"oauth_token":           "",

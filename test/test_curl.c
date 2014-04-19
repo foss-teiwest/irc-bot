@@ -6,8 +6,6 @@
 #include "test_main.h"
 #include "curl.h"
 
-size_t curl_write_memory(char *data, size_t size, size_t elements, void *membuf);
-
 char testfile[PATH_MAX];
 
 START_TEST(curl_writeback) {

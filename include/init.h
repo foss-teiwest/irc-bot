@@ -16,6 +16,34 @@
 #define MAXQUOTES    20
 #define POLL_TIMEOUT 300 * MILLISECS
 
+struct config_options {
+	char *server;
+	char *port;
+	char *nick;
+	char *nick_password;
+	char *user;
+	char *channels[MAXCHANS];
+	int channels_set;
+	char *bot_version;
+	char *github_repo;
+	char *quit_message;
+	char *murmur_port;
+	char *mpd_port;
+	char *mpd_database;
+	char *mpd_random_file;
+	char *fifo_path;
+	char *oauth_consumer_key;
+	char *oauth_consumer_secret;
+	char *oauth_token;
+	char *oauth_token_secret;
+	bool twitter_details_set;
+	char *access_list[MAXACCLIST];
+	int access_list_count;
+	char *quotes[MAXQUOTES];
+	int quote_count;
+	bool verbose;
+};
+
 enum poll_array {IRC, MURM_LISTEN, MURM_ACCEPT, MPD, FIFO, TOTAL};
 
 /** Parse arguments, load config, install signal handlers etc

@@ -242,6 +242,7 @@ void marker(Irc server, Parsed_data pdata) {
 void tweet(Irc server, Parsed_data pdata) {
 
 	long http_status;
+	char tweet_url[TWEET_URLLEN];
 
 	if (!pdata.message)
 		return;
@@ -254,15 +255,15 @@ void tweet(Irc server, Parsed_data pdata) {
 		send_message(server, pdata.target, "%s is not found in access list or identified to the NickServ", pdata.sender);
 		return;
 	}
-	http_status = send_tweet(pdata.message);
+	http_status = send_tweet(pdata.message, tweet_url);
 	switch (http_status) {
-	case UNKNOWN:
-		send_message(server, pdata.target, "%s", "unknown error"); break;
+	case OK:
+		send_message(server, pdata.target, "%s", *tweet_url ? tweet_url : "message posted (failed to get tweet id)"); break;
 	case FORBIDDEN:
 		send_message(server, pdata.target, "%s", "message too long or duplicate"); break;
 	case UNAUTHORIZED:
 		send_message(server, pdata.target, "%s", "authentication error"); break;
 	default:
-		send_message(server, pdata.target, "message posted @ %s", cfg.twitter_profile_url);
+		send_message(server, pdata.target, "%s", "unknown error");
 	}
 }
