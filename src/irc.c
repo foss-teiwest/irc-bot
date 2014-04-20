@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
+#include <stddef.h>
 #include <unistd.h>
 #include <pthread.h>
 #include <fcntl.h>
@@ -10,8 +12,8 @@
 #include "socket.h"
 #include "irc.h"
 #include "gperf.h"
-#include "ratelimit.h"
 #include "common.h"
+#include "init.h"
 
 struct irc_type {
 	int conn;

@@ -1,13 +1,16 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <time.h>
 #include <curl/curl.h>
 #include <yajl/yajl_tree.h>
 #include <openssl/hmac.h>
+#include <openssl/evp.h>
 #include "twitter.h"
 #include "curl.h"
 #include "common.h"
+#include "init.h"
 
 STATIC char base64_encode_char(unsigned char u) {
 

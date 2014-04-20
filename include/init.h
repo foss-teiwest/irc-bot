@@ -7,6 +7,7 @@
  */
 
 #include <stdio.h>
+#include <stdbool.h>
 #include "irc.h"
 
 #define DEFAULT_CONFIG_NAME "config.json"
@@ -45,6 +46,8 @@ struct config_options {
 };
 
 enum poll_array {IRC, MURM_LISTEN, MURM_ACCEPT, MPD, FIFO, TOTAL};
+
+extern struct config_options cfg; //!< global struct with config's values
 
 /** Parse arguments, load config, install signal handlers etc
  *  @param argc, argv main's parameters unaltered */

@@ -1,8 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stddef.h>
+#include <stdbool.h>
 #include <string.h>
 #include <curl/curl.h>
 #include <yajl/yajl_tree.h>
+#include "irc.h"
 #include "curl.h"
 #include "common.h"
 

@@ -1,12 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <stddef.h>
+#include <stdbool.h>
 #include <sys/socket.h>
 #include <netdb.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <assert.h>
 #include "socket.h"
+#include "irc.h"
 #include "common.h"
 
 int sock_connect(const char *address, const char *port) {

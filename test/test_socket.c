@@ -1,5 +1,6 @@
 #include <check.h>
 #include <string.h>
+#include <stddef.h>
 #include <unistd.h>
 #include <signal.h>
 #include <errno.h>

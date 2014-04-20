@@ -6,7 +6,7 @@
  * Contains functions that use CURL directly
  */
 
-#include <sys/types.h>
+#include <stddef.h>
 #include <yajl/yajl_tree.h>
 
 #define URLLEN   440

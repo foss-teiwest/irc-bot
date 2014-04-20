@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stddef.h>
 #include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
@@ -9,8 +10,10 @@
 #include "commands.h"
 #include "irc.h"
 #include "curl.h"
+#include "murmur.h"
 #include "twitter.h"
 #include "common.h"
+#include "init.h"
 
 void help(Irc server, Parsed_data pdata) {
 

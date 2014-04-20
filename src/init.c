@@ -1,5 +1,8 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <stdbool.h>
+#include <stddef.h>
 #include <fcntl.h>
 #include <signal.h>
 #include <pthread.h>
@@ -7,6 +10,7 @@
 #include <sys/mman.h>
 #include <curl/curl.h>
 #include <yajl/yajl_tree.h>
+#include "irc.h"
 #include "init.h"
 #include "socket.h"
 #include "ratelimit.h"
@@ -233,7 +237,7 @@ int setup_fifo(FILE **stream) {
 			goto cleanup;
 
 		// FALLTHROUGH
-	case -1:
+	default:
 		// Ensure we get the permissions we asked (620)
 		old = umask(0);
 		if (mkfifo(cfg.fifo_path, S_IRUSR | S_IWUSR | S_IWGRP))

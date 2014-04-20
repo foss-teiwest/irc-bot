@@ -2,6 +2,8 @@
 #define CHECK_CHECK_H
 
 #include <check.h>
+#include <stddef.h>
+#include <stdbool.h>
 #include "socket.h"
 #include "irc.h"
 

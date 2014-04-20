@@ -14,7 +14,6 @@
  */
 
 #include "irc.h"
-#include "murmur.h"
 
 #define MAXCOMMITS   10
 #define MAXPINGS     10

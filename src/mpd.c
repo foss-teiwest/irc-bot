@@ -9,6 +9,7 @@
 #include "irc.h"
 #include "mpd.h"
 #include "common.h"
+#include "init.h"
 
 extern struct mpd_info *mpd;
 

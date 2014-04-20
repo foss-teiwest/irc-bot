@@ -1,14 +1,14 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <stdbool.h>
 #include <unistd.h>
 #include <stdint.h>
-#include <arpa/inet.h>
+#include <netinet/in.h>
 #include <errno.h>
 #include "socket.h"
 #include "irc.h"
 #include "murmur.h"
 #include "common.h"
+#include "init.h"
 
 STATIC int murmur_connect(const char *port) {
 

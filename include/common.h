@@ -7,8 +7,8 @@
  */
 
 #include <stdio.h>
+#include <stddef.h>
 #include <stdbool.h>
-#include "init.h"
 #include "irc.h"
 
 // Allow testing on static functions
@@ -24,8 +24,6 @@
 #define MICROSECS (1000 * MILLISECS)
 #define NANOSECS  (1000 * MICROSECS)
 #define SCRIPTDIR "scripts/" //!< default folder to look for scripts like the youtube one
-
-extern struct config_options cfg; //!< global struct with config's values defined in init.h
 
 //@{
 /** Macros to help reduce boilerplate code */

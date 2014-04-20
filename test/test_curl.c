@@ -1,16 +1,18 @@
 #include <check.h>
 #include <stdio.h>
+#include <stddef.h>
+#include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
-#include "test_main.h"
+#include <yajl/yajl_tree.h>
 #include "curl.h"
 
 char testfile[PATH_MAX];
 
 START_TEST(curl_writeback) {
 
-	Mem_buffer mem = {0};
+	Mem_buffer mem = {NULL, 0};
 	char *data = "random stuff ftw!";
 	size_t n = curl_write_memory(data, strlen(data), 1, &mem);
 	ck_assert_str_eq(data, mem.buffer);

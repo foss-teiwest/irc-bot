@@ -1,7 +1,10 @@
 #include <check.h>
+#include <string.h>
 #include <unistd.h>
 #include "test_main.h"
 #include "common.h"
+#include "irc.h"
+#include "socket.h"
 
 ssize_t n;
 

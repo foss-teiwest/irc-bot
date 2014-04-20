@@ -1,11 +1,13 @@
 #include <check.h>
 #include <unistd.h>
+#include <stdbool.h>
+#include <string.h>
 #include <fcntl.h>
 #include <errno.h>
 #include "test_main.h"
 #include "socket.h"
 #include "irc.h"
-#include "common.h"
+#include "init.h"
 
 ssize_t n;
 

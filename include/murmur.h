@@ -9,7 +9,6 @@
  * Author: Charalampos Kostas <root@charkost.gr>
  */
 
-#include <sys/types.h>
 #include <stdbool.h>
 #include "irc.h"
 
