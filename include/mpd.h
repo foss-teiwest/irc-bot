@@ -59,10 +59,10 @@ void seek(Irc server, Parsed_data pdata);
  */
 int mpd_connect(const char *port);
 
-/** Announce current song playing in default channel. It will only print song if it's not the same as the last one.
+/** Announce current song playing in target. It will only print song if it's not the same as the last one.
  *  @warning  It keeps a static array for song comparison. Will restart the query for a next song automatically
  */
-bool print_song(Irc server);
+bool print_song(Irc server, const char *target);
 
 #endif
 

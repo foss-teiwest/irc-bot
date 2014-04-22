@@ -6,8 +6,6 @@
 #include "mpd.h"
 #include "common.h"
 
-extern struct mpd_info *mpd;
-
 int main(int argc, char *argv[]) {
 
 	Irc irc_server;
@@ -20,7 +18,6 @@ int main(int argc, char *argv[]) {
 		pfd[i].events = POLLIN;
 	}
 	initialize(argc, argv);
-
 	irc_server          = setup_irc();
 	pfd[IRC].fd         = get_socket(irc_server);
 	pfd[MURM_LISTEN].fd = setup_mumble();
@@ -44,8 +41,8 @@ int main(int argc, char *argv[]) {
 			}
 		}
 		if (pfd[MPD].revents & POLLIN)
-			if (!print_song(irc_server))
-				pfd[MPD].fd = mpd->fd = mpd_connect(cfg.mpd_port);
+			if (!print_song(irc_server, default_channel(irc_server)))
+				pfd[MPD].fd = mpd_connect(cfg.mpd_port);
 
 		if (pfd[FIFO].revents & POLLIN)
 			send_all_lines(irc_server, default_channel(irc_server), fifo);

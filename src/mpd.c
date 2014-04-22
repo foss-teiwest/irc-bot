@@ -131,20 +131,19 @@ void announce(Irc server, Parsed_data pdata) {
 
 int mpd_connect(const char *port) {
 
-	int mpdfd;
 	char buf[64];
 
-	mpdfd = sock_connect(LOCALHOST, port);
-	if (mpdfd < 0)
+	mpd->fd = sock_connect(LOCALHOST, port);
+	if (mpd->fd < 0)
 		return -1;
 
-	if (sock_read(mpdfd, buf, sizeof(buf)) <= 0)
+	if (sock_read(mpd->fd, buf, sizeof(buf)) <= 0)
 		goto cleanup;
 
 	if (!starts_with(buf, "OK"))
 		goto cleanup;
 
-	if (fcntl(mpdfd, F_SETFL, O_NONBLOCK)) {
+	if (fcntl(mpd->fd, F_SETFL, O_NONBLOCK)) {
 		perror(__func__);
 		goto cleanup;
 	}
@@ -152,10 +151,10 @@ int mpd_connect(const char *port) {
 		if (!mpd_announce(ON))
 			goto cleanup;
 
-	return mpdfd; // Success
+	return mpd->fd; // Success
 
 cleanup:
-	close(mpdfd);
+	close(mpd->fd);
 	return -1;
 }
 
@@ -196,7 +195,7 @@ STATIC char *get_title(void) {
 	return strdup(song_title);
 }
 
-bool print_song(Irc server) {
+bool print_song(Irc server, const char *target) {
 
 	static char old_song[SONG_TITLE_LEN];
 	char *song_title, buf[128 + 1];
@@ -217,7 +216,7 @@ bool print_song(Irc server) {
 		goto cleanup;
 
 	if (!streq(old_song, song_title)) {
-		send_message(server, default_channel(server), "♪ %s ♪", song_title);
+		send_message(server, target, "♪ %s ♪", song_title);
 		snprintf(old_song, SONG_TITLE_LEN, "%s", song_title);
 	}
 	// Free title and restart query
