@@ -11,6 +11,8 @@
 #include "irc.h"
 
 #define DEFAULT_CONFIG_NAME "config.json"
+#define FIFO_PERMISSIONS (S_IRUSR | S_IWUSR | S_IWGRP | S_IWOTH)
+
 #define CONFSIZE      4096
 #define PATHLEN       120
 #define MAXACCLIST    10

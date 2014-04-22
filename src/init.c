@@ -230,7 +230,7 @@ int setup_fifo(FILE **stream) {
 
 	switch (stat(cfg.fifo_path, &st)) {
 	case 0:
-		if (S_ISFIFO(st.st_mode))
+		if (S_ISFIFO(st.st_mode) && ((st.st_mode & (S_IRWXU | S_IRWXG | S_IRWXO)) == FIFO_PERMISSIONS))
 			break;
 
 		if (remove(cfg.fifo_path))
@@ -238,9 +238,9 @@ int setup_fifo(FILE **stream) {
 
 		// FALLTHROUGH
 	default:
-		// Ensure we get the permissions we asked (620)
+		// Ensure we get the permissions we asked
 		old = umask(0);
-		if (mkfifo(cfg.fifo_path, S_IRUSR | S_IWUSR | S_IWGRP))
+		if (mkfifo(cfg.fifo_path, FIFO_PERMISSIONS))
 			goto cleanup;
 
 		umask(old); // Restore mask
