@@ -40,10 +40,9 @@
 
 	// Multiline quote sentences must be seperated by the newline character (\n)
 	// Newline char is optional if the sentence is the last OR the only one from a quote
-	// If a color is provided to a quote starting with a number, a space must be added to avoid messing with the escape sequence
 	"fail_quotes":
 	[
-		"I mpala einai strogili\nto gipedo einai paralilogramo\n 11 autoi, 11 emeis sinolo 23\nkai tha boun kai 3 allages apo kathe omada sinolo 29!",
+		"I mpala einai strogili\nto gipedo einai paralilogramo\n11 autoi, 11 emeis sinolo 23\nkai tha boun kai 3 allages apo kathe omada sinolo 29!",
 		"fail indeed",
 		"fail den les tipota",
 		"popo, ti eipes twra\nemeina me anoixto to... programma",
@@ -55,6 +54,6 @@
 		"About LthIX: Programmer. Designer. Microsoft Enthusiast.",
 		"LthIX: Το θέμα είναι να μην είσαι με την μάζα. Χρησιμοποιείς Chrome? Χρησιμοποιώ IE!",
 		"re malaka usareis tmux?",
-		" 8 einai ta kalwdia stou ethernet to visma, 8 fores mou zhthses na sou ton kanw klysma"
+		"8 einai ta kalwdia stou ethernet to visma, 8 fores mou zhthses na sou ton kanw klysma"
 	]
 }

@@ -23,22 +23,22 @@
 #define MAXROLL      1000000
 
 // Irc color codes
-#define COLOR   RESET
-#define RESET   "\x03"
-#define BLUE    "\x03""2"
-#define GREEN   "\x03""3"
-#define RED     "\x03""4"
-#define BROWN   "\x03""5"
-#define PURPLE  "\x03""6"
-#define ORANGE  "\x03""7"
-#define YELLOW  "\x03""8"
-#define LTGREEN "\x03""9"
-#define TEAL    "\x03""10"
-#define LTCYAN  "\x03""11"
-#define LTBLUE  "\x03""12"
-#define PINK    "\x03""13"
-#define GREY    "\x03""14"
-#define LTGREY  "\x03""15"
+#define COLOR   "\x03"
+#define RESET   COLOR
+#define BLUE    COLOR"02"
+#define GREEN   COLOR"03"
+#define RED     COLOR"04"
+#define BROWN   COLOR"05"
+#define PURPLE  COLOR"06"
+#define ORANGE  COLOR"07"
+#define YELLOW  COLOR"08"
+#define LTGREEN COLOR"09"
+#define TEAL    COLOR"10"
+#define LTCYAN  COLOR"11"
+#define LTBLUE  COLOR"12"
+#define PINK    COLOR"13"
+#define GREY    COLOR"14"
+#define LTGREY  COLOR"15"
 #define COLORCOUNT 14
 
 /** Print available commands. It's a static list. Means you have to update it yourself if you add a command... */
