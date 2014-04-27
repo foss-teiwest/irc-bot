@@ -198,8 +198,12 @@ long send_tweet(char *status_msg, char *tweet_url) {
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &mem);
 
 	code = curl_easy_perform(curl);
-	if (code != CURLE_OK || !mem.buffer) {
+	if (code != CURLE_OK) {
 		fprintf(stderr, "Error: %s\n", curl_easy_strerror(code));
+		goto cleanup;
+	}
+	if (!mem.buffer) {
+		fprintf(stderr, "Error: Body was empty");
 		goto cleanup;
 	}
 	curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_status);
