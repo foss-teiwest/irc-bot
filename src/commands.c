@@ -255,7 +255,7 @@ void tweet(Irc server, Parsed_data pdata) {
 		return;
 	}
 	if (!user_has_access(server, pdata.sender)) {
-		send_message(server, pdata.target, "%s is not found in access list or identified to the NickServ", pdata.sender);
+		send_message(server, pdata.target, "%s is not found in the access list or identified to the NickServ", pdata.sender);
 		return;
 	}
 	http_status = send_tweet(pdata.message, tweet_url);
