@@ -62,8 +62,12 @@ char *shorten_url(const char *long_url) {
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &mem);
 
 	code = curl_easy_perform(curl); // Do the job!
-	if (code != CURLE_OK || !mem.buffer) {
+	if (code != CURLE_OK) {
 		fprintf(stderr, "Error: %s\n", curl_easy_strerror(code));
+		goto cleanup;
+	}
+	if (!mem.buffer) {
+		fprintf(stderr, "Error: Body was empty");
 		goto cleanup;
 	}
 	// Find the short url in the reply and null terminate it
@@ -110,8 +114,12 @@ Github *fetch_github_commits(yajl_val *root, const char *repo, int *commit_count
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &mem);
 
 	code = curl_easy_perform(curl);
-	if (code != CURLE_OK || !mem.buffer) {
+	if (code != CURLE_OK) {
 		fprintf(stderr, "Error: %s\n", curl_easy_strerror(code));
+		goto cleanup;
+	}
+	if (!mem.buffer) {
+		fprintf(stderr, "Error: Body was empty");
 		goto cleanup;
 	}
 	*root = yajl_tree_parse(mem.buffer, errbuf, sizeof(errbuf));
@@ -168,8 +176,12 @@ char *get_url_title(const char *url) {
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &mem);
 
 	code = curl_easy_perform(curl);
-	if (code != CURLE_OK || !mem.buffer) {
+	if (code != CURLE_OK) {
 		fprintf(stderr, "Error: %s\n", curl_easy_strerror(code));
+		goto cleanup;
+	}
+	if (!mem.buffer) {
+		fprintf(stderr, "Error: Body was empty");
 		goto cleanup;
 	}
 	// Search http response in order to determine text encoding
