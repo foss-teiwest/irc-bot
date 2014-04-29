@@ -17,7 +17,6 @@ START_TEST(irc_get_socket) {
 
 } END_TEST
 
-
 START_TEST(irc_set_nick) {
 
 	set_nick(server, "trololol");
@@ -28,7 +27,6 @@ START_TEST(irc_set_nick) {
 
 } END_TEST
 
-
 START_TEST(irc_numeric_reply) {
 
 	set_nick(server, "trololol");
@@ -37,7 +35,6 @@ START_TEST(irc_numeric_reply) {
 		ck_abort_msg("nick rename failed");
 
 } END_TEST
-
 
 START_TEST(irc_set_user) {
 
@@ -49,7 +46,6 @@ START_TEST(irc_set_user) {
 
 } END_TEST
 
-
 START_TEST(irc_join_channel) {
 
 	server->connected = true;
@@ -60,7 +56,6 @@ START_TEST(irc_join_channel) {
 	ck_assert_str_eq(test_buffer, "JOIN #trololol\r\n");
 
 } END_TEST
-
 
 START_TEST(irc_join_channels) {
 
@@ -77,14 +72,12 @@ START_TEST(irc_join_channels) {
 
 } END_TEST
 
-
 START_TEST(irc_default_channel) {
 
 	join_channel(server, "#foss-teimes");
 	ck_assert_str_eq(default_channel(server), "#foss-teimes");
 
 } END_TEST
-
 
 START_TEST(irc_command_test) {
 
@@ -99,7 +92,6 @@ START_TEST(irc_command_test) {
 	ck_assert_str_eq(test_buffer, "NICK yolo");
 
 } END_TEST
-
 
 START_TEST(irc_quit_server) {
 
@@ -125,7 +117,6 @@ START_TEST(irc_parse_line_ping) {
 
 } END_TEST
 
-
 START_TEST(irc_parse_line_tokens) {
 
 	const char *msg = ":laxanofido!~laxanofid@snf-23545.vm.okeanos.grnet.gr PRIVMSG1 #foss-teimes :How YA doing fossbot\r\n";
@@ -139,7 +130,6 @@ START_TEST(irc_parse_line_tokens) {
 		ck_abort();
 
 } END_TEST
-
 
 START_TEST(irc_parse_line_offset) {
 
@@ -157,7 +147,6 @@ START_TEST(irc_parse_line_offset) {
 	ck_assert_str_eq(server->line, "halflife");
 
 } END_TEST
-
 
 START_TEST(irc_parse_line_length) {
 
@@ -180,7 +169,6 @@ START_TEST(irc_parse_line_length) {
 
 } END_TEST
 
-
 START_TEST(irc_privemsg) {
 
 	char msg[] = "freestyl3r!~laxanofid@snf-23545.vm.okeanos.grnet.gr\0PRIVMSG\0freestylerbot :!bot lol re";
@@ -194,7 +182,6 @@ START_TEST(irc_privemsg) {
 	ck_assert_str_eq(pdata.message, "freestylerbot");
 
 } END_TEST
-
 
 START_TEST(irc_privemsg_ctcp) {
 
@@ -211,7 +198,6 @@ START_TEST(irc_privemsg_ctcp) {
 
 } END_TEST
 
-
 START_TEST(irc_privemsg_command) {
 
 	char sender[] = "bot!~a@b.c";
@@ -227,7 +213,6 @@ START_TEST(irc_privemsg_command) {
 	ck_assert_str_eq(test_buffer, reply);
 
 } END_TEST
-
 
 START_TEST(irc_notice_identify) {
 
@@ -246,7 +231,6 @@ START_TEST(irc_notice_identify) {
 
 } END_TEST
 
-
 START_TEST(irc_kick_test) {
 
 	char sender[] = "noob!~a@b.c";
@@ -261,7 +245,6 @@ START_TEST(irc_kick_test) {
 	ck_assert_str_eq(test_buffer, "PRIVMSG #hey :magkas noob...");
 
 } END_TEST
-
 
 Suite *irc_suite(void) {
 

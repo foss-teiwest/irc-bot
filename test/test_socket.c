@@ -18,14 +18,12 @@ START_TEST(socket_connect) {
 
 } END_TEST
 
-
 START_TEST(socket_listen) {
 
 	ck_assert_int_gt(sock_listen(LOCALHOST, "12345"), 0);
 	ck_assert_int_eq(sock_listen("121.1.1.1", "12345"), -1);
 
 } END_TEST
-
 
 START_TEST(socket_accept) {
 
@@ -49,7 +47,6 @@ START_TEST(socket_accept) {
 
 } END_TEST
 
-
 START_TEST(socket_write) {
 
 	const char *msg = "rofl";
@@ -66,7 +63,6 @@ START_TEST(socket_write) {
 	ck_assert_int_eq(sent, -1);
 
 } END_TEST
-
 
 START_TEST(socket_write_non_blocking) {
 
@@ -86,7 +82,6 @@ START_TEST(socket_write_non_blocking) {
 
 } END_TEST
 
-
 START_TEST(socket_read) {
 
 	const char *msg = "whysobad";
@@ -103,7 +98,6 @@ START_TEST(socket_read) {
 
 } END_TEST
 
-
 START_TEST(socket_read_non_blocking) {
 
 	const char *msg = "whysobad";
@@ -119,7 +113,6 @@ START_TEST(socket_read_non_blocking) {
 	ck_assert_int_eq(received, 4);
 
 } END_TEST
-
 
 START_TEST(socket_readbytes) {
 
@@ -138,7 +131,6 @@ START_TEST(socket_readbytes) {
 
 } END_TEST
 
-
 START_TEST(socket_readline_blocking) {
 
 	const char *msg = "lol";
@@ -151,7 +143,6 @@ START_TEST(socket_readline_blocking) {
 
 } END_TEST
 
-
 START_TEST(socket_readline_blocking2) {
 
 	const char *msg = "lol\r\n";
@@ -161,7 +152,6 @@ START_TEST(socket_readline_blocking2) {
 	ck_assert_int_eq(n, 5);
 
 } END_TEST
-
 
 START_TEST(socket_readline_non_blocking) {
 
@@ -173,7 +163,6 @@ START_TEST(socket_readline_non_blocking) {
 	ck_assert_int_eq(n, 4);
 
 } END_TEST
-
 
 START_TEST(socket_readline_non_blocking2) {
 
@@ -198,7 +187,6 @@ START_TEST(socket_readline_non_blocking2) {
 	ck_assert_str_eq(test_buffer, "hey\r\n");
 
 } END_TEST
-
 
 Suite *socket_suite(void) {
 

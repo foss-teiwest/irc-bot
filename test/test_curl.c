@@ -20,7 +20,6 @@ START_TEST(curl_writeback) {
 
 } END_TEST
 
-
 START_TEST(url_shortener_test) {
 
 	snprintf(testfile, PATH_MAX, "IRCBOT_TESTFILE=file://%s/test-files/url-shorten.txt", get_current_dir_name());
@@ -31,7 +30,6 @@ START_TEST(url_shortener_test) {
 
 } END_TEST
 
-
 START_TEST(titleurl) {
 
 	snprintf(testfile, PATH_MAX, "file://%s/test-files/url-title.txt", get_current_dir_name());
@@ -40,7 +38,6 @@ START_TEST(titleurl) {
 	ck_assert_str_eq(url_title, "ΕΘΝΙΚΟ ΜΕΤΣΟΒΙΟ ΠΟΛΥΤΕΧΝΕΙΟ");
 
 } END_TEST
-
 
 START_TEST(github_commits) {
 
@@ -62,7 +59,6 @@ START_TEST(github_commits) {
 	ck_assert_str_eq(commits[2].url,  "https://github.com/foss-teimes/irc-bot/commit/363e91d5e12701be9001bcf62062fd0a93561082");
 
 } END_TEST
-
 
 Suite *curl_suite(void) {
 

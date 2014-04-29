@@ -152,7 +152,6 @@ int join_channel(Irc server, const char *channel) {
 
 		return i;
 	}
-
 	assert(channel[0] == '#');
 	for (i = 0; i < server->channels_set; i++)
 		if (streq(channel, server->channels[i]))
@@ -166,7 +165,6 @@ int join_channel(Irc server, const char *channel) {
 		}
 		strncpy(server->channels[server->channels_set++], channel, CHANLEN);
 	}
-
 	if (server->connected)
 		irc_command(server, "JOIN", channel);
 

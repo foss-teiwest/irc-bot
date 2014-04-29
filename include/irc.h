@@ -77,7 +77,6 @@ bool user_has_access(Irc server, const char *nick);
  */
 int join_channel(Irc server, const char *channel);
 
-
 /* Read line from server, split it into Parsed_data structure elements and launch the function associated with the IRC command
  * @returns  On success: line length, -1 on error, -2 if the operation would block or 0 if connection is closed */
 ssize_t parse_irc_line(Irc server);

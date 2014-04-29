@@ -21,7 +21,6 @@ START_TEST(getint) {
 
 } END_TEST
 
-
 START_TEST(parameter_extraction) {
 
 	char msg[] = " 	trolol  re noob  	";
@@ -36,7 +35,6 @@ START_TEST(parameter_extraction) {
 
 } END_TEST
 
-
 START_TEST(strings_compare) {
 
 	if (!streq("lol", "lol"))
@@ -49,7 +47,6 @@ START_TEST(strings_compare) {
 		ck_abort_msg("starts_case_with");
 
 } END_TEST
-
 
 START_TEST(nullterminate) {
 
@@ -67,7 +64,6 @@ START_TEST(nullterminate) {
 
 } END_TEST
 
-
 START_TEST(iso8859_7_to_utf8_test) {
 
 	char *conv = iso8859_7_to_utf8("\xc5\xc8\xcd\xc9\xca\xcf\x20\xcc\xc5\xd4\xd3\xcf\xc2\xc9\xcf\x20\xd0\xcf\xcb\xd5\xd4\xc5\xd7\xcd\xc5\xc9\xcf");
@@ -84,7 +80,6 @@ START_TEST(cmd_output_unsafe) {
 
 } END_TEST
 
-
 START_TEST(cmd_output) {
 
 	print_cmd_output(server, "#test", CMD("echo", "rofl"));
@@ -93,7 +88,6 @@ START_TEST(cmd_output) {
 	ck_assert_str_eq(test_buffer, "PRIVMSG #test :rofl");
 
 } END_TEST
-
 
 Suite *common_suite(void) {
 

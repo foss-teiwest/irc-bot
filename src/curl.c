@@ -144,13 +144,11 @@ Github *fetch_github_commits(yajl_val *root, const char *repo, int *commit_count
 		val = yajl_tree_get(YAJL_GET_ARRAY(*root)->values[i], CFG("commit", "message"),        yajl_t_string);
 		if (!val) break;
 		commits[i].msg  = YAJL_GET_STRING(val);
+		null_terminate(commits[i].msg, '\n'); // Cut commit message at newline character if present
 
 		val = yajl_tree_get(YAJL_GET_ARRAY(*root)->values[i], CFG("html_url"),                 yajl_t_string);
 		if (!val) break;
 		commits[i].url  = YAJL_GET_STRING(val);
-
-		// Cut commit message at newline character if present
-		null_terminate(commits[i].msg, '\n');
 	}
 cleanup:
 	curl_easy_cleanup(curl);
