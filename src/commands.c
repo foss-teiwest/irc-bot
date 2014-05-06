@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/wait.h>
-#include <sys/mman.h>
 #include <time.h>
+#include <pthread.h>
 #include <yajl/yajl_tree.h>
 #include "commands.h"
 #include "irc.h"
@@ -53,7 +53,11 @@ void bot_fail(Irc server, struct parsed_data pdata) {
 void bot_url(Irc server, struct parsed_data pdata) {
 
 	int argc;
-	char *temp, **argv, *short_url, *url_title = NULL;
+	char **argv;
+	pthread_t id;
+	bool thread_active = false;
+	char *short_url = NULL;
+	char *url_title = NULL;
 
 	argc = extract_params(pdata.message, &argv);
 	if (!argc)
@@ -63,34 +67,19 @@ void bot_url(Irc server, struct parsed_data pdata) {
 	if (!strchr(argv[0], '.'))
 		goto cleanup;
 
-	// Map shared memory for inter-process communication
-	short_url = mmap_w(ADDRLEN + 1);
+	if (!pthread_create(&id, NULL, shorten_url, argv[0]))
+		thread_active = true;
 
-	switch (fork()) {
-	case -1:
-		perror("fork");
-		break;
-	case 0:
-		temp = shorten_url(argv[0]);
-		if (temp) {
-			strncpy(short_url, temp, ADDRLEN);
-			free(temp);
-		} else // Put a null char in the first byte if shorten_url fails so we can test for it in send_message
-			*short_url = '\0';
+	url_title = get_url_title(argv[0]);
+	if (thread_active)
+		pthread_join(id, (void *) &short_url);
 
-		munmap(short_url, ADDRLEN + 1); // Unmap pages from child process
-		_exit(EXIT_SUCCESS);
-	default:
-		url_title = get_url_title(argv[0]);
-		wait(NULL); // Wait for child results before continuing
-
-		// Only print short_url / title if they are not empty
-		send_message(server, pdata.target, "%s -- %s", (*short_url ? short_url : ""), (url_title ? url_title : ""));
-	}
-	free(url_title);
-	munmap(short_url, ADDRLEN + 1); // Unmap pages from parent as well
+	// Only print short_url / title if they are not empty (some stdlibs like glibc will print (NULL) but we can't depend on that)
+	send_message(server, pdata.target, "%s -- %s", (*short_url ? short_url : ""), (url_title ? url_title : ""));
 
 cleanup:
+	free(url_title);
+	free(short_url);
 	free(argv);
 }
 

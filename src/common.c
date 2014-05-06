@@ -7,13 +7,12 @@
 #include <stdarg.h>
 #include <assert.h>
 #include <sys/mman.h>
+#include <sys/wait.h>
 #include "socket.h"
 #include "irc.h"
 #include "common.h"
 
 #define alloc_error(function, file, line) exit_msg("Failed to allocate memory in %s() %s:%d", function, file, line);
-
-extern pid_t main_pid;
 
 void exit_msg(const char *format, ...) {
 
@@ -25,10 +24,7 @@ void exit_msg(const char *format, ...) {
 	va_end(args);
 	putc('\n', stderr);
 
-	if (getpid() == main_pid)
-		exit(EXIT_FAILURE);
-	else
-		_exit(EXIT_FAILURE);
+	exit(EXIT_FAILURE);
 }
 
 bool streq(const char *s1, const char *s2) {
@@ -184,7 +180,7 @@ void print_cmd_output(Irc server, const char *target, char *cmd_args[]) {
 		execvp(cmd_args[0], cmd_args);
 
 		perror("exec failed"); // Exec functions return only on error
-		return;
+		_exit(EXIT_FAILURE);
 	}
 	close(fd[WR]); // Close writting end
 
@@ -195,6 +191,7 @@ void print_cmd_output(Irc server, const char *target, char *cmd_args[]) {
 
 	send_all_lines(server, target, prog);
 	fclose(prog);
+	wait(NULL); // Don't leave zombie
 }
 
 void print_cmd_output_unsafe(Irc server, const char *target, const char *cmd) {
