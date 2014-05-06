@@ -7,6 +7,7 @@
  */
 
 #include <stddef.h>
+#include <stdbool.h>
 #include <yajl/yajl_tree.h>
 
 #define URLLEN   440
@@ -37,7 +38,7 @@ struct github {
  *
  * @returns  short version or NULL on failure
  */
-char *shorten_url(const char *long_url);
+void *shorten_url(void *long_url_arg);
 
 /**
  * Get url's html and search for the title tag. Conversion from iso8859_7_to_utf8 will be used if needed
@@ -65,6 +66,12 @@ struct github *fetch_github_commits(yajl_val *root, const char *repo, int *commi
 /** Callback required by Curl if we want to save the output in a buffer
  *  @param membuf  Mem_buffer type is expected */
 size_t curl_write_memory(char *data, size_t size, size_t elements, void *membuf);
+
+/** Setup openssl for use in multi-threaded environment. Returns false if something went wrong */
+bool openssl_crypto_init(void);
+
+/** Cleanup the above steps */
+void openssl_crypto_cleanup(void);
 
 #endif
 

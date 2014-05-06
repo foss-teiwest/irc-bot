@@ -20,10 +20,33 @@
 // Reduce boilerplate code
 #define CFG_GET(struct_name, root, field) struct_name.field = get_json_field(root, #field)
 
-pid_t main_pid;
-pthread_mutex_t *mtx;
+STATIC size_t read_file(char **buf, const char *filename);
+STATIC char *get_json_field(yajl_val root, const char *field_name);
+STATIC int get_json_array(yajl_val root, const char *array_name, char **array_to_fill, int max_entries);
+STATIC void parse_config(const char *config_file);
+
 struct mpd_info *mpd;
 struct config_options cfg;
+pthread_t main_thread_id;
+
+void initialize(int argc, char *argv[]) {
+
+	main_thread_id = pthread_self();
+
+	// Accept config path as an optional argument
+	parse_config(argc == 2 ? argv[1] : DEFAULT_CONFIG_NAME);
+
+	signal(SIGPIPE, SIG_IGN); // Don't exit program when writting to a closed socket
+	setlinebuf(stdout); // Flush on each line
+
+	// Initialize curl library and setup mutexes and callbacks required by openssl for https access
+	curl_global_init(CURL_GLOBAL_ALL);
+	if (!openssl_crypto_init())
+		exit_msg("pthread_mutex_init failed in %s", __func__);
+
+	if (*cfg.oauth_consumer_key && *cfg.oauth_consumer_secret && *cfg.oauth_token && *cfg.oauth_token_secret)
+		cfg.twitter_details_set = true;
+}
 
 STATIC size_t read_file(char **buf, const char *filename) {
 
@@ -149,29 +172,6 @@ STATIC void parse_config(const char *config_file) {
 	cfg.access_list_count = get_json_array(root, "access_list", cfg.access_list, MAXACCLIST);
 }
 
-void initialize(int argc, char *argv[]) {
-
-	main_pid = getpid(); // store our process id to help exit_msg function exit appropriately
-	signal(SIGCHLD, SIG_IGN); // Make child processes not leave zombies behind when killed
-	signal(SIGPIPE, SIG_IGN); // Handle writing on closed sockets on our own
-	curl_global_init(CURL_GLOBAL_ALL); // Initialize curl library
-	setlinebuf(stdout); // Flush on each line
-
-	// Accept config path as an optional argument
-	parse_config(argc == 2 ? argv[1] : DEFAULT_CONFIG_NAME);
-
-	if (*cfg.oauth_consumer_key && *cfg.oauth_consumer_secret && *cfg.oauth_token && *cfg.oauth_token_secret)
-		cfg.twitter_details_set = true;
-
-	// Set up a mutex that works across processes
-	mtx = mmap_w(sizeof(pthread_mutex_t));
-	pthread_mutexattr_t mtx_attr;
-	pthread_mutexattr_init(&mtx_attr);
-	pthread_mutexattr_setpshared(&mtx_attr, PTHREAD_PROCESS_SHARED);
-	pthread_mutex_init(mtx, &mtx_attr);
-	pthread_mutexattr_destroy(&mtx_attr);
-}
-
 int setup_irc(Irc *server) {
 
 	Mqueue mq;
@@ -275,5 +275,6 @@ cleanup:
 void cleanup(void) {
 
 	free(mpd);
+	openssl_crypto_cleanup();
 	curl_global_cleanup();
 }

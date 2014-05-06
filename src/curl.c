@@ -1,13 +1,57 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stddef.h>
 #include <stdbool.h>
-#include <string.h>
+#include <pthread.h>
 #include <curl/curl.h>
+#include <openssl/crypto.h>
 #include <yajl/yajl_tree.h>
 #include "irc.h"
 #include "curl.h"
 #include "common.h"
+
+static pthread_mutex_t *openssl_mtx;
+
+STATIC void openssl_thread_cb(CRYPTO_THREADID *id) {
+
+	CRYPTO_THREADID_set_numeric(id, pthread_self());
+}
+
+STATIC void openssl_lock_cb(int mode, int n, const char *file, int line) {
+
+	(void) file;
+	(void) line;
+
+	if (mode & CRYPTO_LOCK)
+		pthread_mutex_lock(&openssl_mtx[n]);
+	else
+		pthread_mutex_unlock(&openssl_mtx[n]);
+}
+
+bool openssl_crypto_init(void) {
+
+	openssl_mtx = malloc_w(CRYPTO_num_locks() * sizeof(*openssl_mtx));
+
+	for (int i = 0; i < CRYPTO_num_locks(); i++)
+		if (pthread_mutex_init(&openssl_mtx[i], NULL))
+			return false;
+
+	CRYPTO_THREADID_set_callback(openssl_thread_cb);
+	CRYPTO_set_locking_callback(openssl_lock_cb);
+
+	return true;
+}
+
+void openssl_crypto_cleanup(void) {
+
+	CRYPTO_set_locking_callback(NULL);
+
+	for (int i = 0; i < CRYPTO_num_locks(); i++)
+		pthread_mutex_destroy(&openssl_mtx[i]);
+
+	free(openssl_mtx);
+}
 
 size_t curl_write_memory(char *data, size_t size, size_t elements, void *membuf) {
 
@@ -30,13 +74,14 @@ size_t curl_write_memory(char *data, size_t size, size_t elements, void *membuf)
 	return total_size;
 }
 
-char *shorten_url(const char *long_url) {
+void *shorten_url(void *long_url_arg) {
 
 	CURL *curl;
 	CURLcode code;
 	char url_formatted[URLLEN], *short_url = NULL;
 	struct mem_buffer mem = {NULL, 0};
 	struct curl_slist *headers = NULL;
+	const char *long_url = long_url_arg;
 
 	// Set the Content-type and url format as required by Google API for the POST request
 	headers = curl_slist_append(headers, "Content-Type: application/json");
@@ -53,7 +98,8 @@ char *shorten_url(const char *long_url) {
 #endif
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, url_formatted); // Send the formatted POST
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L); // Allow redirects
-	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 3L);
+	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 3L); // Don't wait for too long
+	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L); // Required for use with threads. DNS queries will not honor timeout
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers); // Use our modified header
 
 	// By default curl_easy_perform outputs the result in stdout.
@@ -72,9 +118,10 @@ char *shorten_url(const char *long_url) {
 	}
 	// Find the short url in the reply and null terminate it
 	short_url = strstr(mem.buffer, "http");
-	if (!null_terminate(short_url, '"'))
+	if (!null_terminate(short_url, '"')) {
+		short_url = NULL;
 		goto cleanup;
-
+	}
 	// short_url must be freed to avoid memory leak
 	short_url = strndup(short_url, ADDRLEN);
 
@@ -85,7 +132,7 @@ cleanup:
 	return short_url;
 }
 
-Github *fetch_github_commits(yajl_val *root, const char *repo, int *commit_count) {
+struct github *fetch_github_commits(yajl_val *root, const char *repo, int *commit_count) {
 
 	CURL *curl;
 	CURLcode code;
@@ -94,13 +141,13 @@ Github *fetch_github_commits(yajl_val *root, const char *repo, int *commit_count
 	struct mem_buffer mem = {NULL, 0};
 	char API_URL[URLLEN], errbuf[1024];
 	int i;
+	// Use per_page field to limit json reply to the amount of commits specified
+	snprintf(API_URL, URLLEN, "https://api.github.com/repos/%s/commits?per_page=%d", repo, *commit_count);
+	*commit_count = 0;
 
 	curl = curl_easy_init();
 	if (!curl)
 		goto cleanup;
-
-	// Use per_page field to limit json reply to the amount of commits specified
-	snprintf(API_URL, URLLEN, "https://api.github.com/repos/%s/commits?per_page=%d", repo, *commit_count);
 
 #ifdef TEST
 	curl_easy_setopt(curl, CURLOPT_URL, getenv("IRCBOT_TESTFILE"));
@@ -110,6 +157,7 @@ Github *fetch_github_commits(yajl_val *root, const char *repo, int *commit_count
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 	curl_easy_setopt(curl, CURLOPT_USERAGENT, "irc-bot"); // Github requires a user-agent
 	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 8L);
+	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_memory);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &mem);
 
@@ -127,10 +175,10 @@ Github *fetch_github_commits(yajl_val *root, const char *repo, int *commit_count
 		fprintf(stderr, "%s\n", errbuf);
 		goto cleanup;
 	}
-	free(mem.buffer);
-	*commit_count = YAJL_IS_ARRAY(*root) ? YAJL_GET_ARRAY(*root)->len : 0;
-	commits = malloc_w(*commit_count * sizeof(*commits));
-
+	if (YAJL_IS_ARRAY(*root)) {
+		*commit_count = YAJL_GET_ARRAY(*root)->len;
+		commits = malloc_w(*commit_count * sizeof(*commits));
+	}
 	// Find the field we are interested in the json reply, save a reference to it & null terminate
 	for (i = 0; i < *commit_count; i++) {
 		val = yajl_tree_get(YAJL_GET_ARRAY(*root)->values[i], CFG("sha"),                      yajl_t_string);
@@ -151,6 +199,7 @@ Github *fetch_github_commits(yajl_val *root, const char *repo, int *commit_count
 		commits[i].url  = YAJL_GET_STRING(val);
 	}
 cleanup:
+	free(mem.buffer);
 	curl_easy_cleanup(curl);
 	return commits;
 }
@@ -170,6 +219,7 @@ char *get_url_title(const char *url) {
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 3L);
+	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_memory);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &mem);
 

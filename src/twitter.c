@@ -161,6 +161,7 @@ STATIC struct curl_slist *prepare_http_post_request(CURL *curl, char **status_ms
 	curl_easy_setopt(curl, CURLOPT_URL, TWTAPI);
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10L);
+	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_memory);
 
 	return headers;
