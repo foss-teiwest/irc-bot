@@ -106,8 +106,8 @@ STATIC bool get_json_bool(yajl_val root, const char *field_name) {
 
 STATIC int get_json_array(yajl_val root, const char *array_name, char **array_to_fill, int max_entries) {
 
+	int array_size;
 	yajl_val val, array;
-	int i, array_size;
 
 	array = yajl_tree_get(root, CFG(array_name), yajl_t_array);
 	if (!array)
@@ -118,7 +118,7 @@ STATIC int get_json_array(yajl_val root, const char *array_name, char **array_to
 		array_size = max_entries;
 		fprintf(stderr, "%s limit (%d) reached. Ignoring rest\n", array_name,  max_entries);
 	}
-	for (i = 0; i < array_size; i++) {
+	for (int i = 0; i < array_size; i++) {
 		val = YAJL_GET_ARRAY(array)->values[i];
 		array_to_fill[i] = YAJL_GET_STRING(val);
 	}

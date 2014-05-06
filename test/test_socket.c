@@ -190,8 +190,8 @@ START_TEST(socket_readline_non_blocking2) {
 
 Suite *socket_suite(void) {
 
-	Suite *suite = suite_create("sockets");
-	TCase *core  = tcase_create("core");
+	Suite *suite  = suite_create("socket");
+	TCase *core   = tcase_create("core");
 	TCase *sockIO = tcase_create("socket IO");
 
 	suite_add_tcase(suite, core);

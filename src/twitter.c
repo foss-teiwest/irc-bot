@@ -29,19 +29,19 @@ STATIC char base64_encode_char(unsigned char u) {
 
 STATIC char *base64_encode(const unsigned char *src, int size) {
 
-	int i;
 	char *out, *p;
 	unsigned char b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0, b7 = 0;
 
 	if (!src)
 		return NULL;
+
 	if (!size)
 		size = strlen((char *) src);
 
 	out = calloc_w(size * 4 / 3 + 4);
 	p = out;
 
-	for (i = 0; i < size; i += 3) {
+	for (int i = 0; i < size; i += 3) {
 		b1 = src[i];
 		if (i + 1 < size)
 			b2 = src[i + 1];

@@ -47,8 +47,6 @@ struct config_options {
 	bool verbose;
 };
 
-enum poll_array {IRC, MURM_LISTEN, MURM_ACCEPT, MPD, FIFO, TOTAL};
-
 extern struct config_options cfg; //!< global struct with config's values
 
 /** Parse arguments, load config, install signal handlers etc

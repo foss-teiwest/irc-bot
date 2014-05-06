@@ -133,7 +133,7 @@ ssize_t sock_read(int sock, void *buffer, size_t len) {
 	ssize_t n;
 	unsigned char *buf = buffer;
 
-	while (true) {
+	for (;;) {
 		n = read(sock, buf, len);
 		if (n == -1) {
 			if (errno == EINTR)

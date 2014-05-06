@@ -98,7 +98,7 @@ void bot_github(Irc server, struct parsed_data pdata) {
 
 	struct github *commits;
 	yajl_val root = NULL;
-	int argc, i, commit_count = 1;
+	int argc, commit_count = 1;
 	char **argv, *short_url, repo[REPOLEN + 1];
 
 	argc = extract_params(pdata.message, &argv);
@@ -121,7 +121,7 @@ void bot_github(Irc server, struct parsed_data pdata) {
 		goto cleanup;
 
 	// Print each commit info with it's short url in a seperate colorized line
-	for (i = 0; i < commit_count; i++) {
+	for (int i = 0; i < commit_count; i++) {
 		short_url = shorten_url(commits[i].url);
 		send_message(server, pdata.target, PURPLE "[%.7s]" RESET " %.120s" ORANGE " --%s" BLUE " - %s",
 				commits[i].sha, commits[i].msg, commits[i].name, (short_url ? short_url : ""));

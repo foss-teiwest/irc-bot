@@ -140,7 +140,7 @@ struct github *fetch_github_commits(yajl_val *root, const char *repo, int *commi
 	struct github *commits = NULL;
 	struct mem_buffer mem = {NULL, 0};
 	char API_URL[URLLEN], errbuf[1024];
-	int i;
+
 	// Use per_page field to limit json reply to the amount of commits specified
 	snprintf(API_URL, URLLEN, "https://api.github.com/repos/%s/commits?per_page=%d", repo, *commit_count);
 	*commit_count = 0;
@@ -180,7 +180,7 @@ struct github *fetch_github_commits(yajl_val *root, const char *repo, int *commi
 		commits = malloc_w(*commit_count * sizeof(*commits));
 	}
 	// Find the field we are interested in the json reply, save a reference to it & null terminate
-	for (i = 0; i < *commit_count; i++) {
+	for (int i = 0; i < *commit_count; i++) {
 		val = yajl_tree_get(YAJL_GET_ARRAY(*root)->values[i], CFG("sha"),                      yajl_t_string);
 		if (!val) break;
 		commits[i].sha  = YAJL_GET_STRING(val);
