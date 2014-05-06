@@ -19,8 +19,8 @@
 struct irc_type {
 	int conn;
 	Mqueue mqueue;
+	pthread_mutex_t *mtx;
 	int pipe[RDWR];
-	int queue;
 	char line[IRCLEN + 1];
 	size_t line_offset;
 	char address[ADDRLEN + 1];
@@ -32,9 +32,14 @@ struct irc_type {
 	bool connected;
 };
 
-extern pthread_mutex_t *mtx;
-extern pid_t main_pid;
+struct command_info {
+	Irc server;
+	Command *cmd;
+	struct parsed_data pdata;
+};
 
+STATIC void *launch_command(void *cmd_info);
+extern pthread_t main_thread_id;
 Irc irc_connect(const char *address, const char *port) {
 
 	Irc server;
@@ -45,24 +50,29 @@ Irc irc_connect(const char *address, const char *port) {
 
 	server = calloc_w(sizeof(*server));
 	server->conn = sock_connect(address, port);
-	if (server->conn < 0)
+	if (server->conn < 0) {
+		free(server);
+		return NULL;
+	}
+	server->mtx = malloc_w(sizeof(*server->mtx));
+	if (pthread_mutex_init(server->mtx, NULL))
 		goto cleanup;
 
-	if (pipe(server->pipe)) {
-		perror(__func__);
+	if (pipe(server->pipe))
 		goto cleanup;
-	}
+
 	// Set socket to non-blocking mode
-	if (fcntl(server->conn, F_SETFL, O_NONBLOCK)) {
-		perror(__func__);
+	if (fcntl(server->conn, F_SETFL, O_NONBLOCK))
 		goto cleanup;
-	}
+
 	strncpy(server->address, address, ADDRLEN);
 	strncpy(server->port, port, PORTLEN);
 
 	return server;
 
 cleanup:
+	perror(__func__);
+	free(server->mtx);
 	free(server);
 	return NULL;
 }
@@ -100,22 +110,19 @@ STATIC bool user_is_identified(Irc server, const char *nick) {
 
 	int auth_level = 0;
 
-	pthread_mutex_lock(mtx);
+	pthread_mutex_lock(server->mtx);
 	send_message(server, "NickServ", "ACC %s", nick);
 	if (sock_read(server->pipe[RD], &auth_level, 4) != 4)
 		perror(__func__);
 
-	pthread_mutex_unlock(mtx);
-	close(server->pipe[RD]);
-	close(server->pipe[WR]);
-
+	pthread_mutex_unlock(server->mtx);
 	return auth_level == 3;
 }
 
 bool user_has_access(Irc server, const char *nick) {
 
 	// Avoid deadlock
-	assert(getpid() != main_pid);
+	assert(!pthread_equal(main_thread_id, pthread_self()));
 
 	if (user_in_access_list(nick) && user_is_identified(server, nick))
 		return true;
@@ -227,48 +234,18 @@ ssize_t parse_irc_line(Irc server) {
 		numeric_reply(server, pdata, reply);
 	else {
 		// Find & launch any functions registered to IRC commands
-		command = command_lookup(pdata.command, strlen(pdata.command));
-		if (command)
-			command->function(server, pdata);
+		cmd = command_lookup(pdata.command, strlen(pdata.command));
+		if (cmd)
+			cmd->function(server, pdata);
 	}
 	return n;
 }
 
-int numeric_reply(Irc server, Parsed_data pdata, int reply) {
-
-	int i;
-	char newnick[NICKLEN];
-
-	switch (reply) {
-	case NICKNAMEINUSE: // Change our nick
-		i = snprintf(newnick, NICKLEN, "%s_", server->nick);
-		if (i >= NICKLEN)
-			exit_msg("maximum nickname length reached");
-
-		set_nick(server, newnick);
-		break;
-	case ENDOFMOTD: // Join all set channels
-		server->connected = true;
-		join_channel(server, NULL);
-		break;
-	case BANNEDFROMCHAN: // Find the channel we got banned and remove it from our list
-		pdata.target = strtok(pdata.message, " ");
-		if (!pdata.target)
-			break;
-
-		for (i = 0; i < server->channels_set; i++)
-			if (streq(pdata.target, server->channels[i]))
-				break;
-
-		strncpy(server->channels[i], server->channels[--server->channels_set], CHANLEN);
-		break;
-	}
-	return reply;
-}
-
 void irc_privmsg(Irc server, struct parsed_data pdata) {
 
+	pthread_t id;
 	Command *cmd;
+	struct command_info *cmdi;
 
 	// Discard hostname from nickname. "laxanofido!~laxanofid@snf-23545.vm.okeanos.grnet.gr" becomes "laxanofido"
 	if (!null_terminate(pdata.sender, '!'))
@@ -298,23 +275,40 @@ void irc_privmsg(Irc server, struct parsed_data pdata) {
 		pdata.command++; // Skip leading '!' before passing the command
 
 		// Query our hash table for any functions registered to BOT commands
-		command = command_lookup(pdata.command, strlen(pdata.command));
-		if (!command)
+		cmd = command_lookup(pdata.command, strlen(pdata.command));
+		if (!cmd)
 			return;
 
-		// Launch the function in a new process
-		switch (fork()) {
-		case 0:
-			command->function(server, pdata);
-			_exit(EXIT_SUCCESS);
-		case -1:
-			perror("fork");
-		}
+		cmdi = malloc_w(sizeof(*cmdi));
+		cmdi->cmd = cmd;
+		cmdi->server = server;
+		cmdi->pdata.sender  = strdup(pdata.sender);
+		cmdi->pdata.command = strdup(pdata.command);
+		cmdi->pdata.target  = strdup(pdata.target);
+		cmdi->pdata.message = pdata.message ? strdup(pdata.message) : NULL;
+
+		if (pthread_create(&id, NULL, launch_command, cmdi))
+			perror("Could not launch_command");
 	}
 	// CTCP requests must begin with ascii char 1
 	else if (*pdata.command == '\x01') {
 		if (starts_with(pdata.command + 1, "VERSION")) // Skip the leading escape char
 			send_notice(server, pdata.sender, "\x01VERSION %s\x01", cfg.bot_version);
+STATIC void *launch_command(void *cmd_info) {
+
+	struct command_info *cmdi = cmd_info;
+
+	pthread_detach(pthread_self());
+	cmdi->cmd->function(cmdi->server, cmdi->pdata);
+
+	free(cmdi->pdata.sender);
+	free(cmdi->pdata.command);
+	free(cmdi->pdata.target);
+	free(cmdi->pdata.message);
+	free(cmdi);
+	return NULL;
+}
+
 	}
 }
 
@@ -413,7 +407,7 @@ void quit_server(Irc server, const char *msg) {
 	if (close(server->conn))
 		perror(__func__);
 
-	if (close(server->queue))
+	if (pthread_mutex_destroy(server->mtx))
 		perror(__func__);
 
 	mqueue_destroy(server->mqueue);

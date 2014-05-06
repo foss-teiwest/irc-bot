@@ -4,6 +4,7 @@
 #include <check.h>
 #include <stddef.h>
 #include <stdbool.h>
+#include <pthread.h>
 #include "socket.h"
 #include "irc.h"
 #include "queue.h"
@@ -11,6 +12,7 @@
 struct irc_type {
 	int conn;
 	Mqueue mqueue;
+	pthread_mutex_t *mtx;
 	int pipe[RDWR];
 	char line[IRCLEN + 1];
 	size_t line_offset;
