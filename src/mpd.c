@@ -11,18 +11,19 @@
 #include "common.h"
 #include "init.h"
 
+// Be careful to only access & change announce & random members through the atomic macros defined in common.h
 extern struct mpd_info *mpd;
 
 STATIC bool mpd_announce(bool on) {
 
 	if (on) {
-		mpd->announce = ON;
+		TRUE(mpd->announce);
 		return sock_write(mpd->fd, "idle player\n", 12) == 12;
 	} else {
-		if (!mpd->announce)
+		if (!FETCH(mpd->announce))
 			return true;
 
-		mpd->announce = OFF;
+		FALSE(mpd->announce);
 		return sock_write(mpd->fd, "noidle\n", 7) == 7;
 	}
 }
@@ -32,16 +33,16 @@ void bot_play(Irc server, struct parsed_data pdata) {
 	char *prog;
 
 	if (!pdata.message) {
-		if (mpd->random)
+		if (FETCH(mpd->random))
 			send_message(server, pdata.target, "%s", "already in random mode");
 		else {
-			mpd->random = ON;
+			TRUE(mpd->random);
 			print_cmd_output_unsafe(server, pdata.target, SCRIPTDIR "mpd_random.sh");
 		}
 		return;
 	}
 	mpd_announce(OFF);
-	mpd->random = OFF;
+	FALSE(mpd->random);
 
 	if (strstr(pdata.message, "youtu"))
 		prog = SCRIPTDIR "youtube2mp3.sh";
@@ -65,7 +66,7 @@ void bot_history(Irc server, struct parsed_data pdata) {
 
 	char cmd[CMDLEN];
 
-	if (mpd->random)
+	if (FETCH(mpd->random))
 		send_message(server, pdata.target, "%s", "history disabled in random mode");
 	else {
 		snprintf(cmd, CMDLEN, "ls -t1 %s | head | tac |" REMOVE_EXTENSION, cfg.mpd_database);
@@ -75,8 +76,8 @@ void bot_history(Irc server, struct parsed_data pdata) {
 
 void bot_stop(Irc server, struct parsed_data pdata) {
 
-	if (mpd->random) {
-		mpd->random = OFF;
+	if (FETCH(mpd->random)) {
+		FALSE(mpd->random);
 		mpd_announce(OFF);
 		if (remove(cfg.mpd_random_file))
 			perror(__func__);
@@ -87,7 +88,7 @@ void bot_stop(Irc server, struct parsed_data pdata) {
 void bot_next(Irc server, struct parsed_data pdata) {
 
 	// TODO Only print the result to the one who send the command on channel / prive
-	if (mpd->announce)
+	if (FETCH(mpd->announce))
 		print_cmd_output_unsafe(server, pdata.target, "mpc -q next");
 	else
 		print_cmd_output_unsafe(server, pdata.target, "mpc next | head -n1");
@@ -114,16 +115,16 @@ void bot_announce(Irc server, struct parsed_data pdata) {
 
 	(void) server; // Silence unused variable warning
 
-	if (!mpd->random)
+	if (!FETCH(mpd->random))
 		return;
 
 	argc = extract_params(pdata.message, &argv);
 	if (!argc)
 		return;
 
-	if (starts_case_with(argv[0], "on") && !mpd->announce)
+	if (starts_case_with(argv[0], "on") && !FETCH(mpd->announce))
 		mpd_announce(ON);
-	else if (starts_case_with(argv[0], "off") && mpd->announce)
+	else if (starts_case_with(argv[0], "off") && FETCH(mpd->announce))
 		mpd_announce(OFF);
 
 	free(argv);
@@ -147,7 +148,7 @@ int mpd_connect(const char *port) {
 		perror(__func__);
 		goto cleanup;
 	}
-	if (mpd->announce)
+	if (FETCH(mpd->announce))
 		if (!mpd_announce(ON))
 			goto cleanup;
 

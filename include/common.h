@@ -31,6 +31,13 @@
 #define CFG(...) (const char *[]) {__VA_ARGS__, NULL}
 //@}
 
+//@{
+/** Atomically fetch and set a boolean value (or char) using compiler builtins */
+#define FETCH(x) __atomic_load_n      (&x, __ATOMIC_SEQ_CST)
+#define TRUE(x)  __atomic_test_and_set(&x, __ATOMIC_SEQ_CST)
+#define FALSE(x) __atomic_clear       (&x, __ATOMIC_SEQ_CST)
+//@}
+
 /** Find minimum number. Beware of side effects. */
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 

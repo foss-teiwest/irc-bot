@@ -7,7 +7,6 @@
 #include <signal.h>
 #include <pthread.h>
 #include <sys/stat.h>
-#include <sys/mman.h>
 #include <curl/curl.h>
 #include <yajl/yajl_tree.h>
 #include "irc.h"
@@ -215,7 +214,7 @@ int setup_mumble(void) {
 
 int setup_mpd(void) {
 
-	mpd = mmap_w(sizeof(*mpd));
+	mpd = calloc_w(sizeof(*mpd));
 	mpd->announce = OFF;
 	if (!access(cfg.mpd_random_file, F_OK))
 		mpd->random = ON;
@@ -275,8 +274,6 @@ cleanup:
 
 void cleanup(void) {
 
-	pthread_mutex_destroy(mtx);
-	munmap(mpd, sizeof(*mpd));
-	munmap(mtx, sizeof(pthread_mutex_t));
+	free(mpd);
 	curl_global_cleanup();
 }
