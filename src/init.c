@@ -14,6 +14,7 @@
 #include "socket.h"
 #include "queue.h"
 #include "murmur.h"
+#include "curl.h"
 #include "mpd.h"
 #include "common.h"
 
@@ -90,6 +91,19 @@ STATIC char *get_json_field(yajl_val root, const char *field_name) {
 	return YAJL_GET_STRING(val);
 }
 
+STATIC bool get_json_bool(yajl_val root, const char *field_name) {
+
+	// Only accept true or false value
+	yajl_val val = yajl_tree_get(root, CFG(field_name), yajl_t_any);
+	if (!val)
+		exit_msg("%s: missing", field_name);
+
+	if (val->type != yajl_t_true && val->type != yajl_t_false)
+		exit_msg("%s: wrong type", field_name);
+
+	return YAJL_IS_TRUE(val);
+}
+
 STATIC int get_json_array(yajl_val root, const char *array_name, char **array_to_fill, int max_entries) {
 
 	yajl_val val, array;
@@ -111,10 +125,26 @@ STATIC int get_json_array(yajl_val root, const char *array_name, char **array_to
 	return array_size;
 }
 
+STATIC char *expand_path(char *path) {
+
+	char *expanded_path, *HOME;
+
+	// Expand tilde '~' by reading the HOME enviroment variable
+	HOME = getenv("HOME");
+
+	if (*path != '~')
+		return path;
+
+	expanded_path = malloc_w(PATHLEN);
+	snprintf(expanded_path, PATHLEN, "%s%s", HOME, path + 1);
+
+	return expanded_path;
+}
+
 STATIC void parse_config(const char *config_file) {
 
-	yajl_val root, val;
-	char errbuf[1024], *buf = NULL, *mpd_path, *mpd_random_file_path, *HOME;
+	yajl_val root;
+	char errbuf[1024], *buf = NULL;
 
 	if (!read_file(&buf, config_file))
 		exit_msg("%s", config_file);
@@ -144,31 +174,15 @@ STATIC void parse_config(const char *config_file) {
 	CFG_GET(cfg, root, oauth_token);
 	CFG_GET(cfg, root, oauth_token_secret);
 
-	// Expand tilde '~' by reading the HOME enviroment variable
-	HOME = getenv("HOME");
-	if (cfg.mpd_database[0] == '~') {
-		mpd_path = malloc_w(PATHLEN);
-		snprintf(mpd_path, PATHLEN, "%s%s", HOME, cfg.mpd_database + 1);
-		cfg.mpd_database = mpd_path;
-	}
-	if (cfg.mpd_random_file[0] == '~') {
-		mpd_random_file_path = malloc_w(PATHLEN);
-		snprintf(mpd_random_file_path, PATHLEN, "%s%s", HOME, cfg.mpd_random_file + 1);
-		cfg.mpd_random_file = mpd_random_file_path;
-	}
-	// Only accept true or false value
-	val = yajl_tree_get(root, CFG("verbose"), yajl_t_any);
-	if (!val)
-		exit_msg("verbose: missing");
+	cfg.mpd_database    = expand_path(cfg.mpd_database);
+	cfg.mpd_random_file = expand_path(cfg.mpd_random_file);
+	cfg.fifo_path       = expand_path(cfg.fifo_path);
 
-	if (val->type != yajl_t_true && val->type != yajl_t_false)
-		exit_msg("verbose: wrong type");
-
-	cfg.verbose = YAJL_IS_TRUE(val);
+	cfg.verbose = get_json_bool(root, "verbose");
 
 	// Fill arrays
-	cfg.channels_set = get_json_array(root, "channels", cfg.channels, MAXCHANS);
-	cfg.quote_count = get_json_array(root, "fail_quotes", cfg.quotes, MAXQUOTES);
+	cfg.channels_set      = get_json_array(root, "channels",    cfg.channels,    MAXCHANS);
+	cfg.quote_count       = get_json_array(root, "fail_quotes", cfg.quotes,      MAXQUOTES);
 	cfg.access_list_count = get_json_array(root, "access_list", cfg.access_list, MAXACCLIST);
 }
 

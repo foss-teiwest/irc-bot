@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <fcntl.h>
+#include <time.h>
 #include <stdarg.h>
 #include <errno.h>
 #include <assert.h>
@@ -38,8 +39,13 @@ struct command_info {
 	struct parsed_data pdata;
 };
 
+#define ctcp_reply(server, target, format, ...) _irc_command(server, "NOTICE",  target, "\x01"format"\x01", __VA_ARGS__)
+
 STATIC void *launch_command(void *cmd_info);
+STATIC void ctcp_handle(Irc server, struct parsed_data pdata);
+
 extern pthread_t main_thread_id;
+
 Irc irc_connect(const char *address, const char *port) {
 
 	Irc server;
@@ -290,10 +296,11 @@ void irc_privmsg(Irc server, struct parsed_data pdata) {
 		if (pthread_create(&id, NULL, launch_command, cmdi))
 			perror("Could not launch_command");
 	}
-	// CTCP requests must begin with ascii char 1
-	else if (*pdata.command == '\x01') {
-		if (starts_with(pdata.command + 1, "VERSION")) // Skip the leading escape char
-			send_notice(server, pdata.sender, "\x01VERSION %s\x01", cfg.bot_version);
+	// CTCP requests must begin with ascii char 1 (SOH - start of heading)
+	else if (*pdata.command == '\x01')
+		ctcp_handle(server, pdata);
+}
+
 STATIC void *launch_command(void *cmd_info) {
 
 	struct command_info *cmdi = cmd_info;
@@ -309,10 +316,55 @@ STATIC void *launch_command(void *cmd_info) {
 	return NULL;
 }
 
+STATIC void ctcp_handle(Irc server, struct parsed_data pdata) {
+
+	time_t now;
+
+	pdata.command++; // Skip the leading escape char
+
+	if (starts_with(pdata.command, "VERSION"))
+		ctcp_reply(server, pdata.sender, "VERSION %s", cfg.bot_version);
+	else if (starts_with(pdata.command, "PING"))
+		ctcp_reply(server, pdata.sender, "PING %s", pdata.message);
+	else if (starts_with(pdata.command, "TIME")) {
+		now = time(NULL);
+		ctcp_reply(server, pdata.sender, "TIME %s", ctime(&now));
 	}
 }
 
 int numeric_reply(Irc server, struct parsed_data pdata, int reply) {
+
+	int i;
+	char newnick[NICKLEN];
+
+	switch (reply) {
+	case NICKNAMEINUSE: // Change our nick
+		i = snprintf(newnick, NICKLEN, "%s_", server->nick);
+		if (i >= NICKLEN)
+			exit_msg("maximum nickname length reached");
+
+		set_nick(server, newnick);
+		break;
+	case ENDOFMOTD: // Join all set channels
+		server->connected = true;
+		join_channel(server, NULL);
+		break;
+	case BANNEDFROMCHAN: // Find the channel we got banned and remove it from our list
+		pdata.target = strtok(pdata.message, " ");
+		if (!pdata.target)
+			break;
+
+		for (i = 0; i < server->channels_set; i++)
+			if (streq(pdata.target, server->channels[i]))
+				break;
+
+		strncpy(server->channels[i], server->channels[--server->channels_set], CHANLEN);
+		break;
+	}
+	return reply;
+}
+
+void irc_notice(Irc server, struct parsed_data pdata) {
 
 	char *test;
 	int auth_level;
