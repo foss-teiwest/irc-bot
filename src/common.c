@@ -6,7 +6,6 @@
 #include <string.h>
 #include <stdarg.h>
 #include <assert.h>
-#include <sys/mman.h>
 #include <sys/wait.h>
 #include "socket.h"
 #include "irc.h"
@@ -70,17 +69,6 @@ void *_realloc_w(void *buf, size_t size, const char *caller, const char *file, i
 
 	buffer = realloc(buf, size);
 	if (!buffer) // Exit instead of returning the old memory back to the program
-		alloc_error(caller, file, line);
-
-	return buffer;
-}
-
-void *_mmap_w(size_t size, const char *caller, const char *file, int line) {
-
-	void *buffer;
-
-	buffer = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-	if (buffer == MAP_FAILED)
 		alloc_error(caller, file, line);
 
 	return buffer;

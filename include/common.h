@@ -42,14 +42,12 @@
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 //@{
-/** Wrappers for allocating memory. On failure, print the position and exit. A valid pointer is returned always. mmap_w zeros the memory it returns. */
-#define mmap_w(x)       _mmap_w((x),         __func__, __FILE__, __LINE__)
+/** Wrappers for allocating memory. On failure, print the position and exit. A valid pointer is returned always. */
 #define malloc_w(x)     _malloc_w((x),       __func__, __FILE__, __LINE__)
 #define calloc_w(x)     _calloc_w((x),       __func__, __FILE__, __LINE__)
 #define realloc_w(x, y) _realloc_w((x), (y), __func__, __FILE__, __LINE__)
 //@}
 
-void *_mmap_w(size_t size, const char *caller, const char *file, int line);
 void *_malloc_w(size_t size, const char *caller, const char *file, int line);
 void *_calloc_w(size_t size, const char *caller, const char *file, int line);
 void *_realloc_w(void *buf, size_t size, const char *caller, const char *file, int line);
