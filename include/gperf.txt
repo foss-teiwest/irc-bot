@@ -10,28 +10,28 @@
 %ignore-case
 %define slot-name name
 %define lookup-function-name command_lookup
-struct command_list;
+struct command_entry;
 %%
 "PRIVMSG", irc_privmsg
 "NOTICE", irc_notice
 "KICK", irc_kick
-"help", help
+"help", bot_help
 "fail", bot_fail
-"mumble", mumble
-"url", url
-"github", github
-"ping", ping
-"dns", dns
-"traceroute", traceroute
-"uptime", uptime
-"play", play
-"playlist", playlist
-"history", history
-"current", current
-"next", next
-"stop", stop
-"roll", roll
-"seek", seek
-"announce", announce
-"tweet", tweet
-"marker", marker
+"mumble", bot_mumble
+"url", bot_url
+"github", bot_github
+"ping", bot_ping
+"dns", bot_dns
+"traceroute", bot_traceroute
+"uptime", bot_uptime
+"play", bot_play
+"playlist", bot_playlist
+"history", bot_history
+"current", bot_current
+"next", bot_next
+"stop", bot_stop
+"roll", bot_roll
+"seek", bot_seek
+"announce", bot_announce
+"tweet", bot_tweet
+"marker", bot_marker

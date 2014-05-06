@@ -27,7 +27,7 @@ STATIC bool mpd_announce(bool on) {
 	}
 }
 
-void play(Irc server, Parsed_data pdata) {
+void bot_play(Irc server, struct parsed_data pdata) {
 
 	char *prog;
 
@@ -51,17 +51,17 @@ void play(Irc server, Parsed_data pdata) {
 	print_cmd_output(server, pdata.target, CMD(prog, cfg.mpd_database, pdata.message));
 }
 
-void current(Irc server, Parsed_data pdata) {
+void bot_current(Irc server, struct parsed_data pdata) {
 
 	print_cmd_output_unsafe(server, pdata.target, "mpc | head -2");
 }
 
-void playlist(Irc server, Parsed_data pdata) {
+void bot_playlist(Irc server, struct parsed_data pdata) {
 
 	print_cmd_output_unsafe(server, pdata.target, "mpc playlist | head");
 }
 
-void history(Irc server, Parsed_data pdata) {
+void bot_history(Irc server, struct parsed_data pdata) {
 
 	char cmd[CMDLEN];
 
@@ -73,7 +73,7 @@ void history(Irc server, Parsed_data pdata) {
 	}
 }
 
-void stop(Irc server, Parsed_data pdata) {
+void bot_stop(Irc server, struct parsed_data pdata) {
 
 	if (mpd->random) {
 		mpd->random = OFF;
@@ -84,7 +84,7 @@ void stop(Irc server, Parsed_data pdata) {
 	print_cmd_output_unsafe(server, pdata.target, "mpc -q clear");
 }
 
-void next(Irc server, Parsed_data pdata) {
+void bot_next(Irc server, struct parsed_data pdata) {
 
 	// TODO Only print the result to the one who send the command on channel / prive
 	if (mpd->announce)
@@ -93,7 +93,7 @@ void next(Irc server, Parsed_data pdata) {
 		print_cmd_output_unsafe(server, pdata.target, "mpc next | head -n1");
 }
 
-void seek(Irc server, Parsed_data pdata) {
+void bot_seek(Irc server, struct parsed_data pdata) {
 
 	int argc;
 	char **argv;
@@ -107,7 +107,7 @@ void seek(Irc server, Parsed_data pdata) {
 	}
 }
 
-void announce(Irc server, Parsed_data pdata) {
+void bot_announce(Irc server, struct parsed_data pdata) {
 
 	int argc;
 	char **argv;

@@ -15,13 +15,13 @@
 #include "common.h"
 #include "init.h"
 
-void help(Irc server, Parsed_data pdata) {
+void bot_help(Irc server, struct parsed_data pdata) {
 
 	send_message(server, pdata.target, "%s", "url, mumble, fail, github, ping, traceroute, dns, uptime, roll, tweet, marker");
 	send_message(server, pdata.target, "%s", "MPD: play, playlist, history, current, next, stop, seek, announce");
 }
 
-void bot_fail(Irc server, Parsed_data pdata) {
+void bot_fail(Irc server, struct parsed_data pdata) {
 
 	int r, clr_r;
 	unsigned seed;
@@ -50,7 +50,7 @@ void bot_fail(Irc server, Parsed_data pdata) {
 	}
 }
 
-void url(Irc server, Parsed_data pdata) {
+void bot_url(Irc server, struct parsed_data pdata) {
 
 	int argc;
 	char *temp, **argv, *short_url, *url_title = NULL;
@@ -94,7 +94,7 @@ cleanup:
 	free(argv);
 }
 
-void mumble(Irc server, Parsed_data pdata) {
+void bot_mumble(Irc server, struct parsed_data pdata) {
 
 	char *user_list;
 
@@ -105,9 +105,9 @@ void mumble(Irc server, Parsed_data pdata) {
 	}
 }
 
-void github(Irc server, Parsed_data pdata) {
+void bot_github(Irc server, struct parsed_data pdata) {
 
-	Github *commits;
+	struct github *commits;
 	yajl_val root = NULL;
 	int argc, i, commit_count = 1;
 	char **argv, *short_url, repo[REPOLEN + 1];
@@ -145,7 +145,7 @@ cleanup:
 	free(argv);
 }
 
-void ping(Irc server, Parsed_data pdata) {
+void bot_ping(Irc server, struct parsed_data pdata) {
 
 	int argc, count = 3;
 	char **argv, *cmd, count_str[5];
@@ -171,7 +171,7 @@ void ping(Irc server, Parsed_data pdata) {
 	free(argv);
 }
 
-void traceroute(Irc server, Parsed_data pdata) {
+void bot_traceroute(Irc server, struct parsed_data pdata) {
 
 	int argc;
 	char **argv, *cmd;
@@ -197,7 +197,7 @@ void traceroute(Irc server, Parsed_data pdata) {
 	free(argv);
 }
 
-void dns(Irc server, Parsed_data pdata) {
+void bot_dns(Irc server, struct parsed_data pdata) {
 
 	int argc;
 	char **argv;
@@ -212,12 +212,12 @@ void dns(Irc server, Parsed_data pdata) {
 	free(argv);
 }
 
-void uptime(Irc server, Parsed_data pdata) {
+void bot_uptime(Irc server, struct parsed_data pdata) {
 
 	print_cmd_output_unsafe(server, pdata.target, "uptime");
 }
 
-void roll(Irc server, Parsed_data pdata) {
+void bot_roll(Irc server, struct parsed_data pdata) {
 
 	char **argv;
 	unsigned seed;
@@ -238,13 +238,13 @@ void roll(Irc server, Parsed_data pdata) {
 	send_message(server, pdata.target, "%s rolls %d", pdata.sender, r);
 }
 
-void marker(Irc server, Parsed_data pdata) {
+void bot_marker(Irc server, struct parsed_data pdata) {
 
 	send_message(server, pdata.target, "%s", "tweet max length. URL's not accounted for:  -  -  -  -  -  60"
 			"  -  -  -  -  -  80  -  -  -  -  -  -  100  -  -  -  -  -  120  -  -  -  -  -  140");
 }
 
-void tweet(Irc server, Parsed_data pdata) {
+void bot_tweet(Irc server, struct parsed_data pdata) {
 
 	long http_status;
 	char tweet_url[TWEET_URLLEN];

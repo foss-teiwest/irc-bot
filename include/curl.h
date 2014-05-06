@@ -19,17 +19,17 @@ enum http_codes {
 	FORBIDDEN    = 403
 };
 
-typedef struct {
+struct mem_buffer {
 	char *buffer;
 	size_t size;
-} Mem_buffer;
+};
 
-typedef struct {
+struct github {
 	char *sha;
 	char *name;
 	char *msg;
 	char *url;
-} Github;
+};
 
 /**
  * Send long_url to google's shortener service and request a short version
@@ -60,7 +60,7 @@ char *fetch_mumble_users(void);
  * @param root     yajl handle to store the json reply
  * @returns        An array of commits and maybe NULL on failure. commits will be updated with the actual number returned or 0 for error
  */
-Github *fetch_github_commits(yajl_val *root, const char *repo, int *commits);
+struct github *fetch_github_commits(yajl_val *root, const char *repo, int *commits);
 
 /** Callback required by Curl if we want to save the output in a buffer
  *  @param membuf  Mem_buffer type is expected */

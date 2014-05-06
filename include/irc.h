@@ -25,12 +25,12 @@
 typedef struct irc_type *Irc;
 
 /** Holds the info extracted from an IRC message */
-typedef struct {
+struct parsed_data {
 	char *sender;  //!< The person / server who send the message
 	char *command; //!< The command type. Examples: "PRIVMSG", "MODE", "433"
 	char *target;  //!< The channel (or private) the message is directed at
 	char *message; //!< The actual message
-} Parsed_data;
+};
 
 /** IRC server numeric replies. See http://www.ietf.org/rfc/rfc1459.txt for a detailed list */
 enum irc_reply {
@@ -84,17 +84,17 @@ ssize_t parse_irc_line(Irc server);
 
 /** Parse channel / private messages and launch the function that matches the BOT command (must begin with '!') or CTCP request.
  *  Info available in pdata: nick, command, message (the rest message after command, including target)*/
-void irc_privmsg(Irc server, Parsed_data pdata);
+void irc_privmsg(Irc server, struct parsed_data pdata);
 
 /** Handle notices. If nick requires identify, the password will be sent and then immediately destroyed */
-void irc_notice(Irc server, Parsed_data pdata);
+void irc_notice(Irc server, struct parsed_data pdata);
 
 /** Rejoin few secs after being kicked and send message to offender */
-void irc_kick(Irc server, Parsed_data pdata);
+void irc_kick(Irc server, struct parsed_data pdata);
 
 /* Handle server numeric replies
  * @returns the numeric reply received */
-int numeric_reply(Irc Server, Parsed_data pdata, int reply);
+int numeric_reply(Irc Server, struct parsed_data pdata, int reply);
 
 //@{
 /**

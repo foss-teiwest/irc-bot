@@ -170,7 +170,7 @@ long send_tweet(char *status_msg, char *tweet_url) {
 
 	CURL *curl;
 	CURLcode code;
-	Mem_buffer mem = {NULL, 0};
+	struct mem_buffer mem = {NULL, 0};
 	yajl_val val, root = NULL;
 	char errbuf[1024];
 	struct curl_slist *request = NULL;

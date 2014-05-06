@@ -12,7 +12,7 @@ char testfile[PATH_MAX];
 
 START_TEST(curl_writeback) {
 
-	Mem_buffer mem = {NULL, 0};
+	struct mem_buffer mem = {NULL, 0};
 	char *data = "random stuff ftw!";
 	size_t n = curl_write_memory(data, strlen(data), 1, &mem);
 	ck_assert_str_eq(data, mem.buffer);
@@ -41,7 +41,7 @@ START_TEST(titleurl) {
 
 START_TEST(github_commits) {
 
-	Github *commits;
+	struct github *commits;
 	yajl_val root = NULL;
 	int n = 10;
 

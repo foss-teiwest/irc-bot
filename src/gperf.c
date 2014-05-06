@@ -33,7 +33,7 @@
 
 #include "gperf.h"
 #line 13 "include/gperf.txt"
-struct command_list;
+struct command_entry;
 #include <string.h>
 
 #define TOTAL_KEYWORDS 23
@@ -136,57 +136,57 @@ __inline
 __attribute__ ((__gnu_inline__))
 #endif
 #endif
-const struct command_list *
+const struct command_entry *
 command_lookup (register const char *str, register unsigned int len)
 {
-  static const struct command_list wordlist[] =
+  static const struct command_entry wordlist[] =
     {
 #line 21 "include/gperf.txt"
-      {"url", url},
+      {"url", bot_url},
 #line 27 "include/gperf.txt"
-      {"play", play},
+      {"play", bot_play},
 #line 36 "include/gperf.txt"
-      {"tweet", tweet},
+      {"tweet", bot_tweet},
 #line 26 "include/gperf.txt"
-      {"uptime", uptime},
+      {"uptime", bot_uptime},
 #line 15 "include/gperf.txt"
       {"PRIVMSG", irc_privmsg},
 #line 28 "include/gperf.txt"
-      {"playlist", playlist},
+      {"playlist", bot_playlist},
 #line 32 "include/gperf.txt"
-      {"stop", stop},
+      {"stop", bot_stop},
 #line 25 "include/gperf.txt"
-      {"traceroute", traceroute},
+      {"traceroute", bot_traceroute},
 #line 20 "include/gperf.txt"
-      {"mumble", mumble},
+      {"mumble", bot_mumble},
 #line 30 "include/gperf.txt"
-      {"current", current},
+      {"current", bot_current},
 #line 24 "include/gperf.txt"
-      {"dns", dns},
+      {"dns", bot_dns},
 #line 33 "include/gperf.txt"
-      {"roll", roll},
+      {"roll", bot_roll},
 #line 16 "include/gperf.txt"
       {"NOTICE", irc_notice},
 #line 35 "include/gperf.txt"
-      {"announce", announce},
+      {"announce", bot_announce},
 #line 31 "include/gperf.txt"
-      {"next", next},
+      {"next", bot_next},
 #line 37 "include/gperf.txt"
-      {"marker", marker},
+      {"marker", bot_marker},
 #line 34 "include/gperf.txt"
-      {"seek", seek},
+      {"seek", bot_seek},
 #line 23 "include/gperf.txt"
-      {"ping", ping},
+      {"ping", bot_ping},
 #line 22 "include/gperf.txt"
-      {"github", github},
+      {"github", bot_github},
 #line 18 "include/gperf.txt"
-      {"help", help},
+      {"help", bot_help},
 #line 17 "include/gperf.txt"
       {"KICK", irc_kick},
 #line 19 "include/gperf.txt"
       {"fail", bot_fail},
 #line 29 "include/gperf.txt"
-      {"history", history}
+      {"history", bot_history}
     };
 
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
@@ -195,7 +195,7 @@ command_lookup (register const char *str, register unsigned int len)
 
       if (key <= MAX_HASH_VALUE && key >= MIN_HASH_VALUE)
         {
-          register const struct command_list *resword;
+          register const struct command_entry *resword;
 
           switch (key - 3)
             {

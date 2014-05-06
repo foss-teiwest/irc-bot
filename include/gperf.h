@@ -11,13 +11,13 @@
 #include "mpd.h"
 #include "twitter.h"
 
-typedef void (*func_ptr)(Irc, Parsed_data);
+typedef void (*func_ptr)(Irc, struct parsed_data);
 
 /** Key / value pair */
-typedef const struct command_list {
+typedef const struct command_entry {
 	char *name;        //!< String containing the command
 	func_ptr function; //!< Function pointer to corresponding command
-} *Command;
+} Command;
 
 /**
  * Query the lookup table
@@ -26,7 +26,7 @@ typedef const struct command_list {
  * @param len  String's len
  * @returns    Pointer to the struct that matched "str" or NULL for no match.
  */
-const struct command_list *command_lookup(register const char *str, register unsigned int len);
+const struct command_entry *command_lookup(register const char *str, register unsigned int len);
 
 #endif
 

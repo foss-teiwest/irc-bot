@@ -7,7 +7,7 @@
 
 Irc server;
 int mock[RDWR];
-Parsed_data pdata;
+struct parsed_data pdata;
 char test_buffer[IRCLEN + 1];
 
 void connect_irc(void) {

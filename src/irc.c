@@ -174,10 +174,10 @@ int join_channel(Irc server, const char *channel) {
 
 ssize_t parse_irc_line(Irc server) {
 
-	Parsed_data pdata;
-	Command command;
 	int reply;
 	ssize_t n;
+	Command *cmd;
+	struct parsed_data pdata;
 
 	// Read raw line from server. Example: ":laxanofido!~laxanofid@snf-23545.vm.okeanos.grnet.gr PRIVMSG #foss-teimes :How YA doing fossbot"
 	n = sock_readline(server->conn, server->line + server->line_offset, IRCLEN - server->line_offset);
@@ -266,9 +266,9 @@ int numeric_reply(Irc server, Parsed_data pdata, int reply) {
 	return reply;
 }
 
-void irc_privmsg(Irc server, Parsed_data pdata) {
+void irc_privmsg(Irc server, struct parsed_data pdata) {
 
-	Command command;
+	Command *cmd;
 
 	// Discard hostname from nickname. "laxanofido!~laxanofid@snf-23545.vm.okeanos.grnet.gr" becomes "laxanofido"
 	if (!null_terminate(pdata.sender, '!'))
@@ -318,7 +318,7 @@ void irc_privmsg(Irc server, Parsed_data pdata) {
 	}
 }
 
-void irc_notice(Irc server, Parsed_data pdata) {
+int numeric_reply(Irc server, struct parsed_data pdata, int reply) {
 
 	char *test;
 	int auth_level;
@@ -354,7 +354,7 @@ void irc_notice(Irc server, Parsed_data pdata) {
 	}
 }
 
-void irc_kick(Irc server, Parsed_data pdata) {
+void irc_kick(Irc server, struct parsed_data pdata) {
 
 	char *victim;
 

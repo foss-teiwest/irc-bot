@@ -5,6 +5,9 @@
  * @file mpd.h
  * Contains the functions to interact with MPD
  * External helper scripts will be used to do most of the work
+ *
+ * @warning All functions that are prepended with bot_ MUST be thread-safe and only call re-entrant functions.
+ *          If a bot command crashes, it will bring the whole program down.
  */
 
 #include <stdbool.h>
@@ -29,28 +32,28 @@ struct mpd_info {
  *  If a youtube url is detected, download the video, convert it to mp3, feed it to mpd and start streaming in icecast.
  *  If there are no arguments, queue up all local songs and play them in random mode
  *  If a song name is entered a search will be performed. If it's a single result it will be added to queue, else up to 3 results will be printed */
-void play(Irc server, Parsed_data pdata);
+void bot_play(Irc server, struct parsed_data pdata);
 
 /** Auto announce songs as they play (on | off) */
-void announce(Irc server, Parsed_data pdata);
+void bot_announce(Irc server, struct parsed_data pdata);
 
 /** Current playlist. First song is the one playing. */
-void playlist(Irc server, Parsed_data pdata);
+void bot_playlist(Irc server, struct parsed_data pdata);
 
 /** Previous played songs. First hit is the older one */
-void history(Irc server, Parsed_data pdata);
+void bot_history(Irc server, struct parsed_data pdata);
 
 /** Current song */
-void current(Irc server, Parsed_data pdata);
+void bot_current(Irc server, struct parsed_data pdata);
 
 /** Stops playback. Works in normal or random mode */
-void stop(Irc server, Parsed_data pdata);
+void bot_stop(Irc server, struct parsed_data pdata);
 
 /** Skip song and print the title of the next */
-void next(Irc server, Parsed_data pdata);
+void bot_next(Irc server, struct parsed_data pdata);
 
 /** Seek to an absolute (2:53) or relative (+-) time */
-void seek(Irc server, Parsed_data pdata);
+void bot_seek(Irc server, struct parsed_data pdata);
 
 /** Connect to mpd daemon and verify the reply
  *

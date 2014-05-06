@@ -25,7 +25,7 @@ struct irc_type {
 
 extern Irc server;
 extern int mock[RDWR];
-extern Parsed_data pdata;
+extern struct parsed_data pdata;
 extern char test_buffer[IRCLEN + 1];
 
 void connect_irc(void);

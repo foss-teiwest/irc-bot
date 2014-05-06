@@ -9,8 +9,8 @@
  * command: the actual command that called the function without '!'
  * message: all the text that comes after the command (parameters)
 
- * @warning All BOT functions in this file are running in a new process.
- *  They will not crash main program in case of failure
+ * @warning All functions that are prepended with bot_ MUST be thread-safe and only call re-entrant functions.
+ *          If a bot command crashes, it will bring the whole program down.
  */
 
 #include "irc.h"
@@ -42,46 +42,45 @@
 #define COLORCOUNT 14
 
 /** Print available commands. It's a static list. Means you have to update it yourself if you add a command... */
-void help(Irc server, Parsed_data pdata);
+void bot_help(Irc server, struct parsed_data pdata);
 
 /** Takes a URL as a first argument and replies back with a shortened version along with it's title
  *  Current url extraction is weak. It only checks for at least one '.' */
-void url(Irc server, Parsed_data pdata);
+void bot_url(Irc server, struct parsed_data pdata);
 
 /** Get murmur user list by communicating with the ICE protocol */
-void mumble(Irc server, Parsed_data pdata);
+void bot_mumble(Irc server, struct parsed_data pdata);
 
 /** Print random messages (with random colors) from the quotes list in the config */
-void bot_fail(Irc server, Parsed_data pdata);
+void bot_fail(Irc server, struct parsed_data pdata);
 
 /**
- * Print latest commits info in the format "[sha] commit_message --author - short_url"
- *
+ * Print last number_of_commits details
  * Usage: [author/]repo number_of_comits
  * If author is omitted, a default one will be used from config (github_repo). Default number is 1
  */
-void github(Irc server, Parsed_data pdata);
+void bot_github(Irc server, struct parsed_data pdata);
 
 /** Traceroute IPv4 / IPv6 host / IP and print the result in private to avoid spam */
-void traceroute(Irc server, Parsed_data pdata);
+void bot_traceroute(Irc server, struct parsed_data pdata);
 
 /** Ping IPv4 / IPv6 host / IP and print the result. Takes an optional ping count argument. Default is 3 */
-void ping(Irc server, Parsed_data pdata);
+void bot_ping(Irc server, struct parsed_data pdata);
 
 /** Print the result of nslookup running on hostname argument */
-void dns(Irc server, Parsed_data pdata);
+void bot_dns(Irc server, struct parsed_data pdata);
 
 /** Print uptime command */
-void uptime(Irc server, Parsed_data pdata);
+void bot_uptime(Irc server, struct parsed_data pdata);
 
 /** Rolls a random number (optional maximum roll number) */
-void roll(Irc server, Parsed_data pdata);
+void bot_roll(Irc server, struct parsed_data pdata);
 
 /** Marker to help measuring tweet's max length (140 chars) */
-void marker(Irc server, Parsed_data pdata);
+void bot_marker(Irc server, struct parsed_data pdata);
 
 /** Send tweet */
-void tweet(Irc server, Parsed_data pdata);
+void bot_tweet(Irc server, struct parsed_data pdata);
 
 #endif
 
