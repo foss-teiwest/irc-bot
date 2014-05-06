@@ -24,6 +24,7 @@ void help(Irc server, Parsed_data pdata) {
 void bot_fail(Irc server, Parsed_data pdata) {
 
 	int r, clr_r;
+	unsigned seed;
 	size_t len, maxlen, sum = 0;
 	char quote[QUOTELEN];
 
@@ -31,13 +32,13 @@ void bot_fail(Irc server, Parsed_data pdata) {
 		return;
 
 	// Make sure the seed is different even if we call the command twice in a second
-	srand(time(NULL) + getpid());
-	r      = rand() % cfg.quote_count;
-	clr_r  = (rand() % COLORCOUNT) + 2;
-	maxlen = strlen(cfg.quotes[r]);
+	seed   = time(NULL) + pthread_self();
+	r      = rand_r(&seed) % cfg.quote_count;
+	clr_r  = (rand_r(&seed) % COLORCOUNT) + 2;
 
 	// Pick a random entry from the read-only quotes array and print it.
 	// We use indexes and lengths since we can't make changes to the array
+	maxlen = strlen(cfg.quotes[r]);
 	while (sum < maxlen) {
 		len = strcspn(cfg.quotes[r] + sum, "\n");
 		if (!len)
@@ -219,20 +220,21 @@ void uptime(Irc server, Parsed_data pdata) {
 void roll(Irc server, Parsed_data pdata) {
 
 	char **argv;
-	int argc, r, roll;
+	unsigned seed;
+	int argc, r, def_roll;
 
-	roll = DEFAULT_ROLL;
-	srand(time(NULL) + getpid());
+	def_roll = DEFAULT_ROLL;
+	seed = time(NULL) + pthread_self();
 
 	argc = extract_params(pdata.message, &argv);
 	if (argc >= 1) {
-		roll = get_int(argv[0], MAXROLL);
-		if (roll == 1)
-			roll = DEFAULT_ROLL;
+		def_roll = get_int(argv[0], MAXROLL);
+		if (def_roll == 1)
+			def_roll = DEFAULT_ROLL;
 
 		free(argv);
 	}
-	r = rand() % roll + 1;
+	r = rand_r(&seed) % def_roll + 1;
 	send_message(server, pdata.target, "%s rolls %d", pdata.sender, r);
 }
 

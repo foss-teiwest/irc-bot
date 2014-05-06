@@ -107,6 +107,7 @@ bool null_terminate(char *buf, char delim) {
 
 int extract_params(char *msg, char **argv[]) {
 
+	char *savedptr;
 	int argc = 0, size = STARTING_PARAMS;
 
 	if (!msg)
@@ -116,13 +117,13 @@ int extract_params(char *msg, char **argv[]) {
 	*argv = malloc_w(size * sizeof(char *));
 
 	// split parameters seperated by space or tab
-	(*argv)[argc] = strtok(msg, " \t");
+	(*argv)[argc] = strtok_r(msg, " \t", &savedptr);
 	while ((*argv)[argc]) {
 		if (argc == size - 1) { // Double the array if it gets full
 			*argv = realloc_w(*argv, size * 2 * sizeof(char *));
 			size *= 2;
 		}
-		(*argv)[++argc] = strtok(NULL, " \t");
+		(*argv)[++argc] = strtok_r(NULL, " \t", &savedptr);
 	}
 	if (!argc)
 		free(*argv);
