@@ -1,5 +1,6 @@
 #include <check.h>
 #include <unistd.h>
+#include <pthread.h>
 #include <sys/socket.h>
 #include "test_main.h"
 #include "irc.h"
@@ -29,13 +30,13 @@ void mock_start(void) {
 void mock_irc_read(void) {
 
 	mock_start();
-	server->conn = server->queue = mock[RD];
+	server->conn = mock[RD];
 }
 
 void mock_irc_write(void) {
 
 	mock_start();
-	server->conn = server->queue = mock[WR];
+	server->conn = mock[WR];
 }
 
 void mock_stop(void) {

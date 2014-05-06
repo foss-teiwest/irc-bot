@@ -13,7 +13,7 @@
 #include "irc.h"
 #include "init.h"
 #include "socket.h"
-#include "ratelimit.h"
+#include "queue.h"
 #include "murmur.h"
 #include "mpd.h"
 #include "common.h"
@@ -173,30 +173,35 @@ void initialize(int argc, char *argv[]) {
 	pthread_mutexattr_destroy(&mtx_attr);
 }
 
-Irc setup_irc(void) {
+int setup_irc(Irc *server) {
 
-	Irc irc_server;
-	struct ratelimit *rtl;
+	Mqueue mq;
+	int ircfd;
 	pthread_t tid;
-	int i;
+	pthread_attr_t attr;
 
-	irc_server = irc_connect(cfg.server, cfg.port);
-	if (!irc_server)
+	*server = irc_connect(cfg.server, cfg.port);
+	if (!*server)
 		exit_msg("Irc connection failed");
 
-	rtl = ratelimit_init(irc_server);
-	if (!rtl)
-		exit_msg("rate limit initialization failed");
+	ircfd = get_socket(*server);
+	mq = mqueue_init(ircfd);
+	if (!mq)
+		exit_msg("message queue initialization failed");
 
-	if (pthread_create(&tid, NULL, ratelimit_loop, rtl))
-		exit_msg("Could not create thread");
+	set_mqueue(*server, mq);
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+	if (pthread_create(&tid, &attr, mqueue_start, mq))
+		exit_msg("Could not start queue");
 
-	set_nick(irc_server, cfg.nick);
-	set_user(irc_server, cfg.user);
-	for (i = 0; i < cfg.channels_set; i++)
-		join_channel(irc_server, cfg.channels[i]);
+	pthread_attr_destroy(&attr);
+	set_nick(*server, cfg.nick);
+	set_user(*server, cfg.user);
+	for (int i = 0; i < cfg.channels_set; i++)
+		join_channel(*server, cfg.channels[i]);
 
-	return irc_server;
+	return ircfd;
 }
 
 int setup_mumble(void) {

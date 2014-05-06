@@ -14,9 +14,11 @@
 #include "gperf.h"
 #include "common.h"
 #include "init.h"
+#include "queue.h"
 
 struct irc_type {
 	int conn;
+	Mqueue mqueue;
 	int pipe[RDWR];
 	int queue;
 	char line[IRCLEN + 1];
@@ -70,10 +72,9 @@ int get_socket(Irc server) {
 	return server->conn;
 }
 
-void set_queue(Irc server, int fd) {
+void set_mqueue(Irc server, Mqueue mq) {
 
-	assert(fd > 0);
-	server->queue = fd;
+	server->mqueue = mq;
 }
 
 char *default_channel(Irc server) {
@@ -383,9 +384,7 @@ void irc_kick(Irc server, Parsed_data pdata) {
 
 void _irc_command(Irc server, const char *type, const char *target, const char *format, ...) {
 
-	int len;
 	va_list args;
-	static bool notified;
 	char msg[IRCLEN - 50], irc_msg[IRCLEN];
 
 	if (format) {
@@ -396,16 +395,11 @@ void _irc_command(Irc server, const char *type, const char *target, const char *
 	} else
 		snprintf(irc_msg, IRCLEN, "%s %s\r\n", type, target);
 
-	len = strlen(irc_msg);
-	if (sock_write(server->queue, irc_msg, len) != len) {
-		if (errno != EAGAIN)
-			exit_msg("Failed to send irc message");
-
-		if (!notified) {
-			fprintf(stderr, "***Throttled: dropping messages***\n");
-			notified = true;
-		}
-	}
+#ifdef TEST
+	sock_write(server->conn, irc_msg, strlen(irc_msg));
+#else
+	mqueue_send(server->mqueue, irc_msg);
+#endif
 }
 
 void quit_server(Irc server, const char *msg) {
@@ -422,5 +416,6 @@ void quit_server(Irc server, const char *msg) {
 	if (close(server->queue))
 		perror(__func__);
 
+	mqueue_destroy(server->mqueue);
 	free(server);
 }

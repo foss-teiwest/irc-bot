@@ -57,7 +57,7 @@ void initialize(int argc, char *argv[]);
 
 //@{
 /** The return file descriptors are always valid. exit() is called on failure */
-Irc setup_irc(void);
+int setup_irc(Irc *server);
 int setup_mumble(void);
 int setup_mpd(void);
 int setup_fifo(FILE **stream);

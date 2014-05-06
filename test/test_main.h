@@ -6,11 +6,12 @@
 #include <stdbool.h>
 #include "socket.h"
 #include "irc.h"
+#include "queue.h"
 
 struct irc_type {
 	int conn;
+	Mqueue mqueue;
 	int pipe[RDWR];
-	int queue;
 	char line[IRCLEN + 1];
 	size_t line_offset;
 	char address[ADDRLEN + 1];

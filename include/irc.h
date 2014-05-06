@@ -9,6 +9,7 @@
 #include <stddef.h>
 #include <sys/types.h>
 #include <stdbool.h>
+#include "queue.h"
 
 #define IRCLEN   512
 #define QUITLEN  160
@@ -52,8 +53,8 @@ Irc irc_connect(const char *address, const char *port);
  * @returns  Always a valid descriptor */
 int get_socket(Irc server);
 
-/** Set queue file descriptor */
-void set_queue(Irc server, int fd);
+/** Store message queue pointer */
+void set_mqueue(Irc server, Mqueue mq);
 
 /** Returns the first channel set or NULL if there is not one */
 char *default_channel(Irc server);
