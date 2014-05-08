@@ -8,7 +8,13 @@
 #include <yajl/yajl_tree.h>
 #include "curl.h"
 
+char path[PATH_MAX];
 char testfile[PATH_MAX];
+
+void get_current_path(void) {
+
+	getcwd(path, PATH_MAX);
+}
 
 START_TEST(curl_writeback) {
 
@@ -22,7 +28,7 @@ START_TEST(curl_writeback) {
 
 START_TEST(url_shortener_test) {
 
-	snprintf(testfile, PATH_MAX, "IRCBOT_TESTFILE=file://%s/test-files/url-shorten.txt", get_current_dir_name());
+	snprintf(testfile, PATH_MAX, "IRCBOT_TESTFILE=file://%s/test-files/url-shorten.txt", path);
 	putenv(testfile);
 
 	char *short_url = shorten_url("rofl.com");
@@ -32,7 +38,7 @@ START_TEST(url_shortener_test) {
 
 START_TEST(titleurl) {
 
-	snprintf(testfile, PATH_MAX, "file://%s/test-files/url-title.txt", get_current_dir_name());
+	snprintf(testfile, PATH_MAX, "file://%s/test-files/url-title.txt", path);
 
 	char *url_title = get_url_title(testfile);
 	ck_assert_str_eq(url_title, "ΕΘΝΙΚΟ ΜΕΤΣΟΒΙΟ ΠΟΛΥΤΕΧΝΕΙΟ");
@@ -45,7 +51,7 @@ START_TEST(github_commits) {
 	yajl_val root = NULL;
 	int n = 10;
 
-	snprintf(testfile, PATH_MAX, "IRCBOT_TESTFILE=file://%s/test-files/github.json", get_current_dir_name());
+	snprintf(testfile, PATH_MAX, "IRCBOT_TESTFILE=file://%s/test-files/github.json", path);
 	putenv(testfile);
 	commits = fetch_github_commits(&root, "foss-teimes/irc-bot", &n);
 
@@ -66,6 +72,7 @@ Suite *curl_suite(void) {
 	TCase *core  = tcase_create("core");
 
 	suite_add_tcase(suite, core);
+	tcase_add_unchecked_fixture(core, get_current_path, NULL);
 	tcase_add_test(core, curl_writeback);
 	tcase_add_test(core, url_shortener_test);
 	tcase_add_test(core, titleurl);

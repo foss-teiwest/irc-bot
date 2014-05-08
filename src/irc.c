@@ -319,6 +319,7 @@ STATIC void *launch_command(void *cmd_info) {
 STATIC void ctcp_handle(Irc server, struct parsed_data pdata) {
 
 	time_t now;
+	char  *now_s;
 
 	pdata.command++; // Skip the leading escape char
 
@@ -328,7 +329,9 @@ STATIC void ctcp_handle(Irc server, struct parsed_data pdata) {
 		ctcp_reply(server, pdata.sender, "PING %s", pdata.message);
 	else if (starts_with(pdata.command, "TIME")) {
 		now = time(NULL);
-		ctcp_reply(server, pdata.sender, "TIME %s", ctime(&now));
+		now_s = ctime(&now);
+		now_s[strlen(now_s) - 1] = '\0'; // Cut newline
+		ctcp_reply(server, pdata.sender, "TIME %s", now_s);
 	}
 }
 
@@ -463,5 +466,6 @@ void quit_server(Irc server, const char *msg) {
 		perror(__func__);
 
 	mqueue_destroy(server->mqueue);
+	free(server->mtx);
 	free(server);
 }

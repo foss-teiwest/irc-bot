@@ -5,6 +5,7 @@
 #include <stddef.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <time.h>
 #include <pthread.h>
 #include <sys/stat.h>
 #include <curl/curl.h>
@@ -33,6 +34,7 @@ pthread_t main_thread_id;
 void initialize(int argc, char *argv[]) {
 
 	main_thread_id = pthread_self();
+	srandom(time(NULL));
 
 	// Accept config path as an optional argument
 	parse_config(argc == 2 ? argv[1] : DEFAULT_CONFIG_NAME);

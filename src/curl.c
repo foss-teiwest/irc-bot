@@ -13,11 +13,6 @@
 
 static pthread_mutex_t *openssl_mtx;
 
-STATIC void openssl_thread_cb(CRYPTO_THREADID *id) {
-
-	CRYPTO_THREADID_set_numeric(id, pthread_self());
-}
-
 STATIC void openssl_lock_cb(int mode, int n, const char *file, int line) {
 
 	(void) file;
@@ -37,9 +32,7 @@ bool openssl_crypto_init(void) {
 		if (pthread_mutex_init(&openssl_mtx[i], NULL))
 			return false;
 
-	CRYPTO_THREADID_set_callback(openssl_thread_cb);
 	CRYPTO_set_locking_callback(openssl_lock_cb);
-
 	return true;
 }
 
