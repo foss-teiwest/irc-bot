@@ -463,5 +463,6 @@ void quit_server(Irc server, const char *msg) {
 		perror(__func__);
 
 	mqueue_destroy(server->mqueue);
+	free(server->mtx);
 	free(server);
 }

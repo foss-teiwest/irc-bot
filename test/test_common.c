@@ -102,9 +102,9 @@ Suite *common_suite(void) {
 	tcase_add_test(core, nullterminate);
 	tcase_add_test(core, iso8859_7_to_utf8_test);
 
-	tcase_add_unchecked_fixture(output, connect_irc, disconnect_irc);
-	tcase_add_checked_fixture(output, mock_irc_write, mock_stop);
 	suite_add_tcase(suite, output);
+	tcase_add_unchecked_fixture(output, connect_irc, disconnect_irc);
+	tcase_add_unchecked_fixture(output, mock_irc_write, mock_stop);
 	tcase_add_test(output, cmd_output_unsafe);
 	tcase_add_test(output, cmd_output);
 

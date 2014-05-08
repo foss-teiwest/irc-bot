@@ -267,7 +267,7 @@ Suite *irc_suite(void) {
 
 	suite_add_tcase(suite, parse);
 	tcase_add_unchecked_fixture(parse, connect_irc, disconnect_irc);
-	tcase_add_checked_fixture(parse, mock_irc_read, mock_stop);
+	tcase_add_unchecked_fixture(parse, mock_irc_read, mock_stop);
 	tcase_add_test(parse, irc_parse_line_ping);
 	tcase_add_test(parse, irc_parse_line_tokens);
 	tcase_add_test(parse, irc_parse_line_offset);

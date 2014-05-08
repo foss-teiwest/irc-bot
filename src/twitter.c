@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <pthread.h>
 #include <time.h>
 #include <curl/curl.h>
 #include <yajl/yajl_tree.h>
@@ -74,15 +73,13 @@ STATIC char *generate_nonce(int len) {
 
 	int i;
 	char *nonce;
-	unsigned max, seed;
+	unsigned max;
 	const char *chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
 	max = strlen(chars);
-	seed = time(NULL) + pthread_self();
-
 	nonce = malloc_w(len + 1);
 	for (i = 0; i < len; i++)
-		nonce[i] = chars[rand_r(&seed) % max];
+		nonce[i] = chars[random() % max];
 
 	nonce[i] = '\0';
 	return nonce;

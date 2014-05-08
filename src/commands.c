@@ -4,7 +4,6 @@
 #include <stddef.h>
 #include <string.h>
 #include <unistd.h>
-#include <time.h>
 #include <pthread.h>
 #include <yajl/yajl_tree.h>
 #include "commands.h"
@@ -24,17 +23,14 @@ void bot_help(Irc server, struct parsed_data pdata) {
 void bot_fail(Irc server, struct parsed_data pdata) {
 
 	int r, clr_r;
-	unsigned seed;
 	size_t len, maxlen, sum = 0;
 	char quote[QUOTELEN];
 
 	if (!cfg.quote_count)
 		return;
 
-	// Make sure the seed is different even if we call the command twice in a second
-	seed   = time(NULL) + pthread_self();
-	r      = rand_r(&seed) % cfg.quote_count;
-	clr_r  = (rand_r(&seed) % COLORCOUNT) + 2;
+	r = random() % cfg.quote_count;
+	clr_r = (random() % COLORCOUNT) + 2;
 
 	// Pick a random entry from the read-only quotes array and print it.
 	// We use indexes and lengths since we can't make changes to the array
@@ -209,11 +205,7 @@ void bot_uptime(Irc server, struct parsed_data pdata) {
 void bot_roll(Irc server, struct parsed_data pdata) {
 
 	char **argv;
-	unsigned seed;
-	int argc, r, def_roll;
-
-	def_roll = DEFAULT_ROLL;
-	seed = time(NULL) + pthread_self();
+	int argc, r, def_roll = DEFAULT_ROLL;
 
 	argc = extract_params(pdata.message, &argv);
 	if (argc >= 1) {
@@ -223,7 +215,7 @@ void bot_roll(Irc server, struct parsed_data pdata) {
 
 		free(argv);
 	}
-	r = rand_r(&seed) % def_roll + 1;
+	r = random() % def_roll + 1;
 	send_message(server, pdata.target, "%s rolls %d", pdata.sender, r);
 }
 
