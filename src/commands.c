@@ -71,7 +71,7 @@ void bot_url(Irc server, struct parsed_data pdata) {
 		pthread_join(id, (void *) &short_url);
 
 	// Only print short_url / title if they are not empty (some stdlibs like glibc will print (NULL) but we can't depend on that)
-	send_message(server, pdata.target, "%s -- %s", (*short_url ? short_url : ""), (url_title ? url_title : ""));
+	send_message(server, pdata.target, "%s -- %s", (short_url ? short_url : ""), (url_title ? url_title : ""));
 
 cleanup:
 	free(url_title);
