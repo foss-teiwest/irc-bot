@@ -33,8 +33,9 @@ struct config_options {
 	char *murmur_port;
 	char *mpd_port;
 	char *mpd_database;
-	char *mpd_random_file;
-	char *fifo_path;
+	char *mpd_random_state;
+	char *fifo_name;
+	char *db_name;
 	char *oauth_consumer_key;
 	char *oauth_consumer_secret;
 	char *oauth_token;

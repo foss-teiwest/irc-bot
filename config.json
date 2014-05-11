@@ -24,19 +24,23 @@
 	// MPD settings
 	"mpd_port": "6600",
 	"mpd_database": "~/Music",
-	"mpd_random_file": "~/.mpd_random",
+	"mpd_random_state": "~/.mpd_random",
 
 	// Named pipe (FIFO) path
-	"fifo_path": "/tmp/irc-bot",
+	"fifo_name": "/tmp/irc-bot",
+
+	// Database to put user access, quotes and more
+	"db_name": "irc-bot.db",
+
+	// Nicknames allowed to use certain commands like tweet, adding quotes etc
+	// Those will be merged with the users already present in the database
+	"access_list": [ "freestyl3r" ],
 
 	// Twitter settings
 	"oauth_consumer_key":    "",
 	"oauth_consumer_secret": "",
 	"oauth_token":           "",
 	"oauth_token_secret":    "",
-
-	// Only nicknames on this list are authorized to use certain commands (like tweet)
-	"access_list": [ "freestyl3r" ],
 
 	// Multiline quote sentences must be seperated by the newline character (\n)
 	// Newline char is optional if the sentence is the last OR the only one from a quote

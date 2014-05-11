@@ -44,8 +44,6 @@ struct command_info {
 STATIC void *launch_command(void *cmd_info);
 STATIC void ctcp_handle(Irc server, struct parsed_data pdata);
 
-extern pthread_t main_thread_id;
-
 Irc irc_connect(const char *address, const char *port) {
 
 	Irc server;
@@ -128,6 +126,7 @@ STATIC bool user_is_identified(Irc server, const char *nick) {
 bool user_has_access(Irc server, const char *nick) {
 
 	// Avoid deadlock
+	extern pthread_t main_thread_id;
 	assert(!pthread_equal(main_thread_id, pthread_self()));
 
 	if (user_in_access_list(nick) && user_is_identified(server, nick))

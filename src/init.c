@@ -169,23 +169,24 @@ STATIC void parse_config(const char *config_file) {
 	CFG_GET(cfg, root, murmur_port);
 	CFG_GET(cfg, root, mpd_port);
 	CFG_GET(cfg, root, mpd_database);
-	CFG_GET(cfg, root, mpd_random_file);
-	CFG_GET(cfg, root, fifo_path);
+	CFG_GET(cfg, root, mpd_random_state);
+	CFG_GET(cfg, root, fifo_name);
+	CFG_GET(cfg, root, db_name);
 	CFG_GET(cfg, root, oauth_consumer_key);
 	CFG_GET(cfg, root, oauth_consumer_secret);
 	CFG_GET(cfg, root, oauth_token);
 	CFG_GET(cfg, root, oauth_token_secret);
 
-	cfg.mpd_database    = expand_path(cfg.mpd_database);
-	cfg.mpd_random_file = expand_path(cfg.mpd_random_file);
-	cfg.fifo_path       = expand_path(cfg.fifo_path);
+	cfg.mpd_database      = expand_path(cfg.mpd_database);
+	cfg.mpd_random_state  = expand_path(cfg.mpd_random_state);
+	cfg.fifo_name         = expand_path(cfg.fifo_name);
+	cfg.db_name           = expand_path(cfg.db_name);
 
-	cfg.verbose = get_json_bool(root, "verbose");
-
-	// Fill arrays
 	cfg.channels_set      = get_json_array(root, "channels",    cfg.channels,    MAXCHANS);
 	cfg.quote_count       = get_json_array(root, "fail_quotes", cfg.quotes,      MAXQUOTES);
 	cfg.access_list_count = get_json_array(root, "access_list", cfg.access_list, MAXACCLIST);
+
+	cfg.verbose           = get_json_bool(root, "verbose");
 }
 
 int setup_irc(Irc *server) {
@@ -232,7 +233,7 @@ int setup_mpd(void) {
 
 	mpd = calloc_w(sizeof(*mpd));
 	mpd->announce = OFF;
-	if (!access(cfg.mpd_random_file, F_OK))
+	if (!access(cfg.mpd_random_state, F_OK))
 		mpd->random = ON;
 
 	mpd->fd = mpd_connect(cfg.mpd_port);
@@ -248,29 +249,29 @@ int setup_fifo(FILE **stream) {
 	struct stat st;
 	int fifo, dummy;
 
-	switch (stat(cfg.fifo_path, &st)) {
+	switch (stat(cfg.fifo_name, &st)) {
 	case 0:
 		if (S_ISFIFO(st.st_mode) && ((st.st_mode & (S_IRWXU | S_IRWXG | S_IRWXO)) == FIFO_PERMISSIONS))
 			break;
 
-		if (remove(cfg.fifo_path))
+		if (remove(cfg.fifo_name))
 			goto cleanup;
 
 		// FALLTHROUGH
 	default:
 		// Ensure we get the permissions we asked
 		old = umask(0);
-		if (mkfifo(cfg.fifo_path, FIFO_PERMISSIONS))
+		if (mkfifo(cfg.fifo_name, FIFO_PERMISSIONS))
 			goto cleanup;
 
 		umask(old); // Restore mask
 	}
-	fifo = open(cfg.fifo_path, O_RDONLY | O_NONBLOCK);
+	fifo = open(cfg.fifo_name, O_RDONLY | O_NONBLOCK);
 	if (fifo == -1)
 		goto cleanup;
 
 	// Ensure we never get EOF
-	dummy = open(cfg.fifo_path, O_WRONLY);
+	dummy = open(cfg.fifo_name, O_WRONLY);
 	if (dummy == -1) {
 		close(fifo);
 		goto cleanup;

@@ -79,7 +79,7 @@ void bot_stop(Irc server, struct parsed_data pdata) {
 	if (FETCH(mpd->random)) {
 		FALSE(mpd->random);
 		mpd_announce(OFF);
-		if (remove(cfg.mpd_random_file))
+		if (remove(cfg.mpd_random_state))
 			perror(__func__);
 	}
 	print_cmd_output_unsafe(server, pdata.target, "mpc -q clear");
