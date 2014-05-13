@@ -9,6 +9,7 @@
 #include <pthread.h>
 #include <sys/stat.h>
 #include <curl/curl.h>
+#include <sqlite3.h>
 #include <yajl/yajl_tree.h>
 #include "irc.h"
 #include "init.h"
@@ -17,6 +18,7 @@
 #include "murmur.h"
 #include "curl.h"
 #include "mpd.h"
+#include "database.h"
 #include "common.h"
 
 // Reduce boilerplate code
@@ -36,16 +38,20 @@ void initialize(int argc, char *argv[]) {
 	main_thread_id = pthread_self();
 	srandom(time(NULL));
 
+	signal(SIGPIPE, SIG_IGN); // Don't exit program when writting to a closed socket
+	setlinebuf(stdout); // Flush on each line
+
 	// Accept config path as an optional argument
 	parse_config(argc == 2 ? argv[1] : DEFAULT_CONFIG_NAME);
 
-	signal(SIGPIPE, SIG_IGN); // Don't exit program when writting to a closed socket
-	setlinebuf(stdout); // Flush on each line
+	sqlite3_initialize();
+	if (!setup_database())
+		exit_msg("Could not setup database");
 
 	// Initialize curl library and setup mutexes and callbacks required by openssl for https access
 	curl_global_init(CURL_GLOBAL_ALL);
 	if (!openssl_crypto_init())
-		exit_msg("pthread_mutex_init failed in %s", __func__);
+		exit_msg("Could not initialize openssl locks");
 
 	if (*cfg.oauth_consumer_key && *cfg.oauth_consumer_secret && *cfg.oauth_token && *cfg.oauth_token_secret)
 		cfg.twitter_details_set = true;
@@ -181,11 +187,8 @@ STATIC void parse_config(const char *config_file) {
 	cfg.mpd_random_state  = expand_path(cfg.mpd_random_state);
 	cfg.fifo_name         = expand_path(cfg.fifo_name);
 	cfg.db_name           = expand_path(cfg.db_name);
-
 	cfg.channels_set      = get_json_array(root, "channels",    cfg.channels,    MAXCHANS);
-	cfg.quote_count       = get_json_array(root, "fail_quotes", cfg.quotes,      MAXQUOTES);
 	cfg.access_list_count = get_json_array(root, "access_list", cfg.access_list, MAXACCLIST);
-
 	cfg.verbose           = get_json_bool(root, "verbose");
 }
 
@@ -294,4 +297,5 @@ void cleanup(void) {
 	free(mpd);
 	openssl_crypto_cleanup();
 	curl_global_cleanup();
+	sqlite3_shutdown();
 }

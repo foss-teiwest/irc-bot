@@ -51,8 +51,19 @@ void bot_url(Irc server, struct parsed_data pdata);
 /** Get murmur user list by communicating with the ICE protocol */
 void bot_mumble(Irc server, struct parsed_data pdata);
 
+/** Add people in the access list */
+void bot_access_add(Irc server, struct parsed_data pdata);
+
 /** Print random messages (with random colors) from the quotes list in the config */
 void bot_fail(Irc server, struct parsed_data pdata);
+
+/** Add a quote to the database
+ *  @warning  Multiline quote sentences must be seperated by the pipe character (|)
+ *            Pipe char is optional if the sentence is the last OR the only one in a quote */
+void bot_fail_add(Irc server, struct parsed_data pdata);
+
+/** Modify the latest added quote. Only a short time window is available for changes */
+void bot_fail_modify(Irc server, struct parsed_data pdata);
 
 /**
  * Print last number_of_commits details

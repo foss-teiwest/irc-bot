@@ -16,6 +16,7 @@
 #include "gperf.h"
 #include "common.h"
 #include "init.h"
+#include "database.h"
 #include "queue.h"
 
 struct irc_type {
@@ -100,20 +101,13 @@ char *default_channel(Irc server) {
 	return server->channels[0];
 }
 
-STATIC bool user_in_access_list(const char *nick) {
-
-	int i;
-
-	for (i = 0; i < cfg.access_list_count; i++)
-		if (streq(nick, cfg.access_list[i]))
-			break;
-
-	return i != cfg.access_list_count;
-}
-
 STATIC bool user_is_identified(Irc server, const char *nick) {
 
 	int auth_level = 0;
+	extern pthread_t main_thread_id;
+
+	if (pthread_equal(main_thread_id, pthread_self()))
+		exit_msg("Deadlock prevented in %s", __func__);
 
 	pthread_mutex_lock(server->mtx);
 	send_message(server, "NickServ", "ACC %s", nick);
@@ -126,14 +120,7 @@ STATIC bool user_is_identified(Irc server, const char *nick) {
 
 bool user_has_access(Irc server, const char *nick) {
 
-	// Avoid deadlock
-	extern pthread_t main_thread_id;
-	assert(!pthread_equal(main_thread_id, pthread_self()));
-
-	if (user_in_access_list(nick) && user_is_identified(server, nick))
-		return true;
-
-	return false;
+	return user_in_access_list(nick) && user_is_identified(server, nick);
 }
 
 void set_nick(Irc server, const char *nick) {

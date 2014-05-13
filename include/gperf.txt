@@ -16,7 +16,10 @@ struct command_entry;
 "NOTICE", irc_notice
 "KICK", irc_kick
 "help", bot_help
+"access_add", bot_access_add
 "fail", bot_fail
+"fail_add", bot_fail_add
+"fail_modify", bot_fail_modify
 "mumble", bot_mumble
 "url", bot_url
 "github", bot_github
@@ -29,6 +32,7 @@ struct command_entry;
 "history", bot_history
 "current", bot_current
 "next", bot_next
+"shuffle", bot_shuffle
 "stop", bot_stop
 "roll", bot_roll
 "seek", bot_seek
