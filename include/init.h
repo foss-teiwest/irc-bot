@@ -16,7 +16,6 @@
 #define CONFSIZE      4096
 #define PATHLEN       120
 #define MAXACCLIST    10
-#define MAXQUOTES     20
 #define POLL_TIMEOUT (300 * MILLISECS)
 
 struct config_options {
@@ -43,8 +42,6 @@ struct config_options {
 	bool twitter_details_set;
 	char *access_list[MAXACCLIST];
 	int access_list_count;
-	char *quotes[MAXQUOTES];
-	int quote_count;
 	bool verbose;
 };
 

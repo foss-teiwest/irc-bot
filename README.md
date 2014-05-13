@@ -32,8 +32,9 @@ If config argument is omitted, it will try to find one in the current working di
 
 Library    | Version   | Reason
 ---        | ---       | ---
-curl       | >= 7.0    | Interact with the http protocol
+curl       | >= 7.0    | Interact with the http(s) protocol
 yajl       | >= 2.0.4  | json support for config file and API's like Github's
+sqlite     | >= 3.6.19 | Persistent database for quotes, access list etc
 gperf      | >= 3.0.0  | [optional] Update hash table when adding new bot commands
 check      | >= 9.10   | [optional] Run unit tests
 lcov       | >= 1.10   | [optional] Generate test coverage html report
