@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <unistd.h>
@@ -11,7 +12,7 @@
 #include "irc.h"
 #include "common.h"
 
-#define alloc_error(function, file, line) exit_msg("Failed to allocate memory in %s() %s:%d", function, file, line);
+#define ALLOC_ERROR(function, file, line) exit_msg("Failed to allocate memory in %s() %s:%d", function, file, line);
 
 void exit_msg(const char *format, ...) {
 
@@ -47,7 +48,7 @@ void *_malloc_w(size_t size, const char *caller, const char *file, int line) {
 
 	buffer = malloc(size);
 	if (!buffer)
-		alloc_error(caller, file, line); // We exit here
+		ALLOC_ERROR(caller, file, line); // We exit here
 
 	return buffer;
 }
@@ -58,7 +59,7 @@ void *_calloc_w(size_t size, const char *caller, const char *file, int line) {
 
 	buffer = calloc(1, size);
 	if (!buffer)
-		alloc_error(caller, file, line);
+		ALLOC_ERROR(caller, file, line);
 
 	return buffer;
 }
@@ -69,7 +70,7 @@ void *_realloc_w(void *buf, size_t size, const char *caller, const char *file, i
 
 	buffer = realloc(buf, size);
 	if (!buffer) // Exit instead of returning the old memory back to the program
-		alloc_error(caller, file, line);
+		ALLOC_ERROR(caller, file, line);
 
 	return buffer;
 }

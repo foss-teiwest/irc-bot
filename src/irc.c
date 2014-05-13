@@ -7,6 +7,7 @@
 #include <pthread.h>
 #include <fcntl.h>
 #include <time.h>
+#include <sys/time.h>
 #include <stdarg.h>
 #include <errno.h>
 #include <assert.h>
@@ -39,7 +40,7 @@ struct command_info {
 	struct parsed_data pdata;
 };
 
-#define ctcp_reply(server, target, format, ...) _irc_command(server, "NOTICE",  target, "\x01"format"\x01", __VA_ARGS__)
+#define ctcp_reply(server, target, format, ...) _irc_command(server, "NOTICE",  target, "\x01" format "\x01", __VA_ARGS__)
 
 STATIC void *launch_command(void *cmd_info);
 STATIC void ctcp_handle(Irc server, struct parsed_data pdata);
@@ -318,20 +319,22 @@ STATIC void *launch_command(void *cmd_info) {
 STATIC void ctcp_handle(Irc server, struct parsed_data pdata) {
 
 	time_t now;
-	char  *now_s;
+	struct timeval tm;
+	char *now_str, time_micro_str[64];
+
+	now = time(NULL);
+	now_str = ctime(&now);
+	now_str[strlen(now_str) - 1] = '\0'; // Cut newline
+	gettimeofday(&tm, NULL);
+	snprintf(time_micro_str, 64, "%ld %ld", tm.tv_sec, tm.tv_usec);
 
 	pdata.command++; // Skip the leading escape char
-
 	if (starts_with(pdata.command, "VERSION"))
 		ctcp_reply(server, pdata.sender, "VERSION %s", cfg.bot_version);
+	else if (starts_with(pdata.command, "TIME"))
+		ctcp_reply(server, pdata.sender, "TIME %s", now_str);
 	else if (starts_with(pdata.command, "PING"))
-		ctcp_reply(server, pdata.sender, "PING %s", pdata.message);
-	else if (starts_with(pdata.command, "TIME")) {
-		now = time(NULL);
-		now_s = ctime(&now);
-		now_s[strlen(now_s) - 1] = '\0'; // Cut newline
-		ctcp_reply(server, pdata.sender, "TIME %s", now_s);
-	}
+		ctcp_reply(server, pdata.sender, "PING %s", pdata.message ? pdata.message : time_micro_str);
 }
 
 int numeric_reply(Irc server, struct parsed_data pdata, int reply) {
