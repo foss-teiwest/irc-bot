@@ -17,7 +17,7 @@
 void bot_help(Irc server, struct parsed_data pdata) {
 
 	send_message(server, pdata.target, "%s", "url, mumble, fail, github, ping, traceroute, dns, uptime, roll, tweet, marker");
-	send_message(server, pdata.target, "%s", "MPD: play, playlist, history, current, next, stop, seek, announce");
+	send_message(server, pdata.target, "%s", "MPD: play, playlist, history, current, next, shuffle, stop, seek, announce");
 }
 
 void bot_fail(Irc server, struct parsed_data pdata) {

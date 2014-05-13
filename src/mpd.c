@@ -32,7 +32,7 @@ void bot_play(Irc server, struct parsed_data pdata) {
 
 	char *prog;
 
-	if (!pdata.message) {
+	if (!trim_trailing_whitespace(pdata.message)) {
 		if (FETCH(mpd->random))
 			send_message(server, pdata.target, "%s", "already in random mode");
 		else {
@@ -92,6 +92,11 @@ void bot_next(Irc server, struct parsed_data pdata) {
 		print_cmd_output_unsafe(server, pdata.target, "mpc -q next");
 	else
 		print_cmd_output_unsafe(server, pdata.target, "mpc next | head -n1");
+}
+
+void bot_shuffle(Irc server, struct parsed_data pdata) {
+
+	print_cmd_output_unsafe(server, pdata.target, "mpc shuffle >/dev/null");
 }
 
 void bot_seek(Irc server, struct parsed_data pdata) {

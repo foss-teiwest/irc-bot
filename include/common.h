@@ -70,6 +70,10 @@ bool starts_case_with(const char *s1, const char *s2);
  *  @returns false if something went wrong */
 bool null_terminate(char *buf, char delim);
 
+/** Remove trailing whitespace
+ *  @warning  The string is edited in-place so DON'T pass a read-only pointer */
+bool trim_trailing_whitespace(char *str);
+
 /**
  * Extract parameters seperated by space and put them in an array
  * Example: argc = extract_params(pdata.message, &argv);  argv[argc - 1] will contain the last parameter

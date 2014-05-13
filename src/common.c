@@ -89,6 +89,26 @@ bool null_terminate(char *buf, char delim) {
 	return true;
 }
 
+bool trim_trailing_whitespace(char *str) {
+
+	int len;
+	char *end;
+
+	if (!str)
+		return false;
+
+	len = strlen(str);
+	if (!len)
+		return false;
+
+	end = str + len - 1;
+	while (end >= str && isspace(*end))
+		end--;
+
+	*(end + 1) = '\0';
+	return true;
+}
+
 int extract_params(char *msg, char **argv[]) {
 
 	char *savedptr;

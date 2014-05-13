@@ -52,6 +52,9 @@ void bot_stop(Irc server, struct parsed_data pdata);
 /** Skip song and print the title of the next */
 void bot_next(Irc server, struct parsed_data pdata);
 
+/** Shuffle all songs currently in the playlist */
+void bot_shuffle(Irc server, struct parsed_data pdata);
+
 /** Seek to an absolute (2:53) or relative (+-) time */
 void bot_seek(Irc server, struct parsed_data pdata);
 
