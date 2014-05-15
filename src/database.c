@@ -23,25 +23,35 @@ STATIC sqlite3 *open_database(const char *db_name) {
 
 STATIC bool sql_exec(const char *sql) {
 
-	if (sqlite3_exec(db, sql, NULL, NULL, NULL) == SQLITE_OK)
+	int status = sqlite3_exec(db, sql, NULL, NULL, NULL);
+	if (status == SQLITE_OK)
 		return true;
 
-	fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+	fprintf(stderr, "%s\n", sqlite3_errstr(status));
 	return false;
+}
+
+STATIC sqlite3_stmt *sql_prepare(const char *sql) {
+
+	int status;
+	sqlite3_stmt *stmt;
+
+	status = sqlite3_prepare_v2(db, sql, strlen(sql) + 1, &stmt, NULL);
+	if (status == SQLITE_OK)
+		return stmt;
+
+	fprintf(stderr, "%s\n", sqlite3_errstr(status));
+	sqlite3_finalize(stmt);
+	return NULL;
 }
 
 STATIC bool merge_config_access_list(void) {
 
-	sqlite3_stmt *stmt;
-	const char *sql;
-
 	sql_exec("BEGIN TRANSACTION");
-	sql = "INSERT OR IGNORE INTO users(name) VALUES(?1)";
-	if (sqlite3_prepare_v2(db, sql, strlen(sql) + 1, &stmt, NULL) != SQLITE_OK) {
-		fprintf(stderr, "%s\n", sqlite3_errmsg(db));
-		sqlite3_finalize(stmt);
+	sqlite3_stmt *stmt = sql_prepare("INSERT OR IGNORE INTO users(name) VALUES(?1)");
+	if (!stmt)
 		return false;
-	}
+
 	for (int i = 0; i < cfg.access_list_count; i++) {
 		sqlite3_bind_text(stmt, 1, cfg.access_list[i], strlen(cfg.access_list[i]), SQLITE_STATIC);
 		if (sqlite3_step(stmt) != SQLITE_DONE)
@@ -59,13 +69,10 @@ bool user_in_access_list(const char *user) {
 	int status;
 	sqlite3_stmt *stmt;
 
-	const char *sql = "SELECT user_id FROM users WHERE name == ?1";
-	status = sqlite3_prepare_v2(db, sql, strlen(sql) + 1, &stmt, NULL);
-	if (status != SQLITE_OK) {
-		fprintf(stderr, "%s\n", sqlite3_errstr(status));
-		sqlite3_finalize(stmt);
+	stmt = sql_prepare("SELECT user_id FROM users WHERE name == ?1");
+	if (!stmt)
 		return false;
-	}
+
 	sqlite3_bind_text(stmt, 1, user, strlen(user), SQLITE_STATIC);
 	status = sqlite3_step(stmt);
 
@@ -78,35 +85,29 @@ bool add_user(const char *user) {
 	int status;
 	sqlite3_stmt *stmt;
 
-	const char *sql = "INSERT INTO users(name) VALUES(?1)";
-	status = sqlite3_prepare_v2(db, sql, strlen(sql) + 1, &stmt, NULL);
-	if (status != SQLITE_OK) {
-		sqlite3_finalize(stmt);
-		return status;
-	}
+	stmt = sql_prepare("INSERT INTO users(name) VALUES(?1)");
+	if (!stmt)
+		return false;
+
 	sqlite3_bind_text(stmt, 1, user, strlen(user), SQLITE_STATIC);
 	status = sqlite3_step(stmt);
-	if (status != SQLITE_DONE) {
+	if (status != SQLITE_DONE)
 		fprintf(stderr, "%s\n", sqlite3_errstr(status));
-		return false;
-	}
+
 	sqlite3_finalize(stmt);
-	return true;
+	return status == SQLITE_DONE;
 }
 
 char *random_quote(void) {
 
 	int status;
-	char *quote = NULL;
 	sqlite3_stmt *stmt;
+	char *quote = NULL;
 
-	const char *sql = "SELECT quote FROM quotes ORDER BY random() LIMIT 1";
-	status = sqlite3_prepare_v2(db, sql, strlen(sql) + 1, &stmt, NULL);
-	if (status != SQLITE_OK) {
-		fprintf(stderr, "%s\n", sqlite3_errstr(status));
-		sqlite3_finalize(stmt);
+	stmt = sql_prepare("SELECT quote FROM quotes ORDER BY random() LIMIT 1");
+	if (!stmt)
 		return NULL;
-	}
+
 	status = sqlite3_step(stmt);
 	if (status == SQLITE_ROW)
 		quote = strdup((char *) sqlite3_column_text(stmt, 0));
@@ -124,12 +125,10 @@ int add_quote(const char *quote, const char *user) {
 	int status;
 	sqlite3_stmt *stmt;
 
-	const char *sql = "INSERT INTO quotes(quote, user_id) VALUES(?1, (SELECT user_id FROM users WHERE name == ?2))";
-	status = sqlite3_prepare_v2(db, sql, strlen(sql) + 1, &stmt, NULL);
-	if (status != SQLITE_OK) {
-		sqlite3_finalize(stmt);
-		return status;
-	}
+	stmt = sql_prepare("INSERT INTO quotes(quote, user_id) VALUES(?1, (SELECT user_id FROM users WHERE name == ?2))");
+	if (!stmt)
+		return SQLITE_ERROR;
+
 	sqlite3_bind_text(stmt, 1, quote, strlen(quote), SQLITE_STATIC);
 	sqlite3_bind_text(stmt, 2, user,  strlen(user),  SQLITE_STATIC);
 	status = sqlite3_step(stmt);
@@ -144,13 +143,10 @@ STATIC bool last_quote_modifiable(int *quote_id) {
 	sqlite3_stmt *stmt;
 	bool eligible = false;
 
-	const char *sql = "SELECT quote_id, timestamp FROM quotes ORDER BY timestamp DESC LIMIT 1";
-	status = sqlite3_prepare_v2(db, sql, strlen(sql) + 1, &stmt, NULL);
-	if (status != SQLITE_OK) {
-		fprintf(stderr, "%s\n", sqlite3_errstr(status));
-		sqlite3_finalize(stmt);
+	stmt = sql_prepare("SELECT quote_id, timestamp FROM quotes ORDER BY timestamp DESC LIMIT 1");
+	if (!stmt)
 		return false;
-	}
+
 	status = sqlite3_step(stmt);
 	if (status == SQLITE_ROW) {
 		*quote_id = sqlite3_column_int(stmt, 0);
@@ -168,17 +164,14 @@ int modify_last_quote(const char *quote) {
 
 	int status, quote_id;
 	sqlite3_stmt *stmt;
-	const char *sql;
 
 	if (!last_quote_modifiable(&quote_id))
 		return SQLITE_READONLY;
 
-	sql = "UPDATE quotes SET quote = ?1 WHERE quote_id = ?2";
-	status = sqlite3_prepare_v2(db, sql, strlen(sql) + 1, &stmt, NULL);
-	if (status != SQLITE_OK) {
-		sqlite3_finalize(stmt);
-		return status;
-	}
+	stmt = sql_prepare("UPDATE quotes SET quote = ?1 WHERE quote_id = ?2");
+	if (!stmt)
+		return SQLITE_ERROR;
+
 	sqlite3_bind_text(stmt, 1, quote, strlen(quote), SQLITE_STATIC);
 	sqlite3_bind_int(stmt, 2, quote_id);
 	status = sqlite3_step(stmt);
