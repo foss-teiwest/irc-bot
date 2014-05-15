@@ -6,6 +6,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <assert.h>
 #include "queue.h"
 #include "socket.h"
 #include "irc.h"
@@ -174,7 +175,9 @@ void *mqueue_start(void *mqueue) {
 			mq->bucket->tokens -= QUEUE_CONSUME_RATE;
 		}
 		line = mqueue_recv(mq);
+		assert(line);
 		len = strlen(line);
+
 		if (sock_write(mq->ircfd, line, len) != len)
 			exit_msg("error while sending to irc");
 	}

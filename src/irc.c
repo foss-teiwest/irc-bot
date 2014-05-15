@@ -90,6 +90,7 @@ int get_socket(Irc server) {
 
 void set_mqueue(Irc server, Mqueue mq) {
 
+	assert(mq);
 	server->mqueue = mq;
 }
 
@@ -104,10 +105,13 @@ char *default_channel(Irc server) {
 STATIC bool user_is_identified(Irc server, const char *nick) {
 
 	int auth_level = 0;
-	extern pthread_t main_thread_id;
 
-	if (pthread_equal(main_thread_id, pthread_self()))
-		exit_msg("Deadlock prevented in %s", __func__);
+#ifndef NDEBUG
+	extern pthread_t main_thread_id;
+#endif
+
+	// Avoid deadlock
+	assert(!pthread_equal(main_thread_id, pthread_self()));
 
 	pthread_mutex_lock(server->mtx);
 	send_message(server, "NickServ", "ACC %s", nick);
@@ -316,11 +320,11 @@ STATIC void ctcp_handle(Irc server, struct parsed_data pdata) {
 	snprintf(time_micro_str, 64, "%ld %ld", tm.tv_sec, tm.tv_usec);
 
 	pdata.command++; // Skip the leading escape char
-	if (starts_with(pdata.command, "VERSION"))
+	if (starts_case_with(pdata.command, "VERSION"))
 		ctcp_reply(server, pdata.sender, "VERSION %s", cfg.bot_version);
-	else if (starts_with(pdata.command, "TIME"))
+	else if (starts_case_with(pdata.command, "TIME"))
 		ctcp_reply(server, pdata.sender, "TIME %s", now_str);
-	else if (starts_with(pdata.command, "PING"))
+	else if (starts_case_with(pdata.command, "PING"))
 		ctcp_reply(server, pdata.sender, "PING %s", pdata.message ? pdata.message : time_micro_str);
 }
 

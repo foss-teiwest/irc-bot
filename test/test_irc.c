@@ -9,6 +9,8 @@
 #include "irc.h"
 #include "init.h"
 
+void ctcp_handle(Irc server, struct parsed_data pdata);
+
 ssize_t n;
 
 START_TEST(irc_get_socket) {
@@ -27,12 +29,40 @@ START_TEST(irc_set_nick) {
 
 } END_TEST
 
-START_TEST(irc_numeric_reply) {
+START_TEST(irc_numeric_NICKNAMEINUSE) {
 
 	set_nick(server, "trololol");
 	numeric_reply(server, pdata, NICKNAMEINUSE);
 	if (server->nick[strlen(server->nick) - 1] != '_')
 		ck_abort_msg("nick rename failed");
+
+} END_TEST
+
+START_TEST(irc_numeric_ENDOFMOTD) {
+
+	join_channel(server, "#eleos");
+	join_channel(server, "#eleos2");
+	numeric_reply(server, pdata, ENDOFMOTD);
+	read(mock[RD], test_buffer, IRCLEN);
+	ck_assert_str_eq(test_buffer, "JOIN #eleos\r\nJOIN #eleos2\r\n");
+
+} END_TEST
+
+START_TEST(irc_numeric_BANNEDFROMCHAN) {
+
+	char msg[] = "#trololol re";
+	pdata.message = msg;
+
+	server->connected = true;
+	join_channel(server, "#trololol");
+	join_channel(server, "#trololol2");
+	ck_assert_str_eq(server->channels[0], "#trololol");
+	numeric_reply(server, pdata, BANNEDFROMCHAN);
+	ck_assert_int_eq(server->channels_set, 1);
+	ck_assert_str_eq(server->channels[0], "#trololol2");
+
+	numeric_reply(server, pdata, BANNEDFROMCHAN);
+	ck_assert_int_eq(server->channels_set, 0);
 
 } END_TEST
 
@@ -99,6 +129,37 @@ START_TEST(irc_quit_server) {
 	n = read(mock[RD], test_buffer, IRCLEN);
 	test_buffer[n - 2] = '\0';
 	ck_assert_str_eq(test_buffer, "QUIT :trolol");
+
+} END_TEST
+
+START_TEST(irc_ctcp_time) {
+
+	pdata.sender = "mitsos";
+	pdata.command = "\x01TIME";
+
+	ctcp_handle(server, pdata);
+	n = read(mock[RD], test_buffer, IRCLEN);
+	ck_assert(test_buffer[n - 4] != '\n');
+
+} END_TEST
+
+START_TEST(irc_ctcp_ping) {
+
+	pdata.sender = "mitsos";
+	pdata.command = "\x01ping";
+	pdata.message = NULL;
+
+	ctcp_handle(server, pdata);
+	read(mock[RD], test_buffer, IRCLEN);
+	char *temp = strpbrk(test_buffer, "1234567890");
+	ck_assert_ptr_ne(temp, NULL);
+	ck_assert_int_gt(strlen(temp), 18);
+
+	pdata.message = "123456789 1234";
+	ctcp_handle(server, pdata);
+	n = read(mock[RD], test_buffer, IRCLEN);
+	test_buffer[n] = '\0';
+	ck_assert_str_eq(test_buffer, "NOTICE mitsos :\x01PING 123456789 1234\x01\r\n");
 
 } END_TEST
 
@@ -183,7 +244,7 @@ START_TEST(irc_privemsg) {
 
 } END_TEST
 
-START_TEST(irc_privemsg_ctcp) {
+START_TEST(irc_ctcp_version) {
 
 	char sender[] = "bot!~a@b.c";
 	char message[] = "bot :\x01VERSION\x01";
@@ -256,7 +317,9 @@ Suite *irc_suite(void) {
 	tcase_add_unchecked_fixture(core, connect_irc, disconnect_irc);
 	tcase_add_checked_fixture(core, mock_irc_write, mock_stop);
 	tcase_add_test(core, irc_get_socket);
-	tcase_add_test(core, irc_numeric_reply);
+	tcase_add_test(core, irc_numeric_NICKNAMEINUSE);
+	tcase_add_test(core, irc_numeric_ENDOFMOTD);
+	tcase_add_test(core, irc_numeric_BANNEDFROMCHAN);
 	tcase_add_test(core, irc_set_nick);
 	tcase_add_test(core, irc_set_user);
 	tcase_add_test(core, irc_join_channel);
@@ -264,6 +327,8 @@ Suite *irc_suite(void) {
 	tcase_add_test(core, irc_default_channel);
 	tcase_add_test(core, irc_command_test);
 	tcase_add_test(core, irc_quit_server);
+	tcase_add_test(core, irc_ctcp_ping);
+	tcase_add_test(core, irc_ctcp_time);
 
 	suite_add_tcase(suite, parse);
 	tcase_add_unchecked_fixture(parse, connect_irc, disconnect_irc);
@@ -273,7 +338,7 @@ Suite *irc_suite(void) {
 	tcase_add_test(parse, irc_parse_line_offset);
 	tcase_add_test(parse, irc_parse_line_length);
 	tcase_add_test(parse, irc_privemsg);
-	tcase_add_test(parse, irc_privemsg_ctcp);
+	tcase_add_test(parse, irc_ctcp_version);
 	tcase_add_test(parse, irc_privemsg_command);
 	tcase_add_test(parse, irc_notice_identify);
 	tcase_add_test(parse, irc_kick_test);

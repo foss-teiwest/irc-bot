@@ -205,10 +205,8 @@ void print_cmd_output(Irc server, const char *target, char *cmd_args[]) {
 
 void print_cmd_output_unsafe(Irc server, const char *target, const char *cmd) {
 
-	FILE *prog;
-
 	// Open the program with arguments specified
-	prog = popen(cmd, "r");
+	FILE *prog = popen(cmd, "r");
 	if (!prog)
 		return;
 

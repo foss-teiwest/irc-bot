@@ -64,6 +64,28 @@ START_TEST(nullterminate) {
 
 } END_TEST
 
+START_TEST(trim_trailing) {
+
+	ck_assert(!trim_trailing_whitespace(NULL));
+
+	strcpy(test_buffer, "");
+	trim_trailing_whitespace(test_buffer);
+	ck_assert_str_eq(test_buffer, "");
+
+	strcpy(test_buffer, "                    ");
+	trim_trailing_whitespace(test_buffer);
+	ck_assert_str_eq(test_buffer, "");
+
+	strcpy(test_buffer, "  a  ");
+	trim_trailing_whitespace(test_buffer);
+	ck_assert_str_eq(test_buffer, "  a");
+
+	strcpy(test_buffer, "   a");
+	trim_trailing_whitespace(test_buffer);
+	ck_assert_str_eq(test_buffer, "   a");
+
+} END_TEST
+
 START_TEST(iso8859_7_to_utf8_test) {
 
 	char *conv = iso8859_7_to_utf8("\xc5\xc8\xcd\xc9\xca\xcf\x20\xcc\xc5\xd4\xd3\xcf\xc2\xc9\xcf\x20\xd0\xcf\xcb\xd5\xd4\xc5\xd7\xcd\xc5\xc9\xcf");
@@ -100,6 +122,7 @@ Suite *common_suite(void) {
 	tcase_add_test(core, parameter_extraction);
 	tcase_add_test(core, strings_compare);
 	tcase_add_test(core, nullterminate);
+	tcase_add_test(core, trim_trailing);
 	tcase_add_test(core, iso8859_7_to_utf8_test);
 
 	suite_add_tcase(suite, output);
