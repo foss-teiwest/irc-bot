@@ -261,12 +261,13 @@ START_TEST(irc_ctcp_version) {
 
 START_TEST(irc_privemsg_command) {
 
-	char sender[] = "bot!~a@b.c";
-	char message[] = "bot :!marker";
-	pdata.sender = sender;
-	pdata.message = message;
-	char reply[] = "PRIVMSG bot :tweet max length. URL's not accounted for:  -  -  -  -  -  60"
+	memcpy(server->line, "bot!~a@b.c\0bot :!marker", IRCLEN);
+	char *reply = "PRIVMSG bot :tweet max length. URL's not accounted for:  -  -  -  -  -  60"
 			"  -  -  -  -  -  80  -  -  -  -  -  -  100  -  -  -  -  -  120  -  -  -  -  -  140";
+
+	pdata.sender  = &server->line[0];
+	pdata.message = &server->line[11];
+	pdata.target  = pdata.sender;
 
 	irc_privmsg(server, pdata);
 	n = read(mock[WR], test_buffer, IRCLEN);

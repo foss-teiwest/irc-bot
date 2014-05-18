@@ -198,7 +198,7 @@ STATIC char *get_title(void) {
 		return NULL;
 
 	// Don't forget to free
-	return strdup(song_title);
+	return strndup(song_title, SONG_TITLE_LEN);
 }
 
 bool print_song(Irc server, const char *target) {

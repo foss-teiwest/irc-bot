@@ -14,7 +14,7 @@ STATIC sqlite3 *open_database(const char *db_name) {
 	sqlite3 *newdb;
 
 	if (sqlite3_open_v2(db_name, &newdb, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE |
-				SQLITE_OPEN_FULLMUTEX, NULL) == SQLITE_OK)
+			SQLITE_OPEN_FULLMUTEX, NULL) == SQLITE_OK)
 		return newdb;
 
 	fprintf(stderr, "%s\n", sqlite3_errmsg(db));

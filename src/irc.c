@@ -38,11 +38,13 @@ struct irc_type {
 struct command_info {
 	Irc server;
 	Command *cmd;
+	char *line;
 	struct parsed_data pdata;
 };
 
 #define ctcp_reply(server, target, format, ...) _irc_command(server, "NOTICE",  target, "\x01" format "\x01", __VA_ARGS__)
 
+STATIC void pre_launch_command(Irc server, struct parsed_data pdata, Command *cmd);
 STATIC void *launch_command(void *cmd_info);
 STATIC void ctcp_handle(Irc server, struct parsed_data pdata);
 
@@ -240,9 +242,7 @@ ssize_t parse_irc_line(Irc server) {
 
 void irc_privmsg(Irc server, struct parsed_data pdata) {
 
-	pthread_t id;
 	Command *cmd;
-	struct command_info *cmdi;
 
 	// Discard hostname from nickname. "laxanofido!~laxanofid@snf-23545.vm.okeanos.grnet.gr" becomes "laxanofido"
 	if (!null_terminate(pdata.sender, '!'))
@@ -273,23 +273,35 @@ void irc_privmsg(Irc server, struct parsed_data pdata) {
 
 		// Query our hash table for any functions registered to BOT commands
 		cmd = command_lookup(pdata.command, strlen(pdata.command));
-		if (!cmd)
-			return;
-
-		cmdi = malloc_w(sizeof(*cmdi));
-		cmdi->cmd = cmd;
-		cmdi->server = server;
-		cmdi->pdata.sender  = strdup(pdata.sender);
-		cmdi->pdata.command = strdup(pdata.command);
-		cmdi->pdata.target  = strdup(pdata.target);
-		cmdi->pdata.message = pdata.message ? strdup(pdata.message) : NULL;
-
-		if (pthread_create(&id, NULL, launch_command, cmdi))
-			perror("Could not launch_command");
+		if (cmd)
+			pre_launch_command(server, pdata, cmd);
 	}
 	// CTCP requests must begin with ascii char 1 (SOH - start of heading)
 	else if (*pdata.command == '\x01')
 		ctcp_handle(server, pdata);
+}
+
+STATIC void pre_launch_command(Irc server, struct parsed_data pdata, Command *cmd) {
+
+	pthread_t id;
+	struct command_info *cmdi;
+
+	cmdi = malloc_w(sizeof(*cmdi));
+	cmdi->line = malloc_w(IRCLEN + 1);
+	memcpy(cmdi->line, server->line, IRCLEN + 1);
+	cmdi->cmd = cmd;
+	cmdi->server = server;
+
+	cmdi->pdata.sender      = cmdi->line + (pdata.sender  - server->line);
+	cmdi->pdata.command     = cmdi->line + (pdata.command - server->line);
+	cmdi->pdata.target      = cmdi->line + (pdata.target  - server->line);
+	if (pdata.message)
+		cmdi->pdata.message = cmdi->line + (pdata.message - server->line);
+	else
+		cmdi->pdata.message = NULL;
+
+	if (pthread_create(&id, NULL, launch_command, cmdi))
+		perror("Could not launch command");
 }
 
 STATIC void *launch_command(void *cmd_info) {
@@ -299,10 +311,7 @@ STATIC void *launch_command(void *cmd_info) {
 	pthread_detach(pthread_self());
 	cmdi->cmd->function(cmdi->server, cmdi->pdata);
 
-	free(cmdi->pdata.sender);
-	free(cmdi->pdata.command);
-	free(cmdi->pdata.target);
-	free(cmdi->pdata.message);
+	free(cmdi->line);
 	free(cmdi);
 	return NULL;
 }
