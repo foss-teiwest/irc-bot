@@ -164,26 +164,26 @@ void send_all_lines(Irc server, const char *target, FILE *stream) {
 	}
 }
 
-void print_cmd_output(Irc server, const char *target, char *cmd_args[]) {
+int print_cmd_output(Irc server, const char *target, char *cmd_args[]) {
 
 	FILE *prog;
-	int fd[RDWR];
+	int status, fd[RDWR];
 
 	if (pipe(fd)) {
 		perror("pipe");
-		return;
+		return EXIT_FAILURE;
 	}
 	switch (fork()) {
 	case -1:
 		perror("fork");
-		return;
+		return EXIT_FAILURE;
 	case 0:
 		close(fd[RD]); // Close reading end of the socket
 
 		// Re-open stdout to point to the writting end of our socket
 		if (dup2(fd[WR], STDOUT_FILENO) != STDOUT_FILENO) {
 			perror("dup2");
-			return;
+			return EXIT_FAILURE;
 		}
 		close(fd[WR]); // We don't need this anymore
 		execvp(cmd_args[0], cmd_args);
@@ -196,22 +196,24 @@ void print_cmd_output(Irc server, const char *target, char *cmd_args[]) {
 	// Open socket as FILE stream since we need to print in lines anyway
 	prog = fdopen(fd[RD], "r");
 	if (!prog)
-		return;
+		return EXIT_FAILURE;
 
 	send_all_lines(server, target, prog);
+
 	fclose(prog);
-	wait(NULL); // Don't leave zombie
+	wait(&status); // Don't leave zombie
+	return WEXITSTATUS(status);
 }
 
-void print_cmd_output_unsafe(Irc server, const char *target, const char *cmd) {
+int print_cmd_output_unsafe(Irc server, const char *target, const char *cmd) {
 
 	// Open the program with arguments specified
 	FILE *prog = popen(cmd, "r");
 	if (!prog)
-		return;
+		return EXIT_FAILURE;
 
 	send_all_lines(server, target, prog);
-	pclose(prog);
+	return WEXITSTATUS(pclose(prog));
 }
 
 char *iso8859_7_to_utf8(const char *iso) {

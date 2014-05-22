@@ -102,14 +102,16 @@ void send_all_lines(Irc server, const char *target, FILE *stream);
  *
  * @param cmd_args  Is an array with it's first member having the actual program name,
  *                  the arguments come after that and the last member should be NULL
+ *                  The helper CMD(command, arg1, arg2, ...) is available as well
  *
- * Compound literals are an easy way to deal with that. Example (char *[]) { "ping", "-c", 3, google.com, NULL }
+ * @returns         The exit status code of the program executed
+ *
  */
-void print_cmd_output(Irc server, const char *target, char *cmd_args[]);
+int print_cmd_output(Irc server, const char *target, char *cmd_args[]);
 
 /** Same as the above function but commands are interpeted by the shell so it is prone to exploits.
  *  @warning  Do NOT trust user input. Use only fixed values like "ls | wc -l" */
-void print_cmd_output_unsafe(Irc server, const char *target, const char *cmd);
+int print_cmd_output_unsafe(Irc server, const char *target, const char *cmd);
 
 /** Convert string's encoding from ISO 8859-7 to UTF-8
  *  @warning  Return value must be freed to avoid memory leak */

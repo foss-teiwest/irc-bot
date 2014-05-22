@@ -33,12 +33,9 @@ void bot_play(Irc server, struct parsed_data pdata) {
 	char *prog;
 
 	if (!trim_trailing_whitespace(pdata.message)) {
-		if (FETCH(mpd->random))
-			send_message(server, pdata.target, "%s", "already in random mode");
-		else {
+		if (print_cmd_output_unsafe(server, pdata.target, SCRIPTDIR "mpd_random.sh") == EXIT_SUCCESS)
 			TRUE(mpd->random);
-			print_cmd_output_unsafe(server, pdata.target, SCRIPTDIR "mpd_random.sh");
-		}
+
 		return;
 	}
 	mpd_announce(OFF);
