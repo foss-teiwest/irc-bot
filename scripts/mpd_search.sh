@@ -21,7 +21,7 @@ if [ $RESULT_LINES -eq 1 ]; then
 	mpc add "$RESULT" && mpc -q play
 	if [ $? -eq 0 ]; then
 		touch "$DIR"/"$RESULT"
-		RESULT=`echo "$RESULT" | gawk -F. -v OFS=. '{NF--; print}'`
+		RESULT=`echo "$RESULT" | awk -F. -v OFS=. '{NF--; print}'`
 
 		if [ $QUEUESIZE -eq 0 ]; then
 			echo "♪ $RESULT ♪ playing @ https://foss.tesyd.teimes.gr/radio"
@@ -31,6 +31,6 @@ if [ $RESULT_LINES -eq 1 ]; then
 	fi
 else
 	echo "$RESULT_LINES results found. Printing first 3..."
-	echo "$RESULT" | head -n3 | gawk -F. -v OFS=. '{NF--; print}'
+	echo "$RESULT" | head -n3 | awk -F. -v OFS=. '{NF--; print}'
 	exit 1
 fi

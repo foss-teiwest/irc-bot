@@ -1,27 +1,23 @@
 #!/usr/bin/env bash
 
-TIMELIMIT=600
 DIR=$1
 URL=`echo $2 | grep -o "^[^&]*"`
+TIMELIMIT=600
 RANDOM_ON=~/.mpd_random
 
-~/bin/youtube-dl        \
--q                      \
---skip-download         \
---write-info-json       \
---max-quality 22 "$URL" \
--o "$DIR"/song
-
-TITLE=`cat "$DIR"/song.info.json | bin/json_value fulltitle`
-DURATION=`cat "$DIR"/song.info.json | bin/json_value duration`
-rm "$DIR"/song.info.json
+IFS=$'\n'
+TITLE_AND_DURATION=(`youtube-dl --get-title --get-duration "$URL"`)
+TITLE=${TITLE_AND_DURATION[0]}
+DURATION=`echo ${TITLE_AND_DURATION[1]} | awk -F: 'NF>1 { print $1 * 60 + $2 } NF==1'`
+unset IFS
 
 print_song() {
 	touch "$DIR"/"$TITLE".mp3
-	if [ $QUEUESIZE -eq 0 ]; then
+	QUEUESIZE=`mpc playlist | wc -l`
+	if [ $QUEUESIZE -eq 1 ]; then
 		echo "♪ $TITLE ♪ playing @ https://foss.tesyd.teimes.gr/radio"
 	else
-		echo "♪ $TITLE ♪ queued after $QUEUESIZE song(s)..."
+		echo "♪ $TITLE ♪ queued after `expr $QUEUESIZE - 1` song(s)..."
 	fi
 }
 
@@ -35,7 +31,6 @@ disable_random_mode() {
 
 if [ -f "$DIR"/"$TITLE".mp3 ]; then
 	disable_random_mode
-	QUEUESIZE=`mpc playlist | wc -l`
 	mpc add "$TITLE".mp3 && mpc -q play
 	if [ $? -eq 0 ]; then
 		print_song
@@ -50,8 +45,7 @@ if [ "$DURATION" -gt $TIMELIMIT ]; then
 	exit 1
 fi
 
-~/bin/youtube-dl        \
--q                      \
+youtube-dl -q           \
 --max-filesize 150M     \
 --extract-audio         \
 --audio-format mp3      \
@@ -61,7 +55,6 @@ fi
 
 scripts/id3v2_unicode_title.py "$TITLE" "$DIR"/"$TITLE".mp3
 disable_random_mode
-QUEUESIZE=`mpc playlist | wc -l`
 
 for (( i = 0; i < 5; i++ )); do
 	sleep 2

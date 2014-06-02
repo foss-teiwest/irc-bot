@@ -37,8 +37,7 @@ OBJFILES-TEST := $(addprefix $(OUTDIR)/, $(OBJFILES-TEST))
 OBJFILES-TEST += $(OBJFILES)
 OBJFILES-TEST := $(filter-out %/main.o %/test_main.h, $(OBJFILES-TEST))
 
-all: $(OUTDIR)/$(PROGRAM) $(OUTDIR)/json_value
-release: all
+all release: $(OUTDIR)/$(PROGRAM)
 
 # Build main program
 $(OUTDIR)/$(PROGRAM): $(OBJFILES)
@@ -51,9 +50,6 @@ $(SRCDIR)/gperf.c: $(INCLDIR)/gperf.txt
 # Generic rule to build all source files needed for main
 $(OUTDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) -I$(INCLDIR) -c $< -o $@
-
-$(OUTDIR)/json_value: scripts/json_value.c
-	$(CC) $(LDFLAGS) $(CFLAGS) $< -o $@ -lyajl
 
 # Run tests
 test: $(OUTDIR)/$(PROGRAM)-test

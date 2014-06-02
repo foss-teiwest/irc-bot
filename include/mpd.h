@@ -20,7 +20,7 @@
 #define SONG_TITLE_LEN 256
 
 /** Remove file extension. Works with multiple dots in file as well */
-#define REMOVE_EXTENSION "gawk -F. -v OFS=. '{NF--; print}'"
+#define REMOVE_EXTENSION "awk -F. -v OFS=. '{NF--; print}'"
 
 struct mpd_info {
 	int fd;
