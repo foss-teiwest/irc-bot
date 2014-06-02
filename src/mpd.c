@@ -33,20 +33,19 @@ void bot_play(Irc server, struct parsed_data pdata) {
 	char *prog;
 
 	if (!trim_trailing_whitespace(pdata.message)) {
-		if (print_cmd_output_unsafe(server, pdata.target, SCRIPTDIR "mpd_random.sh") == EXIT_SUCCESS)
-			TRUE(mpd->random);
-
+		print_cmd_output_unsafe(server, pdata.target, SCRIPTDIR "mpd_random.sh");
+		TRUE(mpd->random);
 		return;
 	}
-	mpd_announce(OFF);
-	FALSE(mpd->random);
-
 	if (strstr(pdata.message, "youtu"))
 		prog = SCRIPTDIR "youtube2mp3.sh";
 	else
 		prog = SCRIPTDIR "mpd_search.sh";
 
-	print_cmd_output(server, pdata.target, CMD(prog, cfg.mpd_database, pdata.message));
+	if (print_cmd_output(server, pdata.target, CMD(prog, cfg.mpd_database, pdata.message)) == EXIT_SUCCESS) {
+		mpd_announce(OFF);
+		FALSE(mpd->random);
+	}
 }
 
 void bot_current(Irc server, struct parsed_data pdata) {

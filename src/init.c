@@ -250,27 +250,27 @@ int setup_fifo(FILE **stream) {
 
 	mode_t old;
 	struct stat st;
-	int fifo, dummy;
+	int fifo, dummy, tries_left = 2;
 
-	switch (stat(cfg.fifo_name, &st)) {
-	case 0:
-		if (S_ISFIFO(st.st_mode) && ((st.st_mode & (S_IRWXU | S_IRWXG | S_IRWXO)) == FIFO_PERMISSIONS))
-			break;
+	// Ensure we get the permissions we asked
+	old = umask(0);
+	do {
+		fifo = open(cfg.fifo_name, O_RDONLY | O_NONBLOCK);
+		if (!fstat(fifo, &st))
+			if (S_ISFIFO(st.st_mode) && (FIFO_PERMISSIONS == (st.st_mode & (S_IRWXU | S_IRWXG | S_IRWXO))))
+				break;
 
+		close(fifo);
 		if (remove(cfg.fifo_name))
-			goto cleanup;
+			perror("remove");
 
-		// FALLTHROUGH
-	default:
-		// Ensure we get the permissions we asked
-		old = umask(0);
 		if (mkfifo(cfg.fifo_name, FIFO_PERMISSIONS))
 			goto cleanup;
 
-		umask(old); // Restore mask
-	}
-	fifo = open(cfg.fifo_name, O_RDONLY | O_NONBLOCK);
-	if (fifo == -1)
+	} while (tries_left--);
+
+	umask(old); // Restore mask
+	if (tries_left == -1)
 		goto cleanup;
 
 	// Ensure we never get EOF

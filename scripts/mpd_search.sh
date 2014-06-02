@@ -8,7 +8,7 @@ RESULT_BYTES=`echo "$RESULT" | wc -c`
 RESULT_LINES=`echo "$RESULT" | wc -l`
 
 if [ $RESULT_BYTES -lt 5 ]; then
-	exit
+	exit 1
 fi
 
 if [ $RESULT_LINES -eq 1 ]; then
@@ -32,4 +32,5 @@ if [ $RESULT_LINES -eq 1 ]; then
 else
 	echo "$RESULT_LINES results found. Printing first 3..."
 	echo "$RESULT" | head -n3 | gawk -F. -v OFS=. '{NF--; print}'
+	exit 1
 fi

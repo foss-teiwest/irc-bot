@@ -1,3 +1,5 @@
+[![Coverity Scan Build Status](https://scan.coverity.com/projects/2255/badge.svg)](https://scan.coverity.com/projects/2255)
+
 # Installation
 
 Build main program with optimizations

@@ -25,14 +25,17 @@ print_song() {
 	fi
 }
 
-if [ -e $RANDOM_ON ]; then
-	echo "random mode disabled"
-	mpc -q crop
-	rm $RANDOM_ON
-fi
+disable_random_mode() {
+	if [ -e $RANDOM_ON ]; then
+		echo "random mode disabled"
+		mpc -q crop
+		rm $RANDOM_ON
+	fi
+}
 
-QUEUESIZE=`mpc playlist | wc -l`
 if [ -f "$DIR"/"$TITLE".mp3 ]; then
+	disable_random_mode
+	QUEUESIZE=`mpc playlist | wc -l`
 	mpc add "$TITLE".mp3 && mpc -q play
 	if [ $? -eq 0 ]; then
 		print_song
@@ -44,7 +47,7 @@ fi
 
 if [ "$DURATION" -gt $TIMELIMIT ]; then
 	echo "Song longer than `expr $TIMELIMIT / 60` mins, skipping..."
-	exit
+	exit 1
 fi
 
 ~/bin/youtube-dl        \
@@ -57,6 +60,8 @@ fi
 -o "$DIR"/"$TITLE"."%(ext)s"
 
 scripts/id3v2_unicode_title.py "$TITLE" "$DIR"/"$TITLE".mp3
+disable_random_mode
+QUEUESIZE=`mpc playlist | wc -l`
 
 for (( i = 0; i < 5; i++ )); do
 	sleep 2
