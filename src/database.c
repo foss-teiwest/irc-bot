@@ -45,6 +45,23 @@ STATIC sqlite3_stmt *sql_prepare(const char *sql) {
 	return NULL;
 }
 
+STATIC char *sql_step_single_row(sqlite3_stmt *stmt) {
+
+	int status;
+	char *column = NULL;
+
+	status = sqlite3_step(stmt);
+	if (status == SQLITE_ROW)
+		column = strdup((char *) sqlite3_column_text(stmt, 0));
+	else if (status == SQLITE_DONE)
+		fprintf(stderr, "no rows returned\n");
+	else
+		fprintf(stderr, "%s\n", sqlite3_errstr(status));
+
+	sqlite3_finalize(stmt);
+	return column;
+}
+
 STATIC bool merge_config_access_list(void) {
 
 	sql_exec("BEGIN TRANSACTION");
@@ -98,28 +115,6 @@ bool add_user(const char *user) {
 	return status == SQLITE_DONE;
 }
 
-char *random_quote(void) {
-
-	int status;
-	sqlite3_stmt *stmt;
-	char *quote = NULL;
-
-	stmt = sql_prepare("SELECT quote FROM quotes ORDER BY random() LIMIT 1");
-	if (!stmt)
-		return NULL;
-
-	status = sqlite3_step(stmt);
-	if (status == SQLITE_ROW)
-		quote = strdup((char *) sqlite3_column_text(stmt, 0));
-	else if (status == SQLITE_DONE)
-		fprintf(stderr, "no quotes in the database\n");
-	else
-		fprintf(stderr, "%s\n", sqlite3_errstr(status));
-
-	sqlite3_finalize(stmt);
-	return quote;
-}
-
 int add_quote(const char *quote, const char *user) {
 
 	int status;
@@ -135,6 +130,15 @@ int add_quote(const char *quote, const char *user) {
 
 	sqlite3_finalize(stmt);
 	return status;
+}
+
+char *random_quote(void) {
+
+	sqlite3_stmt *stmt = sql_prepare("SELECT quote FROM quotes ORDER BY random() LIMIT 1");
+	if (!stmt)
+		return NULL;
+
+	return sql_step_single_row(stmt);
 }
 
 STATIC bool last_quote_modifiable(int *quote_id) {
@@ -161,31 +165,21 @@ STATIC bool last_quote_modifiable(int *quote_id) {
 	return eligible;
 }
 
-char *last_quote(void) {
+char *get_quote(int quote_id) {
 
-	int status, quote_id;
 	sqlite3_stmt *stmt;
-	char *quote = NULL;
 
-	last_quote_modifiable(&quote_id);
-	if (!quote_id)
-		return NULL;
-
+	if (quote_id == -1) {
+		last_quote_modifiable(&quote_id);
+		if (!quote_id)
+			return NULL;
+	}
 	stmt = sql_prepare("SELECT quote FROM quotes WHERE quote_id == ?1");
 	if (!stmt)
 		return NULL;
 
 	sqlite3_bind_int(stmt, 1, quote_id);
-	status = sqlite3_step(stmt);
-	if (status == SQLITE_ROW)
-		quote = strdup((char *) sqlite3_column_text(stmt, 0));
-	else if (status == SQLITE_DONE)
-		fprintf(stderr, "no quotes in the database\n");
-	else
-		fprintf(stderr, "%s\n", sqlite3_errstr(status));
-
-	sqlite3_finalize(stmt);
-	return quote;
+	return sql_step_single_row(stmt);
 }
 
 int modify_last_quote(const char *quote) {

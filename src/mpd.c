@@ -11,22 +11,10 @@
 #include "common.h"
 #include "init.h"
 
+STATIC bool mpd_announce(bool on);
+
 // Be careful to only access & change announce & random members through the atomic macros defined in common.h
 extern struct mpd_info *mpd;
-
-STATIC bool mpd_announce(bool on) {
-
-	if (on) {
-		TRUE(mpd->announce);
-		return sock_write(mpd->fd, "idle player\n", 12) == 12;
-	} else {
-		if (!FETCH(mpd->announce))
-			return true;
-
-		FALSE(mpd->announce);
-		return sock_write(mpd->fd, "noidle\n", 7) == 7;
-	}
-}
 
 void bot_play(Irc server, struct parsed_data pdata) {
 
@@ -108,6 +96,20 @@ void bot_seek(Irc server, struct parsed_data pdata) {
 		print_cmd_output(server, pdata.target, CMD(SCRIPTDIR "mpd_seek.sh", argv[0]));
 
 	free(argv);
+}
+
+STATIC bool mpd_announce(bool on) {
+
+	if (on) {
+		TRUE(mpd->announce);
+		return sock_write(mpd->fd, "idle player\n", 12) == 12;
+	} else {
+		if (!FETCH(mpd->announce))
+			return true;
+
+		FALSE(mpd->announce);
+		return sock_write(mpd->fd, "noidle\n", 7) == 7;
+	}
 }
 
 void bot_announce(Irc server, struct parsed_data pdata) {

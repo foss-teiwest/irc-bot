@@ -63,13 +63,15 @@ STATIC void print_quote(Irc server, struct parsed_data pdata, const char *quote)
 void bot_fail(Irc server, struct parsed_data pdata) {
 
 	int argc;
-	char **argv, *quote = NULL;
+	char **argv, *quote;
 
 	argc = extract_params(pdata.message, &argv);
 	if (!argc)
 		quote = random_quote();
 	else if (strcase_eq(argv[0], "last"))
-		quote = last_quote();
+		quote = get_quote(-1);
+	else
+		quote = get_quote(get_int(argv[0], 100000));
 
 	if (quote)
 		print_quote(server, pdata, quote);

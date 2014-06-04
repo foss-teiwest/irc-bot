@@ -25,8 +25,8 @@ bool add_user(const char *user);
 /** Returns a random quote from the database. Don't forget to free the pointer */
 char *random_quote(void);
 
-/** Returns the last quote in the database. Free the memory when done as always */
-char *last_quote(void);
+/** Returns the specified quote from the database using quote_id as the primary key. Free the memory when done as always */
+char *get_quote(int quote_id);
 
 /** Add quote to the database. user should be the one that adds the quote and must be in the access list */
 int add_quote(const char *quote, const char *user);
