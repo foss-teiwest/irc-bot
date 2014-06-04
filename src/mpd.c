@@ -32,7 +32,8 @@ void bot_play(Irc server, struct parsed_data pdata) {
 
 	char *prog;
 
-	if (!trim_trailing_whitespace(pdata.message)) {
+	pdata.message = trim_whitespace(pdata.message);
+	if (!pdata.message) {
 		print_cmd_output_unsafe(server, pdata.target, SCRIPTDIR "mpd_random.sh");
 		TRUE(mpd->random);
 		return;
@@ -103,10 +104,10 @@ void bot_seek(Irc server, struct parsed_data pdata) {
 	argc = extract_params(pdata.message, &argv);
 	if (!argc)
 		send_message(server, pdata.target, "%s", "usage: [+-][HH:MM:SS]|<0-100>%");
-	else {
+	else
 		print_cmd_output(server, pdata.target, CMD(SCRIPTDIR "mpd_seek.sh", argv[0]));
-		free(argv);
-	}
+
+	free(argv);
 }
 
 void bot_announce(Irc server, struct parsed_data pdata) {
@@ -123,9 +124,9 @@ void bot_announce(Irc server, struct parsed_data pdata) {
 	if (!argc)
 		return;
 
-	if (starts_case_with(argv[0], "on") && !FETCH(mpd->announce))
+	if (strcase_eq(argv[0], "on") && !FETCH(mpd->announce))
 		mpd_announce(ON);
-	else if (starts_case_with(argv[0], "off") && FETCH(mpd->announce))
+	else if (strcase_eq(argv[0], "off") && FETCH(mpd->announce))
 		mpd_announce(OFF);
 
 	free(argv);

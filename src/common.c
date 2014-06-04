@@ -32,6 +32,11 @@ bool streq(const char *s1, const char *s2) {
 	return strcmp(s1, s2) == 0;
 }
 
+bool strcase_eq(const char *s1, const char *s2) {
+
+	return strcasecmp(s1, s2) == 0;
+}
+
 bool starts_with(const char *s1, const char *s2) {
 
 	return strncmp(s1, s2, strlen(s2)) == 0;
@@ -90,24 +95,26 @@ bool null_terminate(char *buf, char delim) {
 	return true;
 }
 
-bool trim_trailing_whitespace(char *str) {
+char *trim_whitespace(char *str) {
 
-	int len;
 	char *end;
 
 	if (!str)
-		return false;
+		return NULL;
 
-	len = strlen(str);
-	if (!len)
-		return false;
+	while (isspace(*str))
+		str++;
 
-	end = str + len - 1;
+	if (!*str)
+		return NULL;
+
+	end = str + strlen(str) - 1;
 	while (end >= str && isspace(*end))
 		end--;
 
-	*(end + 1) = '\0';
-	return true;
+	// Return NULL if only whitespace was found
+	*++end = '\0';
+	return str == end ? NULL : str;
 }
 
 int extract_params(char *msg, char **argv[]) {
@@ -115,6 +122,7 @@ int extract_params(char *msg, char **argv[]) {
 	char *savedptr;
 	int argc = 0, size = STARTING_PARAMS;
 
+	*argv = NULL;
 	if (!msg)
 		return 0;
 
@@ -130,9 +138,10 @@ int extract_params(char *msg, char **argv[]) {
 		}
 		(*argv)[++argc] = strtok_r(NULL, " \t", &savedptr);
 	}
-	if (!argc)
+	if (!argc) {
 		free(*argv);
-
+		*argv = NULL;
+	}
 	return argc;
 }
 

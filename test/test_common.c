@@ -66,23 +66,29 @@ START_TEST(nullterminate) {
 
 START_TEST(trim_trailing) {
 
-	ck_assert(!trim_trailing_whitespace(NULL));
+	char *test;
+
+	ck_assert(!trim_whitespace(NULL));
 
 	strcpy(test_buffer, "");
-	trim_trailing_whitespace(test_buffer);
-	ck_assert_str_eq(test_buffer, "");
+	test = trim_whitespace(test_buffer);
+	ck_assert_ptr_eq(test, NULL);
 
 	strcpy(test_buffer, "                    ");
-	trim_trailing_whitespace(test_buffer);
-	ck_assert_str_eq(test_buffer, "");
+	test = trim_whitespace(test_buffer);
+	ck_assert_ptr_eq(test, NULL);
 
 	strcpy(test_buffer, "  a  ");
-	trim_trailing_whitespace(test_buffer);
-	ck_assert_str_eq(test_buffer, "  a");
+	test = trim_whitespace(test_buffer);
+	ck_assert_str_eq(test, "a");
 
 	strcpy(test_buffer, "   a");
-	trim_trailing_whitespace(test_buffer);
-	ck_assert_str_eq(test_buffer, "   a");
+	test = trim_whitespace(test_buffer);
+	ck_assert_str_eq(test, "a");
+
+	strcpy(test_buffer, "   a   ");
+	test = trim_whitespace(test_buffer);
+	ck_assert_str_eq(test, "a");
 
 } END_TEST
 

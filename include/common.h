@@ -60,6 +60,9 @@ void exit_msg(const char *format, ...);
 /** @returns  true if strings match */
 bool streq(const char *s1, const char *s2);
 
+/** Case insensitive version */
+bool strcase_eq(const char *s1, const char *s2);
+
 /** @returns  true if s1 starts with s2 */
 bool starts_with(const char *s1, const char *s2);
 
@@ -70,9 +73,12 @@ bool starts_case_with(const char *s1, const char *s2);
  *  @returns false if something went wrong */
 bool null_terminate(char *buf, char delim);
 
-/** Remove trailing whitespace
- *  @warning  The string is edited in-place so DON'T pass a read-only pointer */
-bool trim_trailing_whitespace(char *str);
+/** Remove leading & trailing whitespace
+ *  @warning  DON'T pass a read-only pointer, the string is edited in-place.
+ *            DON'T overwrite a heap pointer, the string returned might be at a different offset
+
+ *  @returns  Null if only whitespace was found */
+char *trim_whitespace(char *str);
 
 /**
  * Extract parameters seperated by space and put them in an array

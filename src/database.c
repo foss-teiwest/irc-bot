@@ -143,6 +143,7 @@ STATIC bool last_quote_modifiable(int *quote_id) {
 	sqlite3_stmt *stmt;
 	bool eligible = false;
 
+	*quote_id = 0;
 	stmt = sql_prepare("SELECT quote_id, timestamp FROM quotes ORDER BY timestamp DESC LIMIT 1");
 	if (!stmt)
 		return false;
@@ -158,6 +159,33 @@ STATIC bool last_quote_modifiable(int *quote_id) {
 
 	sqlite3_finalize(stmt);
 	return eligible;
+}
+
+char *last_quote(void) {
+
+	int status, quote_id;
+	sqlite3_stmt *stmt;
+	char *quote = NULL;
+
+	last_quote_modifiable(&quote_id);
+	if (!quote_id)
+		return NULL;
+
+	stmt = sql_prepare("SELECT quote FROM quotes WHERE quote_id == ?1");
+	if (!stmt)
+		return NULL;
+
+	sqlite3_bind_int(stmt, 1, quote_id);
+	status = sqlite3_step(stmt);
+	if (status == SQLITE_ROW)
+		quote = strdup((char *) sqlite3_column_text(stmt, 0));
+	else if (status == SQLITE_DONE)
+		fprintf(stderr, "no quotes in the database\n");
+	else
+		fprintf(stderr, "%s\n", sqlite3_errstr(status));
+
+	sqlite3_finalize(stmt);
+	return quote;
 }
 
 int modify_last_quote(const char *quote) {

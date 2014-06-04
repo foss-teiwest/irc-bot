@@ -25,24 +25,26 @@ void bot_help(Irc server, struct parsed_data pdata) {
 
 void bot_access_add(Irc server, struct parsed_data pdata) {
 
-	if (!trim_trailing_whitespace(pdata.message))
+	int argc;
+	char **argv;
+
+	argc = extract_params(pdata.message, &argv);
+	if (!argc)
 		return;
 
 	if (!user_has_access(server, pdata.sender))
 		return;
 
-	if (add_user(pdata.message))
-		send_message(server, pdata.target, "%s, with great power...", pdata.message);
+	if (add_user(argv[0]))
+		send_message(server, pdata.target, "%s, with great power...", argv[0]);
+
+	free(argv);
 }
 
-void bot_fail(Irc server, struct parsed_data pdata) {
+STATIC void print_quote(Irc server, struct parsed_data pdata, const char *quote) {
 
 	int clr, len, maxlen, sum = 0;
-	char *quote, clr_quote[QUOTELEN];
-
-	quote = random_quote();
-	if (!quote)
-		return;
+	char clr_quote[QUOTELEN];
 
 	clr = (random() % COLORCOUNT) + 2;
 	maxlen = strlen(quote);
@@ -56,14 +58,32 @@ void bot_fail(Irc server, struct parsed_data pdata) {
 		send_message(server, pdata.target, "%s", clr_quote);
 		sum += ++len; // Skip newline
 	}
+}
+
+void bot_fail(Irc server, struct parsed_data pdata) {
+
+	int argc;
+	char **argv, *quote = NULL;
+
+	argc = extract_params(pdata.message, &argv);
+	if (!argc)
+		quote = random_quote();
+	else if (strcase_eq(argv[0], "last"))
+		quote = last_quote();
+
+	if (quote)
+		print_quote(server, pdata, quote);
+
 	free(quote);
+	free(argv);
 }
 
 void bot_fail_add(Irc server, struct parsed_data pdata) {
 
 	int status;
 
-	if (!trim_trailing_whitespace(pdata.message))
+	pdata.message = trim_whitespace(pdata.message);
+	if (!pdata.message)
 		return;
 
 	if (!user_has_access(server, pdata.sender))
@@ -84,7 +104,8 @@ void bot_fail_modify(Irc server, struct parsed_data pdata) {
 
 	int status;
 
-	if (!trim_trailing_whitespace(pdata.message))
+	pdata.message = trim_whitespace(pdata.message);
+	if (!pdata.message)
 		return;
 
 	if (!user_has_access(server, pdata.sender))
@@ -287,7 +308,8 @@ void bot_tweet(Irc server, struct parsed_data pdata) {
 	long http_status;
 	char tweet_url[TWEET_URLLEN];
 
-	if (!trim_trailing_whitespace(pdata.message))
+	pdata.message = trim_whitespace(pdata.message);
+	if (!pdata.message)
 		return;
 
 	if (!cfg.twitter_details_set) {
