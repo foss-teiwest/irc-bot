@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <stdbool.h>
+#include <ctype.h>
 #include <poll.h>
 #include <fcntl.h>
-#include <stdbool.h>
 #include <string.h>
 #include "socket.h"
 #include "irc.h"
@@ -18,7 +19,7 @@ extern struct mpd_info *mpd;
 
 void bot_play(Irc server, struct parsed_data pdata) {
 
-	char *prog;
+	char *temp, **prog, *count = "3";
 
 	pdata.message = trim_whitespace(pdata.message);
 	if (!pdata.message) {
@@ -27,11 +28,21 @@ void bot_play(Irc server, struct parsed_data pdata) {
 		return;
 	}
 	if (strstr(pdata.message, "youtu"))
-		prog = SCRIPTDIR "youtube2mp3.sh";
-	else
-		prog = SCRIPTDIR "mpd_search.sh";
+		prog = CMD(SCRIPTDIR "youtube2mp3.sh", cfg.mpd_database, pdata.message);
+	else {
+		if (*pdata.message == '-' && isdigit(*(pdata.message + 1))) {
+			temp = null_terminate(pdata.message + 2, ' ');
+			if (!temp)
+				return;
 
-	if (print_cmd_output(server, pdata.target, CMD(prog, cfg.mpd_database, pdata.message)) == EXIT_SUCCESS) {
+			count = pdata.message + 1;
+			pdata.message = temp  + 1;
+			while (isspace(*pdata.message))
+				pdata.message++;
+		}
+		prog = CMD(SCRIPTDIR "mpd_search.sh", cfg.mpd_database, count, pdata.message);
+	}
+	if (print_cmd_output(server, pdata.target, prog) == EXIT_SUCCESS) {
 		mpd_announce(OFF);
 		FALSE(mpd->random);
 	}
@@ -72,7 +83,6 @@ void bot_stop(Irc server, struct parsed_data pdata) {
 
 void bot_next(Irc server, struct parsed_data pdata) {
 
-	// TODO Only print the result to the one who send the command on channel / prive
 	if (FETCH(mpd->announce))
 		print_cmd_output_unsafe(server, pdata.target, "mpc -q next");
 	else

@@ -15,7 +15,7 @@
 
 #define ON  true
 #define OFF false
-#define CMDLEN  100
+#define CMDLEN         100
 #define SONG_INFO_LEN  512
 #define SONG_TITLE_LEN 256
 

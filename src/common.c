@@ -80,19 +80,19 @@ void *_realloc_w(void *buf, size_t size, const char *caller, const char *file, i
 	return buffer;
 }
 
-bool null_terminate(char *buf, char delim) {
+char *null_terminate(char *buf, char delim) {
 
 	char *test;
 
 	if (!buf)
-		return false;
+		return NULL;
 
 	test = strchr(buf, delim);
 	if (!test)
-		return false;
+		return NULL;
 
 	*test = '\0';
-	return true;
+	return test;
 }
 
 char *trim_whitespace(char *str) {

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 DIR=$1
-QUERY=$2
+COUNT=`echo $2 | cut -c -2 | grep -o "[0-9]*"`
+QUERY=$3
 RANDOM_ON=~/.mpd_random
 RESULT=`mpc search filename "$QUERY"`
 RESULT_BYTES=`echo "$RESULT" | wc -c`
@@ -9,6 +10,10 @@ RESULT_LINES=`echo "$RESULT" | wc -l`
 
 if [ $RESULT_BYTES -lt 5 ]; then
 	exit 1
+fi
+
+if [ $COUNT -gt 10 ]; then
+	COUNT=10
 fi
 
 if [ $RESULT_LINES -eq 1 ]; then
@@ -30,7 +35,10 @@ if [ $RESULT_LINES -eq 1 ]; then
 		fi
 	fi
 else
-	echo "$RESULT_LINES results found. Printing first 3..."
-	echo "$RESULT" | head -n3 | awk -F. -v OFS=. '{NF--; print}'
+	if [ $COUNT -gt $RESULT_LINES ]; then
+		COUNT=$RESULT_LINES
+	fi
+	echo "$RESULT_LINES results found. Printing first $COUNT..."
+	echo "$RESULT" | head -n$COUNT | awk -F. -v OFS=. '{NF--; print}'
 	exit 1
 fi

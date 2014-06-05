@@ -70,8 +70,8 @@ bool starts_with(const char *s1, const char *s2);
 bool starts_case_with(const char *s1, const char *s2);
 
 /** Terminate buffer on the delim character
- *  @returns false if something went wrong */
-bool null_terminate(char *buf, char delim);
+ *  @returns NULL if something went wrong, or the pointer to the NULL character */
+char *null_terminate(char *buf, char delim);
 
 /** Remove leading & trailing whitespace
  *  @warning  DON'T pass a read-only pointer, the string is edited in-place.
