@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <stdbool.h>
 #include <ctype.h>
 #include <poll.h>
 #include <fcntl.h>
-#include <string.h>
 #include "socket.h"
 #include "irc.h"
 #include "mpd.h"
@@ -17,9 +17,36 @@ STATIC bool mpd_announce(bool on);
 // Be careful to only access & change announce & random members through the atomic macros defined in common.h
 extern struct mpd_info *mpd;
 
+STATIC char **parse_mpd_play_query(char *query) {
+
+	size_t size;
+	char *temp, **cmd, *count = "3";
+
+	if (strstr(query, "youtu")) {
+		size = sizeof(char *) * 4;
+		cmd = malloc_w(size);
+		memcpy(cmd, CMD(SCRIPTDIR "youtube2mp3.sh", cfg.mpd_database, query), size);
+	} else {
+		if (*query == '-' && isdigit(*(query + 1))) {
+			temp = null_terminate(query + 2, ' ');
+			if (!temp)
+				return NULL;
+
+			count = query + 1;
+			query = temp  + 1;
+			while (isspace(*query))
+				query++;
+		}
+		size = sizeof(char *) * 5;
+		cmd = malloc_w(size);
+		memcpy(cmd, CMD(SCRIPTDIR "mpd_search.sh", cfg.mpd_database, count, query), size);
+	}
+	return cmd;
+}
+
 void bot_play(Irc server, struct parsed_data pdata) {
 
-	char *temp, **prog, *count = "3";
+	char **cmd;
 
 	pdata.message = trim_whitespace(pdata.message);
 	if (!pdata.message) {
@@ -27,25 +54,15 @@ void bot_play(Irc server, struct parsed_data pdata) {
 		TRUE(mpd->random);
 		return;
 	}
-	if (strstr(pdata.message, "youtu"))
-		prog = CMD(SCRIPTDIR "youtube2mp3.sh", cfg.mpd_database, pdata.message);
-	else {
-		if (*pdata.message == '-' && isdigit(*(pdata.message + 1))) {
-			temp = null_terminate(pdata.message + 2, ' ');
-			if (!temp)
-				return;
+	cmd = parse_mpd_play_query(pdata.message);
+	if (!cmd)
+		return;
 
-			count = pdata.message + 1;
-			pdata.message = temp  + 1;
-			while (isspace(*pdata.message))
-				pdata.message++;
-		}
-		prog = CMD(SCRIPTDIR "mpd_search.sh", cfg.mpd_database, count, pdata.message);
-	}
-	if (print_cmd_output(server, pdata.target, prog) == EXIT_SUCCESS) {
+	if (print_cmd_output(server, pdata.target, cmd) == EXIT_SUCCESS) {
 		mpd_announce(OFF);
 		FALSE(mpd->random);
 	}
+	free(cmd);
 }
 
 void bot_current(Irc server, struct parsed_data pdata) {

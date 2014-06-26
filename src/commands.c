@@ -32,9 +32,10 @@ void bot_access_add(Irc server, struct parsed_data pdata) {
 	if (!argc)
 		return;
 
-	if (!user_has_access(server, pdata.sender))
+	if (!user_has_access(server, pdata.sender)) {
+		free(argv);
 		return;
-
+	}
 	if (add_user(argv[0]))
 		send_message(server, pdata.target, "%s, with great power...", argv[0]);
 
