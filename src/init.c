@@ -297,5 +297,6 @@ void cleanup(void) {
 	free(mpd);
 	openssl_crypto_cleanup();
 	curl_global_cleanup();
+	close_database();
 	sqlite3_shutdown();
 }

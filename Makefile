@@ -37,7 +37,8 @@ OBJFILES-TEST := $(addprefix $(OUTDIR)/, $(OBJFILES-TEST))
 OBJFILES-TEST += $(OBJFILES)
 OBJFILES-TEST := $(filter-out %/main.o %/test_main.h, $(OBJFILES-TEST))
 
-all release: $(OUTDIR)/$(PROGRAM)
+all: $(OUTDIR)/$(PROGRAM)
+release: clean all
 
 # Build main program
 $(OUTDIR)/$(PROGRAM): $(OBJFILES)
