@@ -18,7 +18,7 @@
 #define MAXCOMMITS   10
 #define MAXPINGS     10
 #define REPOLEN      80
-#define QUOTELEN     150
+#define QUOTELEN     250
 #define DEFAULT_ROLL 100
 #define MAXROLL      1000000
 
