@@ -259,3 +259,38 @@ cleanup:
 	curl_easy_cleanup(curl);
 	return url_title;
 }
+
+bool fit_status(void) {
+
+	CURL *curl;
+	CURLcode code;
+	struct mem_buffer mem = {NULL, 0};
+	bool fitness = false;
+
+	curl = curl_easy_init();
+	if (!curl)
+		goto cleanup;
+
+	curl_easy_setopt(curl, CURLOPT_URL, "http://is.freestyler.fit.yet.charkost.gr/");
+	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 3L);
+	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_memory);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &mem);
+
+	code = curl_easy_perform(curl);
+	if (code != CURLE_OK) {
+		fprintf(stderr, "Error: %s\n", curl_easy_strerror(code));
+		goto cleanup;
+	}
+	if (!mem.buffer) {
+		fprintf(stderr, "Error: Body was empty");
+		goto cleanup;
+	}
+	fitness = starts_with(mem.buffer, "true");
+
+cleanup:
+	free(mem.buffer);
+	curl_easy_cleanup(curl);
+	return fitness;
+}

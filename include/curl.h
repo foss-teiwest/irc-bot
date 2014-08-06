@@ -73,5 +73,8 @@ bool openssl_crypto_init(void);
 /** Cleanup the above steps */
 void openssl_crypto_cleanup(void);
 
+/** Return freestyler's fitness status */
+bool fit_status(void);
+
 #endif
 

@@ -93,5 +93,8 @@ void bot_marker(Irc server, struct parsed_data pdata);
 /** Send tweet */
 void bot_tweet(Irc server, struct parsed_data pdata);
 
+/** Check if freestyler is fit yet */
+void bot_fit(Irc server, struct parsed_data pdata);
+
 #endif
 

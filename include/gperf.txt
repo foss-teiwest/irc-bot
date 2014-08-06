@@ -39,3 +39,4 @@ struct command_entry;
 "announce", bot_announce
 "tweet", bot_tweet
 "marker", bot_marker
+"fit", bot_fit

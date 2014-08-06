@@ -36,12 +36,12 @@
 struct command_entry;
 #include <string.h>
 
-#define TOTAL_KEYWORDS 27
+#define TOTAL_KEYWORDS 28
 #define MIN_WORD_LENGTH 3
 #define MAX_WORD_LENGTH 11
 #define MIN_HASH_VALUE 3
-#define MAX_HASH_VALUE 39
-/* maximum key range = 37, duplicates = 0 */
+#define MAX_HASH_VALUE 44
+/* maximum key range = 42, duplicates = 0 */
 
 #ifndef GPERF_DOWNCASE
 #define GPERF_DOWNCASE 1
@@ -100,32 +100,32 @@ hash (register const char *str, register unsigned int len)
 {
   static const unsigned char asso_values[] =
     {
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40,  5, 40, 20,  0,  5,
-       0, 25, 15,  8, 40,  5, 30, 15,  5,  0,
-       0, 40,  0, 10, 15,  0, 40,  0, 40, 40,
-      40, 40, 40, 40, 40, 40, 40,  5, 40, 20,
-       0,  5,  0, 25, 15,  8, 40,  5, 30, 15,
-       5,  0,  0, 40,  0, 10, 15,  0, 40,  0,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-      40, 40, 40, 40, 40, 40
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45,  5, 45, 10, 15, 20,
+       0, 10,  0, 15, 45, 25,  0, 15, 10, 23,
+       0, 45,  0,  5,  5,  0, 45,  0, 45, 45,
+      45, 45, 45, 45, 45, 45, 45,  5, 45, 10,
+      15, 20,  0, 10,  0, 15, 45, 25,  0, 15,
+      10, 23,  0, 45,  0,  5,  5,  0, 45,  0,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+      45, 45, 45, 45, 45, 45
     };
   return len + asso_values[(unsigned char)str[1]] + asso_values[(unsigned char)str[0]];
 }
@@ -143,58 +143,60 @@ command_lookup (register const char *str, register unsigned int len)
     {
 #line 24 "include/gperf.txt"
       {"url", bot_url},
-#line 37 "include/gperf.txt"
-      {"roll", bot_roll},
+#line 30 "include/gperf.txt"
+      {"play", bot_play},
 #line 29 "include/gperf.txt"
       {"uptime", bot_uptime},
 #line 15 "include/gperf.txt"
       {"PRIVMSG", irc_privmsg},
-#line 27 "include/gperf.txt"
-      {"dns", bot_dns},
-#line 20 "include/gperf.txt"
-      {"fail", bot_fail},
-#line 16 "include/gperf.txt"
-      {"NOTICE", irc_notice},
-#line 26 "include/gperf.txt"
-      {"ping", bot_ping},
-#line 21 "include/gperf.txt"
-      {"fail_add", bot_fail_add},
-#line 34 "include/gperf.txt"
-      {"next", bot_next},
-#line 22 "include/gperf.txt"
-      {"fail_modify", bot_fail_modify},
-#line 17 "include/gperf.txt"
-      {"KICK", irc_kick},
-#line 39 "include/gperf.txt"
-      {"announce", bot_announce},
-#line 38 "include/gperf.txt"
-      {"seek", bot_seek},
-#line 40 "include/gperf.txt"
-      {"tweet", bot_tweet},
-#line 23 "include/gperf.txt"
-      {"mumble", bot_mumble},
-#line 18 "include/gperf.txt"
-      {"help", bot_help},
-#line 28 "include/gperf.txt"
-      {"traceroute", bot_traceroute},
-#line 41 "include/gperf.txt"
-      {"marker", bot_marker},
-#line 33 "include/gperf.txt"
-      {"current", bot_current},
-#line 36 "include/gperf.txt"
-      {"stop", bot_stop},
-#line 32 "include/gperf.txt"
-      {"history", bot_history},
-#line 35 "include/gperf.txt"
-      {"shuffle", bot_shuffle},
-#line 30 "include/gperf.txt"
-      {"play", bot_play},
-#line 19 "include/gperf.txt"
-      {"access_add", bot_access_add},
 #line 31 "include/gperf.txt"
       {"playlist", bot_playlist},
+#line 20 "include/gperf.txt"
+      {"fail", bot_fail},
+#line 40 "include/gperf.txt"
+      {"tweet", bot_tweet},
+#line 35 "include/gperf.txt"
+      {"shuffle", bot_shuffle},
+#line 21 "include/gperf.txt"
+      {"fail_add", bot_fail_add},
+#line 36 "include/gperf.txt"
+      {"stop", bot_stop},
+#line 28 "include/gperf.txt"
+      {"traceroute", bot_traceroute},
+#line 22 "include/gperf.txt"
+      {"fail_modify", bot_fail_modify},
+#line 33 "include/gperf.txt"
+      {"current", bot_current},
+#line 42 "include/gperf.txt"
+      {"fit", bot_fit},
+#line 26 "include/gperf.txt"
+      {"ping", bot_ping},
+#line 23 "include/gperf.txt"
+      {"mumble", bot_mumble},
+#line 32 "include/gperf.txt"
+      {"history", bot_history},
+#line 39 "include/gperf.txt"
+      {"announce", bot_announce},
+#line 18 "include/gperf.txt"
+      {"help", bot_help},
+#line 19 "include/gperf.txt"
+      {"access_add", bot_access_add},
+#line 41 "include/gperf.txt"
+      {"marker", bot_marker},
+#line 37 "include/gperf.txt"
+      {"roll", bot_roll},
+#line 27 "include/gperf.txt"
+      {"dns", bot_dns},
+#line 38 "include/gperf.txt"
+      {"seek", bot_seek},
 #line 25 "include/gperf.txt"
-      {"github", bot_github}
+      {"github", bot_github},
+#line 34 "include/gperf.txt"
+      {"next", bot_next},
+#line 16 "include/gperf.txt"
+      {"NOTICE", irc_notice},
+#line 17 "include/gperf.txt"
+      {"KICK", irc_kick}
     };
 
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
@@ -236,7 +238,7 @@ command_lookup (register const char *str, register unsigned int len)
                   }
                 break;
               case 5:
-                if (len == 3)
+                if (len == 8)
                   {
                     resword = &wordlist[4];
                     goto compare;
@@ -249,15 +251,15 @@ command_lookup (register const char *str, register unsigned int len)
                     goto compare;
                   }
                 break;
-              case 8:
-                if (len == 6)
+              case 7:
+                if (len == 5)
                   {
                     resword = &wordlist[6];
                     goto compare;
                   }
                 break;
               case 9:
-                if (len == 4)
+                if (len == 7)
                   {
                     resword = &wordlist[7];
                     goto compare;
@@ -277,36 +279,36 @@ command_lookup (register const char *str, register unsigned int len)
                     goto compare;
                   }
                 break;
-              case 13:
-                if (len == 11)
+              case 12:
+                if (len == 10)
                   {
                     resword = &wordlist[10];
                     goto compare;
                   }
                 break;
-              case 14:
-                if (len == 4)
+              case 13:
+                if (len == 11)
                   {
                     resword = &wordlist[11];
                     goto compare;
                   }
                 break;
-              case 15:
-                if (len == 8)
+              case 14:
+                if (len == 7)
                   {
                     resword = &wordlist[12];
                     goto compare;
                   }
                 break;
-              case 16:
-                if (len == 4)
+              case 15:
+                if (len == 3)
                   {
                     resword = &wordlist[13];
                     goto compare;
                   }
                 break;
-              case 17:
-                if (len == 5)
+              case 16:
+                if (len == 4)
                   {
                     resword = &wordlist[14];
                     goto compare;
@@ -319,71 +321,71 @@ command_lookup (register const char *str, register unsigned int len)
                     goto compare;
                   }
                 break;
+              case 19:
+                if (len == 7)
+                  {
+                    resword = &wordlist[16];
+                    goto compare;
+                  }
+                break;
+              case 20:
+                if (len == 8)
+                  {
+                    resword = &wordlist[17];
+                    goto compare;
+                  }
+                break;
               case 21:
                 if (len == 4)
                   {
-                    resword = &wordlist[16];
+                    resword = &wordlist[18];
                     goto compare;
                   }
                 break;
               case 22:
                 if (len == 10)
                   {
-                    resword = &wordlist[17];
+                    resword = &wordlist[19];
                     goto compare;
                   }
                 break;
               case 23:
                 if (len == 6)
                   {
-                    resword = &wordlist[18];
+                    resword = &wordlist[20];
                     goto compare;
                   }
                 break;
               case 24:
-                if (len == 7)
+                if (len == 4)
                   {
-                    resword = &wordlist[19];
+                    resword = &wordlist[21];
+                    goto compare;
+                  }
+                break;
+              case 25:
+                if (len == 3)
+                  {
+                    resword = &wordlist[22];
                     goto compare;
                   }
                 break;
               case 26:
                 if (len == 4)
                   {
-                    resword = &wordlist[20];
-                    goto compare;
-                  }
-                break;
-              case 27:
-                if (len == 7)
-                  {
-                    resword = &wordlist[21];
-                    goto compare;
-                  }
-                break;
-              case 29:
-                if (len == 7)
-                  {
-                    resword = &wordlist[22];
-                    goto compare;
-                  }
-                break;
-              case 31:
-                if (len == 4)
-                  {
                     resword = &wordlist[23];
                     goto compare;
                   }
                 break;
-              case 32:
-                if (len == 10)
+              case 28:
+                if (len == 6)
                   {
                     resword = &wordlist[24];
                     goto compare;
                   }
                 break;
-              case 35:
-                if (len == 8)
+              case 31:
+                if (len == 4)
                   {
                     resword = &wordlist[25];
                     goto compare;
@@ -393,6 +395,13 @@ command_lookup (register const char *str, register unsigned int len)
                 if (len == 6)
                   {
                     resword = &wordlist[26];
+                    goto compare;
+                  }
+                break;
+              case 41:
+                if (len == 4)
+                  {
+                    resword = &wordlist[27];
                     goto compare;
                   }
                 break;

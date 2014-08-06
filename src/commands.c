@@ -19,7 +19,7 @@
 void bot_help(Irc server, struct parsed_data pdata) {
 
 	send_message(server, pdata.target, "%s", "url, mumble, fail, fail_add, fail_modify, access_add, github, ping, "
-			"traceroute, dns, uptime, roll, tweet, marker");
+			"traceroute, dns, uptime, roll, tweet, marker, fit");
 	send_message(server, pdata.target, "%s", "MPD: play, playlist, history, current, next, shuffle, stop, seek, announce");
 }
 
@@ -334,4 +334,12 @@ void bot_tweet(Irc server, struct parsed_data pdata) {
 	default:
 		send_message(server, pdata.target, "%s", "unknown error");
 	}
+}
+
+void bot_fit(Irc server, struct parsed_data pdata) {
+
+	if (fit_status())
+		send_message(server, pdata.target, "%s", "freestyl3r is fit!");
+	else
+		send_message(server, pdata.target, "%s", "freestyl3r is not fit yet :|");
 }
