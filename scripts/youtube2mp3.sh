@@ -2,7 +2,7 @@
 
 DIR=$1
 URL=`echo $2 | grep -o "^[^&]*"`
-TIMELIMIT=600
+TIMELIMIT=720
 RANDOM_ON=~/.mpd_random
 
 IFS=$'\n'
@@ -15,7 +15,7 @@ print_song() {
 	touch "$DIR"/"$TITLE".mp3
 	QUEUESIZE=`mpc playlist | wc -l`
 	if [ $QUEUESIZE -eq 1 ]; then
-		echo "♪ $TITLE ♪ playing @ https://foss.tesyd.teimes.gr/radio"
+		echo "♪ $TITLE ♪ playing @ https://foss.teiwest.gr/radio"
 	else
 		echo "♪ $TITLE ♪ queued after `expr $QUEUESIZE - 1` song(s)..."
 	fi

@@ -291,14 +291,10 @@ STATIC void pre_launch_command(Irc server, struct parsed_data pdata, Command *cm
 	memcpy(cmdi->line, server->line, IRCLEN + 1);
 	cmdi->cmd = cmd;
 	cmdi->server = server;
-
-	cmdi->pdata.sender      = cmdi->line + (pdata.sender  - server->line);
-	cmdi->pdata.command     = cmdi->line + (pdata.command - server->line);
-	cmdi->pdata.target      = cmdi->line + (pdata.target  - server->line);
-	if (pdata.message)
-		cmdi->pdata.message = cmdi->line + (pdata.message - server->line);
-	else
-		cmdi->pdata.message = NULL;
+	cmdi->pdata.sender  = cmdi->line + (pdata.sender  - server->line);
+	cmdi->pdata.command = cmdi->line + (pdata.command - server->line);
+	cmdi->pdata.target  = cmdi->line + (pdata.target  - server->line);
+	cmdi->pdata.message = pdata.message ? cmdi->line + (pdata.message - server->line) : NULL;
 
 	if (pthread_create(&id, NULL, launch_command, cmdi))
 		perror("Could not launch command");

@@ -5,7 +5,7 @@ OUTDIR   = bin
 INCLDIR  = include
 SRCDIR   = src
 TESTDIR  = test
-CFLAGS   = -g -Wall -Wextra -std=c99 -pedantic
+CFLAGS   = -ggdb3 -Wall -Wextra -std=c99 -pedantic
 LDLIBS   = -pthread -lcurl -lcrypto -lyajl -lsqlite3
 CPPFLAGS = -D_GNU_SOURCE
 CFLAGS-TEST := $(CFLAGS)
@@ -14,7 +14,7 @@ CFLAGS-TEST := $(CFLAGS)
 ifeq "$(MAKECMDGOALS)" "release"
 	CPPFLAGS += -DNDEBUG
 	CFLAGS   += -O2 -pipe
-	CFLAGS   := $(filter-out -g, $(CFLAGS))
+	CFLAGS   := $(filter-out -ggdb3, $(CFLAGS))
 	LDFLAGS  = -s
 endif
 
@@ -67,13 +67,13 @@ $(OUTDIR)/%.o: $(TESTDIR)/%.c
 # Generate documentation & test coverage in html and upload them
 doc:
 	doxygen Doxyfile
-	rsync -avz --delete bin/doxygen/ freestyler@foss.tesyd.teimes.gr:public_html/irc-bot/doc
+	rsync -avz --delete bin/doxygen/ freestyler@foss.teiwest.gr:public_html/irc-bot/doc
 	lcov --capture --directory $(OUTDIR)/ --output-file $(OUTDIR)/coverage.info >/dev/null
 	genhtml $(OUTDIR)/coverage.info --output-directory $(OUTDIR)/lcov >/dev/null
-	rsync -avz --delete bin/lcov/ freestyler@foss.tesyd.teimes.gr:public_html/irc-bot/coverage
+	rsync -avz --delete bin/lcov/ freestyler@foss.teiwest.gr:public_html/irc-bot/coverage
 
 clean:
-	rm -r $(OUTDIR)/*
+	rm -rf $(OUTDIR)/*
 
 # Make sure any files in the project folder with a same name as the ones listed below, do not interfere with our rules
 .PHONY: clean test release
