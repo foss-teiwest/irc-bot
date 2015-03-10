@@ -272,6 +272,10 @@ void bot_dns(Irc server, struct parsed_data pdata) {
 	if (!argc)
 		return;
 
+	// Strip leading dashes
+	while (*argv[0] == '-')
+		argv[0]++;
+
 	if (strchr(argv[0], '.'))
 		print_cmd_output(server, pdata.target, CMD("nslookup", argv[0]));
 
