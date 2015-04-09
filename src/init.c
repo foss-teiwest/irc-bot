@@ -182,6 +182,7 @@ STATIC void parse_config(const char *config_file) {
 	CFG_GET(cfg, root, oauth_consumer_secret);
 	CFG_GET(cfg, root, oauth_token);
 	CFG_GET(cfg, root, oauth_token_secret);
+	CFG_GET(cfg, root, google_shortener_api_key);
 
 	cfg.mpd_database      = expand_path(cfg.mpd_database);
 	cfg.mpd_random_state  = expand_path(cfg.mpd_random_state);

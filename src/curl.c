@@ -7,6 +7,7 @@
 #include <curl/curl.h>
 #include <openssl/crypto.h>
 #include <yajl/yajl_tree.h>
+#include "init.h"
 #include "irc.h"
 #include "curl.h"
 #include "common.h"
@@ -69,23 +70,26 @@ void *shorten_url(void *long_url_arg) {
 
 	CURL *curl;
 	CURLcode code;
-	char url_formatted[URLLEN], *short_url = NULL;
+	char url_formatted[URLLEN], API_URL[URLLEN], *short_url = NULL;
 	struct mem_buffer mem = {NULL, 0};
 	struct curl_slist *headers = NULL;
 	const char *long_url = long_url_arg;
-
-	// Set the Content-type and url format as required by Google API for the POST request
-	headers = curl_slist_append(headers, "Content-Type: application/json");
-	snprintf(url_formatted, URLLEN, "{\"longUrl\": \"%s\"}", long_url);
 
 	curl = curl_easy_init();
 	if (!curl)
 		goto cleanup;
 
+	// Set the Content-type and url format as required by Google API for the POST request
+	headers = curl_slist_append(headers, "Content-Type: application/json");
+	snprintf(url_formatted, URLLEN, "{\"longUrl\": \"%s\"}", long_url);
+
+	// Include our API key in the URL
+	snprintf(API_URL, URLLEN, "https://www.googleapis.com/urlshortener/v1/url?key=%s", cfg.google_shortener_api_key);
+
 #ifdef TEST
 	curl_easy_setopt(curl, CURLOPT_URL, getenv("IRCBOT_TESTFILE"));
 #else
-	curl_easy_setopt(curl, CURLOPT_URL, "https://www.googleapis.com/urlshortener/v1/url"); // Set API url
+	curl_easy_setopt(curl, CURLOPT_URL, API_URL); // Set API url
 #endif
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, url_formatted); // Send the formatted POST
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L); // Allow redirects

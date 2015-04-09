@@ -36,6 +36,9 @@
 	"mpd_database": "~/Music",
 	"mpd_random_state": "~/.mpd_random",
 
+	// Google URL shortener API key
+	"google_shortener_api_key": "",
+
 	// Twitter settings
 	"oauth_consumer_key":    "",
 	"oauth_consumer_secret": "",
