@@ -4,7 +4,7 @@ RANDOM_ON=~/.mpd_random
 QUEUESIZE=`mpc playlist | wc -l`
 
 if [ ! -e $RANDOM_ON ] || [ $QUEUESIZE -eq 0 ]; then
-	mpc ls | sort -R | mpc add && mpc -q play
+	mpc ls | shuf | mpc add && mpc -q play
 	QUEUESIZE=`mpc playlist | wc -l`
 	echo "$QUEUESIZE songs queued @ https://foss.teiwest.gr/radio"
 	echo 'use "!announce on" to begin the spam'

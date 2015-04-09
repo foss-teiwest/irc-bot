@@ -86,7 +86,7 @@ bool user_in_access_list(const char *user) {
 	int status;
 	sqlite3_stmt *stmt;
 
-	stmt = sql_prepare("SELECT user_id FROM users WHERE name == ?1");
+	stmt = sql_prepare("SELECT user_id FROM users WHERE name = ?1");
 	if (!stmt)
 		return false;
 
@@ -120,7 +120,7 @@ int add_quote(const char *quote, const char *user) {
 	int status;
 	sqlite3_stmt *stmt;
 
-	stmt = sql_prepare("INSERT INTO quotes(quote, user_id) VALUES(?1, (SELECT user_id FROM users WHERE name == ?2))");
+	stmt = sql_prepare("INSERT INTO quotes(quote, user_id) VALUES(?1, (SELECT user_id FROM users WHERE name = ?2))");
 	if (!stmt)
 		return SQLITE_ERROR;
 
@@ -174,7 +174,7 @@ char *get_quote(int quote_id) {
 		if (!quote_id)
 			return NULL;
 	}
-	stmt = sql_prepare("SELECT quote FROM quotes WHERE quote_id == ?1");
+	stmt = sql_prepare("SELECT quote FROM quotes WHERE quote_id = ?1");
 	if (!stmt)
 		return NULL;
 
