@@ -45,13 +45,14 @@ if [ "$DURATION" -gt $TIMELIMIT ]; then
 	exit 1
 fi
 
-youtube-dl -q           \
---max-filesize 150M     \
---extract-audio         \
---audio-format mp3      \
---audio-quality 192k    \
---max-quality 22 "$URL" \
--o "$DIR"/"$TITLE"."%(ext)s"
+youtube-dl -q                \
+--max-filesize 150M          \
+--extract-audio              \
+--audio-format mp3           \
+--audio-quality 192k         \
+-f bestaudio/best            \
+-o "$DIR"/"$TITLE"."%(ext)s" \
+"$URL"
 
 scripts/id3v2_unicode_title.py "$TITLE" "$DIR"/"$TITLE".mp3
 disable_random_mode
