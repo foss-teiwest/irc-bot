@@ -96,5 +96,8 @@ void bot_tweet(Irc server, struct parsed_data pdata);
 /** Check if freestyler is fit yet */
 void bot_fit(Irc server, struct parsed_data pdata);
 
+/** Report Nafpakto's weather */
+void bot_weather_nafpaktos(Irc server, struct parsed_data pdata);
+
 #endif
 

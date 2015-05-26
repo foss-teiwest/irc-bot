@@ -40,3 +40,4 @@ struct command_entry;
 "tweet", bot_tweet
 "marker", bot_marker
 "fit", bot_fit
+"weather", bot_weather_nafpaktos

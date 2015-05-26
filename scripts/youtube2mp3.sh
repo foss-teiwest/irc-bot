@@ -15,7 +15,7 @@ print_song() {
 	touch "$DIR"/"$TITLE".mp3
 	QUEUESIZE=`mpc playlist | wc -l`
 	if [ $QUEUESIZE -eq 1 ]; then
-		echo "♪ $TITLE ♪ playing @ https://foss.teiwest.gr/radio"
+		echo "♪ $TITLE ♪ playing @ http://radio.foss.teiwest.gr/"
 	else
 		echo "♪ $TITLE ♪ queued after `expr $QUEUESIZE - 1` song(s)..."
 	fi

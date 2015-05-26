@@ -29,7 +29,7 @@ if [ $RESULT_LINES -eq 1 ]; then
 		RESULT=`echo "$RESULT" | awk -F. -v OFS=. '{NF--; print}'`
 
 		if [ $QUEUESIZE -eq 0 ]; then
-			echo "♪ $RESULT ♪ playing @ https://foss.teiwest.gr/radio"
+			echo "♪ $RESULT ♪ playing @ http://radio.foss.teiwest.gr/"
 		else
 			echo "♪ $RESULT ♪ queued after $QUEUESIZE song(s)..."
 		fi

@@ -36,7 +36,7 @@
 struct command_entry;
 #include <string.h>
 
-#define TOTAL_KEYWORDS 28
+#define TOTAL_KEYWORDS 29
 #define MIN_WORD_LENGTH 3
 #define MAX_WORD_LENGTH 11
 #define MIN_HASH_VALUE 3
@@ -107,11 +107,11 @@ hash (register const char *str, register unsigned int len)
       45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
       45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
       45, 45, 45, 45, 45,  5, 45, 10, 15, 20,
-       0, 10,  0, 15, 45, 25,  0, 15, 10, 23,
+       0, 10,  0, 15, 45, 20,  0, 15, 10, 28,
        0, 45,  0,  5,  5,  0, 45,  0, 45, 45,
       45, 45, 45, 45, 45, 45, 45,  5, 45, 10,
-      15, 20,  0, 10,  0, 15, 45, 25,  0, 15,
-      10, 23,  0, 45,  0,  5,  5,  0, 45,  0,
+      15, 20,  0, 10,  0, 15, 45, 20,  0, 15,
+      10, 28,  0, 45,  0,  5,  5,  0, 45,  0,
       45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
       45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
       45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
@@ -183,20 +183,22 @@ command_lookup (register const char *str, register unsigned int len)
       {"access_add", bot_access_add},
 #line 41 "include/gperf.txt"
       {"marker", bot_marker},
-#line 37 "include/gperf.txt"
-      {"roll", bot_roll},
+#line 43 "include/gperf.txt"
+      {"weather", bot_weather_nafpaktos},
 #line 27 "include/gperf.txt"
       {"dns", bot_dns},
 #line 38 "include/gperf.txt"
       {"seek", bot_seek},
 #line 25 "include/gperf.txt"
       {"github", bot_github},
+#line 37 "include/gperf.txt"
+      {"roll", bot_roll},
 #line 34 "include/gperf.txt"
       {"next", bot_next},
-#line 16 "include/gperf.txt"
-      {"NOTICE", irc_notice},
 #line 17 "include/gperf.txt"
-      {"KICK", irc_kick}
+      {"KICK", irc_kick},
+#line 16 "include/gperf.txt"
+      {"NOTICE", irc_notice}
     };
 
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
@@ -357,7 +359,7 @@ command_lookup (register const char *str, register unsigned int len)
                   }
                 break;
               case 24:
-                if (len == 4)
+                if (len == 7)
                   {
                     resword = &wordlist[21];
                     goto compare;
@@ -384,24 +386,31 @@ command_lookup (register const char *str, register unsigned int len)
                     goto compare;
                   }
                 break;
-              case 31:
+              case 29:
                 if (len == 4)
                   {
                     resword = &wordlist[25];
                     goto compare;
                   }
                 break;
-              case 36:
-                if (len == 6)
+              case 31:
+                if (len == 4)
                   {
                     resword = &wordlist[26];
                     goto compare;
                   }
                 break;
-              case 41:
+              case 36:
                 if (len == 4)
                   {
                     resword = &wordlist[27];
+                    goto compare;
+                  }
+                break;
+              case 41:
+                if (len == 6)
+                  {
+                    resword = &wordlist[28];
                     goto compare;
                   }
                 break;
