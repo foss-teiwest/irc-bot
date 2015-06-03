@@ -40,6 +40,7 @@ struct config_options {
 	char *oauth_token;
 	char *oauth_token_secret;
 	char *google_shortener_api_key;
+	char *wolframalpha_api_key;
 	bool twitter_details_set;
 	char *access_list[MAXACCLIST];
 	int access_list_count;

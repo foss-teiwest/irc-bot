@@ -55,6 +55,9 @@ void initialize(int argc, char *argv[]) {
 
 	if (*cfg.oauth_consumer_key && *cfg.oauth_consumer_secret && *cfg.oauth_token && *cfg.oauth_token_secret)
 		cfg.twitter_details_set = true;
+
+	if (*cfg.wolframalpha_api_key)
+		setenv("WOLFRAMALPHA_API_KEY", cfg.wolframalpha_api_key, true);
 }
 
 STATIC size_t read_file(char **buf, const char *filename) {
@@ -183,6 +186,7 @@ STATIC void parse_config(const char *config_file) {
 	CFG_GET(cfg, root, oauth_token);
 	CFG_GET(cfg, root, oauth_token_secret);
 	CFG_GET(cfg, root, google_shortener_api_key);
+	CFG_GET(cfg, root, wolframalpha_api_key);
 
 	cfg.mpd_database      = expand_path(cfg.mpd_database);
 	cfg.mpd_random_state  = expand_path(cfg.mpd_random_state);

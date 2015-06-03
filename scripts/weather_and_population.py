@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
+import os
 import sys
+import urllib.request
+from socket import timeout
 
 def main(api_key):
     if len(sys.argv) == 3: query = sys.argv[2].replace(' ', '%20')
@@ -10,9 +13,6 @@ def main(api_key):
 
     # weather
     if sys.argv[1] == '-w':
-        import urllib.request
-        from socket import timeout
-
         url = "http://api.wolframalpha.com/v1/query?appid={}&input=weather%20{}".format(api_key, query)
 
         try: resp = str( urllib.request.urlopen(url, timeout=12).read() )
@@ -31,9 +31,6 @@ def main(api_key):
 
     # population
     elif sys.argv[1] == '-p':
-        import urllib.request
-        from socket import timeout
-
         url = "http://api.wolframalpha.com/v1/query?appid={}&input=population%20{}".format(api_key, query)
 
         try: resp = str( urllib.request.urlopen(url, timeout=12).read() )
@@ -52,5 +49,5 @@ def main(api_key):
         print("No valid argument found.")
 
 if __name__ == '__main__':
-    api_key = "J6HA6V-YHRLHJ8A8Q"
+    api_key = os.environ['WOLFRAMALPHA_API_KEY']
     main(api_key)
