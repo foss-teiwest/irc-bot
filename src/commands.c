@@ -19,7 +19,7 @@
 void bot_help(Irc server, struct parsed_data pdata) {
 
 	send_message(server, pdata.target, "%s", "url, mumble, fail, fail_add, fail_modify, access_add, github, ping, "
-			"traceroute, dns, uptime, roll, tweet, marker, fit, weather");
+			"traceroute, dns, uptime, roll, tweet, marker, fit, weather, population");
 	send_message(server, pdata.target, "%s", "MPD: play, playlist, history, current, next, shuffle, stop, seek, announce");
 }
 
@@ -348,7 +348,21 @@ void bot_fit(Irc server, struct parsed_data pdata) {
 		send_message(server, pdata.target, "%s", "freestyl3r is not fit yet :|");
 }
 
-void bot_weather_nafpaktos(Irc server, struct parsed_data pdata) {
+STATIC void weather_and_population(Irc server, struct parsed_data pdata, char *type) {
 
-	print_cmd_output_unsafe(server, pdata.target, SCRIPTDIR "nafpaktos_weather.py");
+	pdata.message = trim_whitespace(pdata.message);
+	if (!pdata.message)
+		return;
+
+	print_cmd_output(server, pdata.target, CMD(SCRIPTDIR "weather_and_population.py", type, pdata.message));
+}
+
+void bot_weather(Irc server, struct parsed_data pdata) {
+
+	weather_and_population(server, pdata, "-w");
+}
+
+void bot_population(Irc server, struct parsed_data pdata) {
+
+	weather_and_population(server, pdata, "-p");
 }
