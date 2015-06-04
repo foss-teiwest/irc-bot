@@ -21,11 +21,15 @@ def main(api_key):
         title_hook = resp.find(opening)
         if title_hook != -1:
             title = resp[title_hook+11:resp.find(closure)] + "\n"
-            hook = resp.find('"InstantaneousWeather:WeatherData"')
-            result = resp[resp.find(opening, hook)+11:resp.find(closure, hook)]
-            # cleaning up result because urllib...
-            result = result.replace(" \\xc2\\xb0C", "°").replace("\\n", "\n")
-            print(title.replace(" |", ":") + result.replace(" |", ":"))
+            hook = resp.find('InstantaneousWeather:WeatherData')
+
+            if hook != -1:
+                result = resp[resp.find(opening, hook)+11:resp.find(closure, hook)]
+                # cleaning up result because urllib...
+                result = result.replace(" \\xc2\\xb0C", "°").replace("\\n", "\n")
+                print(title.replace(" |", ":") + result.replace(" |", ":"))
+            else:
+                print("No weather found for result '{}'.".format(title.replace(" |", ":")))
         else:
             print("Not found.")
 
