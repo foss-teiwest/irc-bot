@@ -16,11 +16,36 @@
 #include "database.h"
 #include "common.h"
 
+extern char *program_name_arg;
+extern char *config_file_arg;
+
 void bot_help(Irc server, struct parsed_data pdata) {
 
-	send_message(server, pdata.target, "%s", "url, mumble, fail, fail_add, fail_modify, access_add, github, ping, "
-			"traceroute, dns, uptime, roll, tweet, marker, fit, weather, population");
+	send_message(server, pdata.target, "%s", "url, mumble, fail, github, ping, traceroute, dns, uptime, roll, marker, fit, weather, population");
+	send_message(server, pdata.target, "%s", "ACCESS REQUIRED: access_add, fail_add, fail_modify, tweet, upgrade, downgrade");
 	send_message(server, pdata.target, "%s", "MPD: play, playlist, history, current, next, shuffle, stop, seek, announce");
+}
+
+static void deploy(char *fd, char *operation) {
+
+	execv(program_name_arg, CMD(program_name_arg, operation, "-f", fd, config_file_arg));
+	perror(__func__);
+}
+
+void bot_upgrade(Irc server, struct parsed_data pdata) {
+
+	char fd = get_socket(server);
+	if (user_has_access(server, pdata.sender))
+		if (print_cmd_output(server, pdata.target, CMD(SCRIPTDIR "deploy.sh", "-u")) == EXIT_SUCCESS)
+			deploy(&fd, "-u");
+}
+
+void bot_downgrade(Irc server, struct parsed_data pdata) {
+
+	char fd = get_socket(server);
+	if (user_has_access(server, pdata.sender))
+		if (print_cmd_output(server, pdata.target, CMD(SCRIPTDIR "deploy.sh", "-d")) == EXIT_SUCCESS)
+			deploy(&fd, "-d");
 }
 
 void bot_access_add(Irc server, struct parsed_data pdata) {

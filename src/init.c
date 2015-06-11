@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <getopt.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <fcntl.h>
@@ -32,17 +33,41 @@ STATIC void parse_config(const char *config_file);
 struct mpd_info *mpd;
 struct config_options cfg;
 pthread_t main_thread_id;
+char *program_name_arg;
+char *config_file_arg;
 
-void initialize(int argc, char *argv[]) {
+int initialize(int argc, char *argv[], int *fd) {
 
+	int opt, operation = 0;
+	char *config = NULL;
+
+	*fd = 0;
+	program_name_arg = argv[0];
 	main_thread_id = pthread_self();
 	srandom(time(NULL));
 
 	signal(SIGPIPE, SIG_IGN); // Don't exit program when writting to a closed socket
 	setlinebuf(stdout); // Flush on each line
 
-	// Accept config path as an optional argument
-	parse_config(argc == 2 ? argv[1] : DEFAULT_CONFIG_NAME);
+	while ((opt = getopt(argc, argv, "udf:")) != -1) {
+		switch (opt) {
+			case 'f':
+				*fd = optarg[0];
+				break;
+			case 'u':
+				operation = 1;
+				break;
+			case 'd':
+				operation = -1;
+				break;
+			default:
+				exit_msg("Usage: %s [<-u | -d> <-f fd>] [config_file]", argv[0]);
+		}
+	}
+	if (optind < argc)
+		config = config_file_arg = argv[optind];
+
+	parse_config(config ? config : DEFAULT_CONFIG_NAME);
 
 	sqlite3_initialize();
 	if (!setup_database())
@@ -58,6 +83,8 @@ void initialize(int argc, char *argv[]) {
 
 	if (*cfg.wolframalpha_api_key)
 		setenv("WOLFRAMALPHA_API_KEY", cfg.wolframalpha_api_key, true);
+
+	return operation;
 }
 
 STATIC size_t read_file(char **buf, const char *filename) {
@@ -197,14 +224,14 @@ STATIC void parse_config(const char *config_file) {
 	cfg.verbose           = get_json_bool(root, "verbose");
 }
 
-int setup_irc(Irc *server) {
+int setup_irc(Irc *server, int fd) {
 
 	Mqueue mq;
 	int ircfd;
 	pthread_t tid;
 	pthread_attr_t attr;
 
-	*server = irc_connect(cfg.server, cfg.port);
+	*server = irc_connect(cfg.server, cfg.port, fd);
 	if (!*server)
 		exit_msg("Irc connection failed");
 

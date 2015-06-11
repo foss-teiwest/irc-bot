@@ -12,18 +12,21 @@ int main(int argc, char *argv[]) {
 
 	Irc server;
 	FILE *fifo;
-	int ready;
+	int ready, operation, fd;
 	struct pollfd pfd[TOTAL];
 
 	for (int i = 0; i < TOTAL; i++) {
 		pfd[i].fd = -1;
 		pfd[i].events = POLLIN;
 	}
-	initialize(argc, argv);
-	pfd[IRC].fd         = setup_irc(&server);
+	operation           = initialize(argc, argv, &fd);
+	pfd[IRC].fd         = setup_irc(&server, fd);
 	pfd[MURM_LISTEN].fd = setup_mumble();
 	pfd[MPD].fd         = setup_mpd();
 	pfd[FIFO].fd        = setup_fifo(&fifo);
+
+	if (operation)
+		send_message(server, default_channel(server), "%s to version %s", operation > 0 ? "upgraded" : "downgraded", VERSION);
 
 	while ((ready = poll(pfd, TOTAL, POLL_TIMEOUT)) > 0) {
 		// Read & parse all available lines and act on any registered actions found
