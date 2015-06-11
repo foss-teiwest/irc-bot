@@ -189,7 +189,7 @@ int print_cmd_output(Irc server, const char *target, char *cmd_args[]) {
 	case 0:
 		close(fd[RD]); // Close reading end of the socket
 
-		// Re-open stdout to point to the writting end of our socket
+		// Re-open stdout to point to the writing end of our socket
 		if (dup2(fd[WR], STDOUT_FILENO) != STDOUT_FILENO) {
 			perror("dup2");
 			return EXIT_FAILURE;
@@ -200,7 +200,7 @@ int print_cmd_output(Irc server, const char *target, char *cmd_args[]) {
 		perror("exec failed"); // Exec functions return only on error
 		_exit(EXIT_FAILURE);
 	}
-	close(fd[WR]); // Close writting end
+	close(fd[WR]); // Close writing end
 
 	// Open socket as FILE stream since we need to print in lines anyway
 	prog = fdopen(fd[RD], "r");

@@ -56,7 +56,7 @@ size_t curl_write_memory(char *data, size_t size, size_t elements, void *membuf)
 	// we increase the size of our buffer each time to accommodate for it (and the null char)
 	mem->buffer = realloc_w(mem->buffer, mem->size + total_size + 1);
 
-	// Our mem_buffer struct keeps the current size so far, so we begin writting to the end of it each time
+	// Our mem_buffer struct keeps the current size so far, so we begin writing to the end of it each time
 	memcpy(&(mem->buffer[mem->size]), data, total_size);
 	mem->size += total_size;
 	mem->buffer[mem->size] = '\0';
@@ -74,6 +74,9 @@ void *shorten_url(void *long_url_arg) {
 	struct mem_buffer mem = {NULL, 0};
 	struct curl_slist *headers = NULL;
 	const char *long_url = long_url_arg;
+
+	if (!*cfg.google_shortener_api_key)
+		return NULL;
 
 	curl = curl_easy_init();
 	if (!curl)

@@ -46,7 +46,7 @@ int initialize(int argc, char *argv[], int *fd) {
 	main_thread_id = pthread_self();
 	srandom(time(NULL));
 
-	signal(SIGPIPE, SIG_IGN); // Don't exit program when writting to a closed socket
+	signal(SIGPIPE, SIG_IGN); // Don't exit program when writing to a closed socket
 	setlinebuf(stdout); // Flush on each line
 
 	while ((opt = getopt(argc, argv, "udf:")) != -1) {
