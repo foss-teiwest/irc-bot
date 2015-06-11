@@ -5,7 +5,7 @@ CURRENT=bin/irc-bot
 OLD=irc-bot-old
 
 if [ $OPERATION == "-u" ]; then
-	cp $CURRENT $OLD
+	cp -f $CURRENT $OLD
 	git pull && make -j3 release
 	if [ $? -ne 0 ]; then
 		echo "Error while updating"
@@ -22,5 +22,5 @@ elif [ $OPERATION == "-d" ]; then
 		echo "Already at the oldest version"
 		exit 1
 	fi
-	cp $OLD $CURRENT
+	cp -f $OLD $CURRENT
 fi
