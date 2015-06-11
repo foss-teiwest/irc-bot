@@ -102,5 +102,11 @@ void bot_weather(Irc server, struct parsed_data pdata);
 /** Report population */
 void bot_population(Irc server, struct parsed_data pdata);
 
+//@{
+/** Upgrade or downgrade bot version without restarting */
+void bot_upgrade(Irc server, struct parsed_data pdata);
+void bot_downgrade(Irc server, struct parsed_data pdata);
+//@}
+
 #endif
 

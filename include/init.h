@@ -50,12 +50,15 @@ struct config_options {
 extern struct config_options cfg; //!< global struct with config's values
 
 /** Parse arguments, load config, install signal handlers etc
- *  @param argc, argv main's parameters unaltered */
-void initialize(int argc, char *argv[]);
+ *  @param argc, argv  main's parameters unaltered
+ *  @param fd          the file descriptor passed or 0
+ *  @returns           0 for normal operation, > 0 for upgrade and < 0 for downgrade
+ */
+int initialize(int argc, char *argv[], int *fd);
 
 //@{
 /** The return file descriptors are always valid. exit() is called on failure */
-int setup_irc(Irc *server);
+int setup_irc(Irc *server, int fd);
 int setup_mumble(void);
 int setup_mpd(void);
 int setup_fifo(FILE **stream);

@@ -1,5 +1,6 @@
 # Main program variables
 PROGRAM  = irc-bot
+VERSION  := $(shell echo "r$$(git rev-list --count HEAD).$$(git rev-parse --short HEAD)")
 CC       = gcc
 OUTDIR   = bin
 INCLDIR  = include
@@ -7,7 +8,7 @@ SRCDIR   = src
 TESTDIR  = test
 CFLAGS   = -ggdb3 -Wall -Wextra -std=c99 -pedantic
 LDLIBS   = -pthread -lcurl -lcrypto -lyajl -lsqlite3
-CPPFLAGS = -D_GNU_SOURCE
+CPPFLAGS = -D_GNU_SOURCE -DVERSION='"$(VERSION)"'
 CFLAGS-TEST := $(CFLAGS)
 
 # Disable assertions, enable compiler optimizations and strip binary for "release" rule
@@ -38,7 +39,9 @@ OBJFILES-TEST += $(OBJFILES)
 OBJFILES-TEST := $(filter-out %/main.o %/test_main.h, $(OBJFILES-TEST))
 
 all: $(OUTDIR)/$(PROGRAM)
-release: clean all
+release:
+	$(MAKE) clean
+	$(MAKE) all
 
 # Build main program
 $(OUTDIR)/$(PROGRAM): $(OBJFILES)

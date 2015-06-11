@@ -48,7 +48,7 @@ STATIC void pre_launch_command(Irc server, struct parsed_data pdata, Command *cm
 STATIC void *launch_command(void *cmd_info);
 STATIC void ctcp_handle(Irc server, struct parsed_data pdata);
 
-Irc irc_connect(const char *address, const char *port) {
+Irc irc_connect(const char *address, const char *port, int fd) {
 
 	Irc server;
 
@@ -57,20 +57,26 @@ Irc irc_connect(const char *address, const char *port) {
 		return NULL;
 
 	server = calloc_w(sizeof(*server));
-	server->conn = sock_connect(address, port);
-	if (server->conn < 0) {
-		free(server);
-		return NULL;
+
+	if (fd) {
+		server->conn = fd;
+		server->connected = true;
+	} else {
+		server->conn = sock_connect(address, port);
+		if (server->conn < 0) {
+			free(server);
+			return NULL;
+		}
+		// Set socket to non-blocking mode
+		if (fcntl(server->conn, F_SETFL, O_NONBLOCK))
+			goto cleanup;
 	}
+
 	server->mtx = malloc_w(sizeof(*server->mtx));
 	if (pthread_mutex_init(server->mtx, NULL))
 		goto cleanup;
 
 	if (pipe(server->pipe))
-		goto cleanup;
-
-	// Set socket to non-blocking mode
-	if (fcntl(server->conn, F_SETFL, O_NONBLOCK))
 		goto cleanup;
 
 	strncpy(server->address, address, ADDRLEN);
@@ -133,7 +139,9 @@ void set_nick(Irc server, const char *nick) {
 
 	assert(nick);
 	strncpy(server->nick, nick, NICKLEN);
-	irc_command(server, "NICK", server->nick);
+
+	if (!server->connected)
+		irc_command(server, "NICK", server->nick);
 }
 
 void set_user(Irc server, const char *user) {
@@ -143,8 +151,10 @@ void set_user(Irc server, const char *user) {
 	assert(user);
 	strncpy(server->user, user, USERLEN);
 
-	snprintf(user_with_flags, sizeof(user_with_flags), "%s 0 * :%s", server->user, server->user);
-	irc_command(server, "USER", user_with_flags);
+	if (!server->connected) {
+		snprintf(user_with_flags, sizeof(user_with_flags), "%s 0 * :%s", server->user, server->user);
+		irc_command(server, "USER", user_with_flags);
+	}
 }
 
 int join_channel(Irc server, const char *channel) {
@@ -326,7 +336,7 @@ STATIC void ctcp_handle(Irc server, struct parsed_data pdata) {
 
 	pdata.command++; // Skip the leading escape char
 	if (starts_case_with(pdata.command, "VERSION"))
-		ctcp_reply(server, pdata.sender, "VERSION %s", cfg.bot_version);
+		ctcp_reply(server, pdata.sender, "VERSION %s %s", cfg.bot_version, VERSION);
 	else if (starts_case_with(pdata.command, "TIME"))
 		ctcp_reply(server, pdata.sender, "TIME %s", now_str);
 	else if (starts_case_with(pdata.command, "PING"))

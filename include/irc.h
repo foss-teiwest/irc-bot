@@ -45,9 +45,10 @@ enum irc_reply {
  *
  * @param address  hostname / IP
  * @param port     Port in string form
+ * @param fd       Use this file descriptor instead of connecting
  * @returns        On success: A handler than can be used on every function that requires one or NULL on failure
  */
-Irc irc_connect(const char *address, const char *port);
+Irc irc_connect(const char *address, const char *port, int fd);
 
 /* Extract the socket descriptor from the opaque Irc object
  * @returns  Always a valid descriptor */
