@@ -7,7 +7,7 @@
 	"quit_message": "segfault",
 
 	// Comma seperated list of channels
-	"channels": [ "#foss-teime" ],
+	"channels": [ "#foss-teimes" ],
 
 	// Set to false to show errors only
 	"verbose": true,

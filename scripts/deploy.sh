@@ -6,9 +6,9 @@ OLD=irc-bot-old
 
 if [ $OPERATION == "-u" ]; then
 	cp -f $CURRENT $OLD
-	git pull && make -j3 release
+	git pull > /dev/null 2>&1 && make -s -j3 release
 	if [ $? -ne 0 ]; then
-		echo "Error while updating"
+		echo "Error while updating git or compile error"
 		exit 1
 	fi
 	cmp -s $CURRENT $OLD

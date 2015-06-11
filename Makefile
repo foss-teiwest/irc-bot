@@ -40,8 +40,8 @@ OBJFILES-TEST := $(filter-out %/main.o %/test_main.h, $(OBJFILES-TEST))
 
 all: $(OUTDIR)/$(PROGRAM)
 release:
-	$(MAKE) -s clean
-	$(MAKE) -s all
+	$(MAKE) clean
+	$(MAKE) all
 
 # Build main program
 $(OUTDIR)/$(PROGRAM): $(OBJFILES)
