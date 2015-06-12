@@ -36,29 +36,23 @@ pthread_t main_thread_id;
 char *program_name_arg;
 char *config_file_arg;
 
-int initialize(int argc, char *argv[], int *fd) {
+int initialize(int argc, char *argv[], int *fd_args) {
 
 	int opt, operation = 0;
 	char *config = NULL;
 
-	*fd = 0;
-	program_name_arg = argv[0];
-	main_thread_id = pthread_self();
-	srandom(time(NULL));
-
-	signal(SIGPIPE, SIG_IGN); // Don't exit program when writing to a closed socket
-	setlinebuf(stdout); // Flush on each line
-
 	while ((opt = getopt(argc, argv, "udf:")) != -1) {
 		switch (opt) {
-			case 'f':
-				*fd = optarg[0];
-				break;
 			case 'u':
 				operation = 1;
 				break;
 			case 'd':
 				operation = -1;
+				break;
+			case 'f':
+				fd_args[IRC]         = optarg[IRC];
+				fd_args[MURM_LISTEN] = optarg[MURM_LISTEN];
+				fd_args[MURM_ACCEPT] = optarg[MURM_ACCEPT];
 				break;
 			default:
 				exit_msg("Usage: %s [<-u | -d> <-f fd>] [config_file]", argv[0]);
@@ -67,6 +61,11 @@ int initialize(int argc, char *argv[], int *fd) {
 	if (optind < argc)
 		config = config_file_arg = argv[optind];
 
+	program_name_arg = argv[0];
+	main_thread_id = pthread_self();
+	srandom(time(NULL));
+	signal(SIGPIPE, SIG_IGN); // Don't exit program when writing to a closed socket
+	setlinebuf(stdout); // Flush on each line
 	parse_config(config ? config : DEFAULT_CONFIG_NAME);
 
 	sqlite3_initialize();
@@ -224,14 +223,14 @@ STATIC void parse_config(const char *config_file) {
 	cfg.verbose           = get_json_bool(root, "verbose");
 }
 
-int setup_irc(Irc *server, int fd) {
+int setup_irc(Irc *server, int *fd_args) {
 
 	Mqueue mq;
 	int ircfd;
 	pthread_t tid;
 	pthread_attr_t attr;
 
-	*server = irc_connect(cfg.server, cfg.port, fd);
+	*server = irc_connect(cfg.server, cfg.port, fd_args[IRC]);
 	if (!*server)
 		exit_msg("Irc connection failed");
 
@@ -255,13 +254,20 @@ int setup_irc(Irc *server, int fd) {
 	return ircfd;
 }
 
-int setup_mumble(void) {
+void setup_mumble(struct pollfd *pfd, int *fd_args) {
 
-	if (add_murmur_callbacks(cfg.murmur_port))
-		return sock_listen(LOCALHOST, CB_LISTEN_PORT_S);
-
-	fprintf(stderr, "Could not connect to Murmur\n");
-	return -1;
+	if (fd_args[MURM_LISTEN] <= 0) {
+		if (add_murmur_callbacks(cfg.murmur_port))
+			pfd[MURM_LISTEN].fd = sock_listen(LOCALHOST, CB_LISTEN_PORT_S);
+		else
+			fprintf(stderr, "Could not connect to Murmur\n");
+	} else {
+		pfd[MURM_LISTEN].fd = fd_args[MURM_LISTEN];
+		if (fd_args[MURM_ACCEPT] > 0) {
+			pfd[MURM_ACCEPT].fd = fd_args[MURM_ACCEPT];
+			pfd[MURM_LISTEN].events = 0;
+		}
+	}
 }
 
 int setup_mpd(void) {

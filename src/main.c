@@ -6,24 +6,24 @@
 #include "mpd.h"
 #include "common.h"
 
-enum poll_array {IRC, MURM_LISTEN, MURM_ACCEPT, MPD, FIFO, TOTAL};
+struct pollfd pfd[TOTAL];
 
 int main(int argc, char *argv[]) {
 
 	Irc server;
 	FILE *fifo;
-	int ready, operation, fd;
-	struct pollfd pfd[TOTAL];
+	int fd_args[3] = {0};
+	int ready, operation;
 
 	for (int i = 0; i < TOTAL; i++) {
 		pfd[i].fd = -1;
 		pfd[i].events = POLLIN;
 	}
-	operation           = initialize(argc, argv, &fd);
-	pfd[IRC].fd         = setup_irc(&server, fd);
-	pfd[MURM_LISTEN].fd = setup_mumble();
-	pfd[MPD].fd         = setup_mpd();
-	pfd[FIFO].fd        = setup_fifo(&fifo);
+	operation    = initialize(argc, argv, fd_args);
+	pfd[IRC].fd  = setup_irc(&server, fd_args);
+	pfd[MPD].fd  = setup_mpd();
+	pfd[FIFO].fd = setup_fifo(&fifo);
+	setup_mumble(pfd, fd_args);
 
 	if (operation)
 		send_message(server, default_channel(server), "%s to version %s", operation > 0 ? "upgraded" : "downgraded", VERSION);

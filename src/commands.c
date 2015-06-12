@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <unistd.h>
+#include <poll.h>
 #include <pthread.h>
 #include <sqlite3.h>
 #include <yajl/yajl_tree.h>
@@ -18,6 +19,7 @@
 
 extern char *program_name_arg;
 extern char *config_file_arg;
+extern struct pollfd pfd[TOTAL];
 
 void bot_help(Irc server, struct parsed_data pdata) {
 
@@ -26,26 +28,25 @@ void bot_help(Irc server, struct parsed_data pdata) {
 	send_message(server, pdata.target, "%s", "MPD: play, playlist, history, current, next, shuffle, stop, seek, announce");
 }
 
-static void deploy(char *fd, char *operation) {
+static void deploy(char *operation) {
 
-	execv(program_name_arg, CMD(program_name_arg, operation, "-f", fd, config_file_arg));
+	char fd_args[] = {pfd[IRC].fd, pfd[MURM_LISTEN].fd, pfd[MURM_ACCEPT].fd};
+	execv(program_name_arg, CMD(program_name_arg, operation, "-f", fd_args, config_file_arg));
 	perror(__func__);
 }
 
 void bot_upgrade(Irc server, struct parsed_data pdata) {
 
-	char fd = get_socket(server);
 	if (user_has_access(server, pdata.sender))
 		if (print_cmd_output(server, pdata.target, CMD(SCRIPTDIR "deploy.sh", "-u")) == EXIT_SUCCESS)
-			deploy(&fd, "-u");
+			deploy("-u");
 }
 
 void bot_downgrade(Irc server, struct parsed_data pdata) {
 
-	char fd = get_socket(server);
 	if (user_has_access(server, pdata.sender))
 		if (print_cmd_output(server, pdata.target, CMD(SCRIPTDIR "deploy.sh", "-d")) == EXIT_SUCCESS)
-			deploy(&fd, "-d");
+			deploy("-d");
 }
 
 void bot_access_add(Irc server, struct parsed_data pdata) {

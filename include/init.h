@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <poll.h>
 #include "irc.h"
 
 #define DEFAULT_CONFIG_NAME "config.json"
@@ -17,6 +18,8 @@
 #define PATHLEN       120
 #define MAXACCLIST    10
 #define POLL_TIMEOUT (300 * MILLISECS)
+
+enum fds_array {IRC, MURM_LISTEN, MURM_ACCEPT, MPD, FIFO, TOTAL};
 
 struct config_options {
 	char *server;
@@ -57,12 +60,14 @@ extern struct config_options cfg; //!< global struct with config's values
 int initialize(int argc, char *argv[], int *fd);
 
 //@{
-/** The return file descriptors are always valid. exit() is called on failure */
-int setup_irc(Irc *server, int fd);
-int setup_mumble(void);
+/** The returned file descriptors are always valid. exit() is called on failure */
+int setup_irc(Irc *server, int *fd_args);
 int setup_mpd(void);
 int setup_fifo(FILE **stream);
 //@}
+
+/** Mumble setup is more special because we have to handle 2 probable file descriptors */
+void setup_mumble(struct pollfd *pfd, int *fd_args);
 
 /** Cleanup init's mess */
 void cleanup(void);
