@@ -5,7 +5,9 @@ CURRENT=bin/irc-bot
 OLD=irc-bot-old
 
 if [ "$OPERATION" == "-u" ]; then
-	cmp -s $CURRENT $OLD || cp -f $CURRENT $OLD
+	if [ ! -e $OLD ]; then
+		cp -f $CURRENT $OLD
+	fi
 	git pull > /dev/null 2>&1 && make -s -j3 release
 	if [ $? -ne 0 ]; then
 		echo "Error while updating git or compile error"
