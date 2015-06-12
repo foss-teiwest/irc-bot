@@ -1,6 +1,6 @@
 # Main program variables
 PROGRAM  = irc-bot
-VERSION  := $(shell echo "r$$(git rev-list --count HEAD).$$(git rev-parse --short HEAD)")
+VERSION  := $(shell echo "r$$(git describe --long | sed 's/-/.r/;s/-/./')")
 CC       = gcc
 OUTDIR   = bin
 INCLDIR  = include
