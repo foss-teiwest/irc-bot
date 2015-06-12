@@ -12,7 +12,7 @@ char test_buffer[IRCLEN + 1];
 
 void connect_irc(void) {
 
-	server = irc_connect("www.google.com", "80");
+	server = irc_connect("www.google.com", "80", 0);
 	ck_assert_ptr_ne(server, NULL);
 }
 

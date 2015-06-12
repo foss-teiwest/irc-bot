@@ -6,7 +6,7 @@
 	"nick_password": "",
 	"quit_message": "segfault",
 
-	// Comma seperated list of channels
+	// Comma separated list of channels
 	"channels": [ "#foss-teimes" ],
 
 	// Set to false to show errors only

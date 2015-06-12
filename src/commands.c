@@ -222,7 +222,7 @@ void bot_github(Irc server, struct parsed_data pdata) {
 	if (!commit_count)
 		goto cleanup;
 
-	// Print each commit info with it's short url in a seperate colorized line
+	// Print each commit info with it's short url in a separate colorized line
 	for (int i = 0; i < commit_count; i++) {
 		short_url = shorten_url(commits[i].url);
 		send_message(server, pdata.target, PURPLE "[%.7s]" RESET " %.120s" ORANGE " --%s" BLUE " - %s",

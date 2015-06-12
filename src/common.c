@@ -129,7 +129,7 @@ int extract_params(char *msg, char **argv[]) {
 	// Allocate enough starting space for most bot commands
 	*argv = malloc_w(size * sizeof(char *));
 
-	// split parameters seperated by space or tab
+	// split parameters separated by space or tab
 	(*argv)[argc] = strtok_r(msg, " \t", &savedptr);
 	while ((*argv)[argc]) {
 		if (argc == size - 1) { // Double the array if it gets full
@@ -168,7 +168,7 @@ void send_all_lines(Irc server, const char *target, FILE *stream) {
 		len = strlen(line);
 		if (len > 2) { // Only print if line is not empty
 			line[len - 1] = '\0'; // Remove last newline char (\n) since we add it inside send_message()
-			send_message(server, target, "%s", line); // The %s is needed to avoid interpeting format specifiers in output
+			send_message(server, target, "%s", line); // The %s is needed to avoid interpreting format specifiers in output
 		}
 	}
 }

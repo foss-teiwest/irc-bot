@@ -255,7 +255,10 @@ START_TEST(irc_ctcp_version) {
 	irc_privmsg(server, pdata);
 	n = read(mock[WR], test_buffer, IRCLEN);
 	test_buffer[n - 2] = '\0';
-	ck_assert_str_eq(test_buffer, "NOTICE bot :\x01VERSION irC bot\x01");
+
+	char buf[256];
+	sprintf(buf, "NOTICE bot :\x01VERSION irC bot %s\x01", VERSION);
+	ck_assert_str_eq(test_buffer, buf);
 
 } END_TEST
 

@@ -167,7 +167,7 @@ STATIC char *expand_path(char *path) {
 
 	char *expanded_path, *HOME;
 
-	// Expand tilde '~' by reading the HOME enviroment variable
+	// Expand tilde '~' by reading the HOME environment variable
 	HOME = getenv("HOME");
 
 	if (*path != '~')

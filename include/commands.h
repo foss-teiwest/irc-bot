@@ -58,7 +58,7 @@ void bot_access_add(Irc server, struct parsed_data pdata);
 void bot_fail(Irc server, struct parsed_data pdata);
 
 /** Add a quote to the database
- *  @warning  Multiline quote sentences must be seperated by the pipe character (|)
+ *  @warning  Multiline quote sentences must be separated by the pipe character (|)
  *            Pipe char is optional if the sentence is the last OR the only one in a quote */
 void bot_fail_add(Irc server, struct parsed_data pdata);
 

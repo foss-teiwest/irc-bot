@@ -7,6 +7,7 @@
 #include <limits.h>
 #include <yajl/yajl_tree.h>
 #include "curl.h"
+#include "init.h"
 
 char path[PATH_MAX];
 char testfile[PATH_MAX];
@@ -31,6 +32,7 @@ START_TEST(url_shortener_test) {
 	snprintf(testfile, PATH_MAX, "IRCBOT_TESTFILE=file://%s/test-files/url-shorten.txt", path);
 	putenv(testfile);
 
+	cfg.google_shortener_api_key = "test";
 	char *short_url = shorten_url("rofl.com");
 	ck_assert_str_eq(short_url, "http://goo.gl/LJbW");
 
