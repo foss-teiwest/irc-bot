@@ -7,7 +7,6 @@
  */
 
 #include <stdio.h>
-#include <stddef.h>
 #include <stdbool.h>
 #include "irc.h"
 

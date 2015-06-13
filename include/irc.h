@@ -6,7 +6,6 @@
  * Contains the functions to interact with the IRC network
  */
 
-#include <stddef.h>
 #include <sys/types.h>
 #include <stdbool.h>
 #include "queue.h"

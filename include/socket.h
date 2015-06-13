@@ -6,8 +6,6 @@
  * Contains low level read & write operations
  */
 
-#include <stddef.h>
-#include <sys/types.h>
 #include <stdbool.h>
 
 #define RD   0

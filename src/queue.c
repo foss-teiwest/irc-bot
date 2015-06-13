@@ -2,9 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include <stddef.h>
 #include <time.h>
-#include <unistd.h>
 #include <pthread.h>
 #include <assert.h>
 #include "queue.h"

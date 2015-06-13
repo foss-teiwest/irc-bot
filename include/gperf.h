@@ -9,7 +9,6 @@
 #include "irc.h"
 #include "commands.h"
 #include "mpd.h"
-#include "twitter.h"
 
 typedef void (*func_ptr)(Irc, struct parsed_data);
 

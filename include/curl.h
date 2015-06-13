@@ -6,7 +6,6 @@
  * Contains functions that use CURL directly
  */
 
-#include <stddef.h>
 #include <stdbool.h>
 #include <yajl/yajl_tree.h>
 

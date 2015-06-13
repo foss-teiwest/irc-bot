@@ -2,11 +2,11 @@
 #define CHECK_CHECK_H
 
 #include <check.h>
-#include <stddef.h>
 #include <stdbool.h>
 #include <pthread.h>
 #include "socket.h"
 #include "irc.h"
+#include "init.h"
 #include "queue.h"
 
 struct irc_type {
@@ -29,6 +29,7 @@ extern Irc server;
 extern int mock[RDWR];
 extern struct parsed_data pdata;
 extern char test_buffer[IRCLEN + 1];
+extern struct pollfd pfd[TOTAL];
 
 void connect_irc(void);
 void disconnect_irc(void);

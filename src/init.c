@@ -3,7 +3,6 @@
 #include <unistd.h>
 #include <getopt.h>
 #include <stdbool.h>
-#include <stddef.h>
 #include <fcntl.h>
 #include <signal.h>
 #include <time.h>

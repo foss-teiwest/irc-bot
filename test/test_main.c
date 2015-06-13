@@ -1,6 +1,5 @@
 #include <check.h>
 #include <unistd.h>
-#include <pthread.h>
 #include <sys/socket.h>
 #include "test_main.h"
 #include "irc.h"
@@ -9,6 +8,7 @@ Irc server;
 int mock[RDWR];
 struct parsed_data pdata;
 char test_buffer[IRCLEN + 1];
+struct pollfd pfd[TOTAL];
 
 void connect_irc(void) {
 
