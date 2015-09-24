@@ -4,7 +4,7 @@ RANDOM_ON=~/.mpd_random
 QUEUESIZE=`mpc playlist | wc -l`
 
 if [ ! -e $RANDOM_ON ] || [ $QUEUESIZE -eq 0 ]; then
-	mpc ls | shuf | mpc add && mpc -q play
+	mpc ls | shuf --random-source=/dev/urandom | mpc add && mpc -q play
 	QUEUESIZE=`mpc playlist | wc -l`
 	echo "$QUEUESIZE songs queued @ http://radio.foss.teiwest.gr/"
 	echo 'use "!announce on" to see on IRC which song plays'
