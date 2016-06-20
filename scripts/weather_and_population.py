@@ -1,57 +1,67 @@
 #!/usr/bin/env python3
-import os
 import sys
+import json
 import urllib.request
-from socket import timeout
 
-def main(api_key):
-    if len(sys.argv) == 3: query = sys.argv[2].replace(' ', '%20')
-    else: return print("No query was given.")
+def get_json(url):
+    try: return json.loads(urllib.request.urlopen(url, timeout=12).read().decode('utf-8'))
+    except urllib.error.HTTPError: return None
+    else: return 'Request has timed out.'
 
-    opening = "<plaintext>"
-    closure = "</plaintext>"
+def population(query):
+    countries = get_json('http://api.population.io/1.0/countries')['countries']
 
-    # weather
-    if sys.argv[1] == '-w':
-        url = "http://api.wolframalpha.com/v1/query?appid={}&input=weather%20{}".format(api_key, query)
+    for country in countries:
+        if query.lower() == country.lower():
+            query = country.replace(' ', '%20')
+            break
 
-        try: resp = str( urllib.request.urlopen(url, timeout=12).read() )
-        except timeout: return print("Request timed out")
+    url = 'http://api.population.io/1.0/population/2016/{}/'.format(query)
+    res = get_json(url)
 
-        title_hook = resp.find(opening)
-        if title_hook != -1:
-            title = resp[title_hook+11:resp.find(closure)] + "\n"
-            hook = resp.find('InstantaneousWeather:WeatherData')
+    if res is None: return print('Invalid country. Refer to http://api.population.io/1.0/countries for a list of all countries available.')
+    elif isinstance(res, str) is True: return print(res)
 
-            if hook != -1:
-                result = resp[resp.find(opening, hook)+11:resp.find(closure, hook)]
-                # cleaning up result because urllib...
-                result = result.replace(" \\xc2\\xb0C", "°").replace("\\n", "\n")
-                print(title.replace(" |", ":") + result.replace(" |", ":"))
-            else:
-                print("No weather found for result '{}'.".format(title.replace(" |", ":")))
-        else:
-            print("Not found.")
+    total   = 0
+    males   = 0
+    females = 0
 
-    # population
-    elif sys.argv[1] == '-p':
-        url = "http://api.wolframalpha.com/v1/query?appid={}&input=population%20{}".format(api_key, query)
+    for entry in res:
+        total   += entry['males'] + entry['females']
+        males   += entry['males']
+        females += entry['females']
 
-        try: resp = str( urllib.request.urlopen(url, timeout=12).read() )
-        except timeout: return print("Request timed out")
+    print('Total population ({}, 2016): {:,} | Males: {:,} ({}%) | Females: {:,} ({}%)'.format(
+        query.replace('%20', ' '), total,
+        males, round((males * 100)/total, 2),
+        females, round((females * 100)/total, 2)
+    ))
 
-        title_opening = resp.find(opening)
-        if title_opening != -1:
-            title_closure = resp.find(closure)
-            title = resp[title_opening+11:title_closure] + "\n"
-            result = resp[resp.find(opening, title_opening+1)+11:resp.find(closure, title_closure+1)]
-            print(title.replace(" |", ":") + result)
-        else:
-            print("Not found.")
+def weather(api_key, query):
+    query = query.replace(' ', '%20')
+    url = 'http://api.wunderground.com/api/{}/conditions/q/{}.json'.format(api_key, query)
+    res = get_json(url)
 
-    else:
-        print("No valid argument found.")
+    if isinstance(res, str) is True: return print(res)
+    if 'response' in res:
+        ptr = res['response']
+        if 'results' in ptr: return print('Found {} results, please be more specific (i.e. "city country").'.format(len(ptr['results'])))
+        if 'error' in ptr: return print(ptr['error']['description'] + '.')
+
+    result = res['current_observation']
+    print('Weather ({}): {} | Humidity: {} | Wind: {}\nLast updated on {}.'.format(
+        result['display_location']['full'], result['temperature_string'],
+        result['relative_humidity'],
+        result['wind_string'],
+        result['observation_time_rfc822']
+    ))
+
 
 if __name__ == '__main__':
-    api_key = os.environ['WOLFRAMALPHA_API_KEY']
-    main(api_key)
+    if len(sys.argv) == 3:
+        if sys.argv[1] == '-w':
+            weather('847c514d3a158eb4', sys.argv[2])
+        elif sys.argv[1] == '-p':
+            population(sys.argv[2])
+    else:
+        print('No query was given.')
