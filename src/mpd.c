@@ -129,13 +129,12 @@ STATIC bool mpd_announce(bool on) {
 
 	if (on) {
 		TRUE(mpd->announce);
-		return sock_write(mpd->fd, "idle player\n", 12) == 12;
+		return (sock_write(mpd->fd, "noidle\n", 7) == 7 &&
+			sock_write(mpd->fd, "idle player\n", 12) == 12);
 	} else {
-		if (!FETCH(mpd->announce))
-			return true;
-
 		FALSE(mpd->announce);
-		return sock_write(mpd->fd, "noidle\n", 7) == 7;
+		return (sock_write(mpd->fd, "noidle\n", 7) == 7 &&
+			sock_write(mpd->fd, "idle sticker\n", 13) == 13);
 	}
 }
 
@@ -164,6 +163,7 @@ void bot_announce(Irc server, struct parsed_data pdata) {
 int mpd_connect(const char *port) {
 
 	char buf[64];
+	bool status;
 
 	mpd->fd = sock_connect(LOCALHOST, port);
 	if (mpd->fd < 0)
@@ -180,8 +180,12 @@ int mpd_connect(const char *port) {
 		goto cleanup;
 	}
 	if (FETCH(mpd->announce))
-		if (!mpd_announce(ON))
-			goto cleanup;
+		status = mpd_announce(ON);
+	else
+		status = mpd_announce(OFF);
+
+	if (!status)
+		goto cleanup;
 
 	return mpd->fd; // Success
 
