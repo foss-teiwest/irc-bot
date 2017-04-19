@@ -12,15 +12,11 @@ if [ $COUNT -gt 10 ]; then
 	COUNT=10
 fi
 
-if [ $RESULT_LINES -eq 0 ]; then
+if [ $RESULT_BYTES -lt 5 ]; then
 	RESULT=$QUERY
-else
-	if [ $RESULT_BYTES -lt 5 ]; then
-		exit 1
-	fi
 fi
 
-if [ $RESULT_LINES -le 1 ]; then
+if [ $RESULT_LINES -eq 1 ]; then
 	if [ -e $RANDOM_ON ]; then
 		echo "random mode disabled"
 		mpc -q crop
