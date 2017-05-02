@@ -145,9 +145,6 @@ void bot_announce(Irc server, struct parsed_data pdata) {
 
 	(void) server; // Silence unused variable warning
 
-	if (!FETCH(mpd->random))
-		return;
-
 	argc = extract_params(pdata.message, &argv);
 	if (!argc)
 		return;
